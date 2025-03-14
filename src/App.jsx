@@ -1,17 +1,25 @@
-import { Button } from "@/components/ui/button";
-
+import { adminRoutes, publicRoutes } from "@/routes";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh">
-      <Button
-      className="bg-amber-300 hover:bg-slate-600"
-        onClick={() => {
-          alert("hello world");
-        }}
-      >
-        Click me
-      </Button>
-    </div>
+    <>
+      <Router>
+        <Routes>
+          {/* public routes */}
+          {publicRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={<route.page />} />
+          ))}
+
+          {/* admin routes */}
+          {adminRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={<route.page />} />
+          ))}
+
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Router>
+    </>
   );
 }
 

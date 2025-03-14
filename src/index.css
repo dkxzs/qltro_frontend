@@ -1,5 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Redressed&display=swap");
 @import "tailwindcss";
-
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
