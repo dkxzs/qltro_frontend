@@ -1,10 +1,13 @@
 import { AppSidebar } from "@/components/admin/components/AppSideBar/AppSideBar";
 import { Separator } from "@/components/ui/separator";
+import { IoMenuOutline } from "react-icons/io5";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import NavUser from "@/components/admin/components/NavUser/NavUser";
+import { Outlet } from "react-router-dom";
 
 const AdminPage = () => {
   return (
@@ -12,19 +15,19 @@ const AdminPage = () => {
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <header className="flex sticky top-0 bg-white justify-between h-12 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b mb-1">
             <div className="flex items-center gap-2 px-4">
-              <SidebarTrigger className="-ml-1" />
+              <SidebarTrigger className="-ml-1 cursor-pointer hover:bg-white">
+                <IoMenuOutline className="size-7 font-bold" />
+              </SidebarTrigger>
               <Separator orientation="vertical" className="mr-2 h-4" />
             </div>
-          </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-              <div className="aspect-video rounded-xl bg-muted/50" />
-              <div className="aspect-video rounded-xl bg-muted/50" />
-              <div className="aspect-video rounded-xl bg-muted/50" />
+            <div className="mr-2">
+              <NavUser />
             </div>
-            <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+          </header>
+          <div>
+            <Outlet />
           </div>
         </SidebarInset>
       </SidebarProvider>

@@ -1,148 +1,136 @@
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  GalleryVerticalEnd,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react";
-
 import NavMain from "@/components/admin/components/NavMain/NavMain.jsx";
-import NavUser from "@/components/admin/components/NavUser/NavUser.jsx";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenuButton,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { LayoutDashboard, UserCog } from "lucide-react";
+import { BsHouseGear } from "react-icons/bs";
+import { FiLogOut } from "react-icons/fi";
+import { IoWaterOutline } from "react-icons/io5";
+import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
+import {
+  MdElectricBolt,
+  MdOutlineBedroomParent,
+  MdOutlineMiscellaneousServices,
+} from "react-icons/md";
+import { TbReport } from "react-icons/tb";
 import TeamSwitcher from "../TeamSwitcher/TeamSwitcher";
+import { useNavigate } from "react-router-dom";
 
-// This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
+      title: "Tổng quan",
+      url: "/admin",
+      icon: LayoutDashboard,
+      isActive: false,
+      items: [],
+    },
+    {
+      title: "Phòng trọ",
+      url: "",
+      icon: BsHouseGear,
+      isActive: false,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "Quản lý phòng trọ",
+          url: "/admin/rooms",
         },
         {
-          title: "Starred",
-          url: "#",
+          title: "Danh sách loại phòng",
+          url: "/admin/room-types",
         },
+      ],
+    },
+    {
+      title: "Khách trọ",
+      url: "",
+      icon: UserCog,
+      items: [
         {
-          title: "Settings",
+          title: "Quản lý khách trọ",
+          url: "/admin/guests",
+        },
+      ],
+    },
+    {
+      title: "Dịch vụ",
+      url: "",
+      icon: MdOutlineMiscellaneousServices,
+      items: [
+        {
+          title: "Quản lý dịch vụ",
+          url: "/admin/services",
+        },
+      ],
+    },
+    {
+      title: "Chỉ số điện",
+      url: "",
+      icon: MdElectricBolt,
+      items: [],
+    },
+    {
+      title: "Chỉ số nước",
+      url: "",
+      icon: IoWaterOutline,
+      items: [],
+    },
+    {
+      title: "Thuê phòng",
+      url: "",
+      icon: MdOutlineBedroomParent,
+      items: [
+        {
+          title: "Quản lý thuê phòng",
+          url: "/admin/rentals",
+        },
+      ],
+    },
+    {
+      title: "Hoá đơn",
+      url: "",
+      icon: LiaFileInvoiceDollarSolid,
+      items: [
+        {
+          title: "Quản lý hoá đơn",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+      title: "Thống kê báo cáo",
+      url: "",
+      icon: TbReport,
+      items: [],
     },
   ],
 };
 
 export function AppSidebar({ ...props }) {
+  const navigate = useNavigate();
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+      <SidebarHeader className="border-b">
+        <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
+      <SidebarFooter className="border-t">
+        <div
+          className="flex items-center gap-2 justify-center hover:bg-accent rounded-sm"
+          onClick={() => navigate("/admin/login")}
+        >
+          <SidebarMenuButton className="flex justify-center cursor-pointer">
+            <FiLogOut className="size-4" />
+            <span className="text-md">Đăng xuất</span>
+          </SidebarMenuButton>
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
