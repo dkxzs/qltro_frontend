@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, Download, Plus } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../Pagination/Pagination";
 import TableUser from "./TableUser/TableUser";
+import ModalAddUser from "./ModalAddUser/ModalAddUser";
 
 // Dữ liệu mẫu
 const userData = [
@@ -117,6 +118,7 @@ const AdminUser = () => {
               <Plus className="h-5 w-5" />
               Thêm khách trọ
             </Button>
+            <ModalAddUser />
             <Button className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded-sm">
               <Download className="h-5 w-5" />
               Xuất file

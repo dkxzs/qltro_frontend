@@ -7,8 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash } from "lucide-react";
-import Pagination from "../../Pagination/Pagination";
+import { Pencil, Trash2 } from "lucide-react";
 
 const TableUser = (props) => {
   const { userData } = props;
@@ -18,7 +17,7 @@ const TableUser = (props) => {
         <TableHeader>
           <TableRow className="bg-gray-100">
             <TableHead className="text-center">STT</TableHead>
-            <TableHead>Họ Tên</TableHead>
+            <TableHead>Họ tên</TableHead>
             <TableHead>CCCD</TableHead>
             <TableHead>Giới tính</TableHead>
             <TableHead>Email</TableHead>
@@ -56,7 +55,7 @@ const TableUser = (props) => {
                     variant="outline"
                     className="h-8 w-8 bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700 hover:text-white cursor-pointer"
                   >
-                    <Trash className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>
