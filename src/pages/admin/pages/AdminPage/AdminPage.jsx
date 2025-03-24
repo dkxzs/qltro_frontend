@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import NavUser from "@/components/admin/components/NavUser/NavUser";
 import { Outlet } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 
 const AdminPage = () => {
   return (
@@ -31,6 +32,7 @@ const AdminPage = () => {
           </div>
         </SidebarInset>
       </SidebarProvider>
+      
     </>
   );
 };

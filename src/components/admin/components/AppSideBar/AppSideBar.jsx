@@ -41,8 +41,12 @@ const data = {
           url: "/admin/rooms",
         },
         {
-          title: "Danh sách loại phòng",
+          title: "Loại phòng",
           url: "/admin/room-types",
+        },
+        {
+          title: "Nhà",
+          url: "/admin/buildings",
         },
       ],
     },
@@ -70,26 +74,21 @@ const data = {
     },
     {
       title: "Chỉ số điện",
-      url: "",
+      url: "/admin/electricity",
       icon: MdElectricBolt,
       items: [],
     },
     {
       title: "Chỉ số nước",
-      url: "",
+      url: "/admin/water",
       icon: IoWaterOutline,
       items: [],
     },
     {
       title: "Thuê phòng",
-      url: "",
+      url: "/admin/rents",
       icon: MdOutlineBedroomParent,
-      items: [
-        {
-          title: "Quản lý thuê phòng",
-          url: "/admin/rentals",
-        },
-      ],
+      items: [],
     },
     {
       title: "Hoá đơn",
@@ -97,14 +96,14 @@ const data = {
       icon: LiaFileInvoiceDollarSolid,
       items: [
         {
-          title: "Quản lý hoá đơn",
-          url: "#",
+          title: "Danh sách",
+          url: "/admin/invoices",
         },
       ],
     },
     {
       title: "Thống kê báo cáo",
-      url: "",
+      url: "/admin/reports",
       icon: TbReport,
       items: [],
     },

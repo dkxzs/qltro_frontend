@@ -62,12 +62,11 @@ const services = [
   },
 ];
 
-const AdminRoomType = () => {
+const AdminBuilding = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
-
   return (
     <div className=" mx-auto p-4">
-      <h2 className="text-xl font-semibold mb-4">Quản lý loại phòng</h2>
+      <h2 className="text-xl font-semibold mb-4">Quản lý nhà</h2>
       <Card className="mb-4 rounded py-2">
         <CardContent className="p-0">
           <div
@@ -86,9 +85,9 @@ const AdminRoomType = () => {
             <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <label className="w-27 text-sm">Tên loại phòng:</label>
+                  <label className="w-27 text-sm">Tên nhà:</label>
                   <Input
-                    placeholder="Nhập tên loại phòng"
+                    placeholder="Nhập tên nhà"
                     className="flex-1 rounded-none outline-none"
                   />
                 </div>
@@ -99,7 +98,7 @@ const AdminRoomType = () => {
       </Card>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-medium">Danh sách loại phòng</h1>
+          <h1 className="text-xl font-medium">Danh sách nhà</h1>
         </div>
         <div className="flex gap-2">
           <Button className="bg-green-600 hover:bg-green-700 cursor-pointer hover:text-white rounded-sm">
@@ -119,10 +118,10 @@ const AdminRoomType = () => {
                 STT
               </TableHead>
               <TableHead className="py-3 px-4 text-left font-medium">
-                Tên loại phòng
+                Tên nhà
               </TableHead>
               <TableHead className="py-3 px-4 text-left font-medium">
-                Đơn giá
+                Địa chỉ
               </TableHead>
               <TableHead className="py-3 px-4 text-left font-medium">
                 Mô tả
@@ -141,7 +140,6 @@ const AdminRoomType = () => {
                 <TableCell className="py-3 px-4">
                   {service.price.toLocaleString()}
                 </TableCell>
-
                 <TableCell className="py-3 px-4">
                   <div className="flex gap-1 ">
                     <Button
@@ -167,4 +165,4 @@ const AdminRoomType = () => {
   );
 };
 
-export default AdminRoomType;
+export default AdminBuilding;

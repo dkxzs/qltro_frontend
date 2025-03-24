@@ -57,7 +57,7 @@ const services = [
 
 const AdminService = () => {
   return (
-    <div className="container mx-auto p-4">
+    <div className=" mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-medium">Dịch vụ</h1>

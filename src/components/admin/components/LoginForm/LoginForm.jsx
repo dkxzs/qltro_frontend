@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { login } from "@/services/authServices";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const LoginForm = ({ className, ...props }) => {
   const navigate = useNavigate();
@@ -20,10 +23,28 @@ const LoginForm = ({ className, ...props }) => {
     }));
   };
 
+  const mutationLogin = useMutation({
+    mutationFn: async ({ email, password }) => {
+      const res = await login(email, password);
+      return res;
+    },
+    onSuccess: (res) => {
+      if (+res.EC === 0) {
+        // localStorage.setItem("token", res?.data?.token);
+        toast.success("Đăng nhập thành công");
+        navigate("/admin");
+      } else {
+        toast.error(res.EM);
+      }
+    },
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log(formData);
+    mutationLogin.mutate({
+      email: formData.email,
+      password: formData.password,
+    });
   };
   return (
     <form className={cn("flex flex-col gap-6", className)} {...props}>
@@ -48,12 +69,6 @@ const LoginForm = ({ className, ...props }) => {
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password">Mật khẩu</Label>
-            {/* <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Forgot your password?
-            </a> */}
           </div>
           <Input
             id="password"
@@ -68,9 +83,8 @@ const LoginForm = ({ className, ...props }) => {
         <Button
           type="submit"
           className="w-full cursor-pointer"
-          onClick={() => {
-            navigate("/admin");
-            handleSubmit();
+          onClick={(e) => {
+            handleSubmit(e);
           }}
         >
           Đăng nhập

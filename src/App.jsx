@@ -2,6 +2,7 @@ import { adminRoutes, publicRoutes } from "@/routes";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 import AdminPage from "./pages/admin/pages/AdminPage/AdminPage";
+import { ToastContainer } from "react-toastify";
 function App() {
   return (
     <>
@@ -26,6 +27,17 @@ function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   );
 }
