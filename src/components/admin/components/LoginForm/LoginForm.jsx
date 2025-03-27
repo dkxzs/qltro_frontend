@@ -2,14 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { login } from "@/services/authServices";
+import { SignIn } from "@/services/authServices";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { login } from "@/redux/slices/userSlice";
 
 const LoginForm = ({ className, ...props }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,13 +28,15 @@ const LoginForm = ({ className, ...props }) => {
 
   const mutationLogin = useMutation({
     mutationFn: async ({ email, password }) => {
-      const res = await login(email, password);
+      const res = await SignIn(email, password);
       return res;
     },
     onSuccess: (res) => {
       if (+res.EC === 0) {
         // localStorage.setItem("token", res?.data?.token);
+        console.log("check log: ", res);
         toast.success("Đăng nhập thành công");
+        dispatch(login(res));
         navigate("/admin");
       } else {
         toast.error(res.EM);
@@ -41,6 +46,14 @@ const LoginForm = ({ className, ...props }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Regex kiểm tra email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Email không hợp lệ. Vui lòng nhập đúng định dạng.");
+      return;
+    }
+
     mutationLogin.mutate({
       email: formData.email,
       password: formData.password,

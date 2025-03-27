@@ -20,6 +20,8 @@ import {
 import { TbReport } from "react-icons/tb";
 import TeamSwitcher from "../TeamSwitcher/TeamSwitcher";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "@/redux/slices/userSlice";
 
 const data = {
   navMain: [
@@ -112,6 +114,12 @@ const data = {
 
 export function AppSidebar({ ...props }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/admin/login");
+  };
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="border-b">
@@ -121,11 +129,11 @@ export function AppSidebar({ ...props }) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter className="border-t">
-        <div
-          className="flex items-center gap-2 justify-center hover:bg-accent rounded-sm"
-          onClick={() => navigate("/admin/login")}
-        >
-          <SidebarMenuButton className="flex justify-center cursor-pointer">
+        <div className="flex items-center gap-2 justify-center hover:bg-accent rounded-sm">
+          <SidebarMenuButton
+            className="flex justify-center cursor-pointer"
+            onClick={handleLogout}
+          >
             <FiLogOut className="size-4" />
             <span className="text-md">Đăng xuất</span>
           </SidebarMenuButton>

@@ -3,6 +3,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 import AdminPage from "./pages/admin/pages/AdminPage/AdminPage";
 import { ToastContainer } from "react-toastify";
+import ProtectedRouteAdmin from "./components/ProtectedRouteAdmin/ProtectedRouteAdmin";
 function App() {
   return (
     <>
@@ -14,7 +15,14 @@ function App() {
           ))}
 
           {/* admin routes */}
-          <Route path="/admin" element={<AdminPage />}>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRouteAdmin>
+                <AdminPage />
+              </ProtectedRouteAdmin>
+            }
+          >
             {adminRoutes.map((route, index) =>
               route.index ? (
                 <Route key={index} index element={<route.page />} />
