@@ -101,7 +101,7 @@ const AdminUser = () => {
                   <label className="w-27 text-sm">Tên khách trọ:</label>
                   <Input
                     placeholder="Nhập tên khách trọ"
-                    className="flex-1 rounded-none outline-none"
+                    className="flex-1 rounded outline-none"
                   />
                 </div>
               </div>
@@ -114,10 +114,10 @@ const AdminUser = () => {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Danh sách khách trọ</h3>
           <div className="flex items-center">
-            <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded-sm">
+            {/* <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded-sm">
               <Plus className="h-5 w-5" />
               Thêm khách trọ
-            </Button>
+            </Button> */}
             <ModalAddUser />
             <Button className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded-sm">
               <Download className="h-5 w-5" />
