@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -7,56 +6,48 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2 } from "lucide-react";
+import ModalDeleteCustomer from "../ModalDeleteCustomer/ModalDeleteCustomer";
+import ModalUpdateUser from "../ModalUpdateCustomer/ModalUpdateCustomer";
 
 const TableUser = (props) => {
-  const { userData } = props;
+  const { userData, refetch } = props;
+
   return (
     <>
-      <Table>
+      <Table className="text-sm">
         <TableHeader>
           <TableRow className="bg-gray-100">
-            <TableHead className="text-center">STT</TableHead>
-            <TableHead>Họ tên</TableHead>
-            <TableHead>CCCD</TableHead>
-            <TableHead>Giới tính</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Điện thoại</TableHead>
-            <TableHead>Địa chỉ</TableHead>
-            <TableHead className="text-center">Hành động</TableHead>
+            <TableHead className="w-12">STT</TableHead>
+            <TableHead className="max-w-xs">Họ tên</TableHead>
+            <TableHead className="max-w-md">Căn cước công dân</TableHead>
+            <TableHead className="max-w-xs">Giới tính</TableHead>
+            <TableHead className="max-w-md">Email</TableHead>
+            <TableHead className="max-w-xs">Điện thoại</TableHead>
+            <TableHead className="max-w-lg">Địa chỉ</TableHead>
+            <TableHead className="w-32 text-center">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {userData.map((room, index) => (
+          {userData?.DT.map((user, index) => (
             <TableRow
               key={index}
-              className={index % 2 === 0 ? "bg-blue-50 " : ""}
+              className={index % 2 === 0 ? "bg-blue-50" : ""}
             >
-              <TableCell className="text-center">{room.id}</TableCell>
-              <TableCell>{room.HoTen}</TableCell>
-              <TableCell>{room.CCCD}</TableCell>
-              <TableCell>{room.GioiTinh}</TableCell>
-              <TableCell>{room.Email.toLocaleString()}</TableCell>
-              <TableCell className="max-w-md truncate">
-                {room.DienThoai}
+              <TableCell className="text-center">{index + 1}</TableCell>
+              <TableCell className="max-w-xs truncate">{user.HoTen}</TableCell>
+              <TableCell className="max-w-md truncate">{user.CCCD}</TableCell>
+              <TableCell className="max-w-xs truncate">
+                {user.GioiTinh === "Nam" ? "Nam" : "Nữ"}
               </TableCell>
-              <TableCell>{room.DiaChi}</TableCell>
+              <TableCell className="max-w-md truncate">{user.Email}</TableCell>
+              <TableCell className="max-w-xs truncate">
+                {user.DienThoai}
+              </TableCell>
+              <TableCell className="max-w-lg truncate">{user.DiaChi}</TableCell>
               <TableCell>
                 <div className="flex justify-center gap-1">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700 hover:text-white cursor-pointer"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="h-8 w-8 bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700 hover:text-white cursor-pointer"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <ModalUpdateUser dataUpdate={user} refetch={refetch} />
+                  <ModalDeleteCustomer />
                 </div>
               </TableCell>
             </TableRow>

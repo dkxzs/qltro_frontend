@@ -101,10 +101,10 @@ const AdminBuilding = () => {
           <h1 className="text-xl font-medium">Danh sách nhà</h1>
         </div>
         <div className="flex gap-2">
-          <Button className="bg-green-600 hover:bg-green-700 cursor-pointer hover:text-white rounded-sm">
+          <Button className="bg-green-600 hover:bg-green-700 cursor-pointer hover:text-white rounded">
             <Plus className=" h-4 w-4" /> Thêm mới
           </Button>
-          <Button className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer hover:text-white rounded-sm">
+          <Button className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer hover:text-white rounded">
             <Download className=" h-4 w-4" /> Xuất dữ liệu
           </Button>
         </div>

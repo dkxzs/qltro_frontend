@@ -18,7 +18,8 @@ import { Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalAddUser = () => {
+const ModalAddUser = (props) => {
+  const { refetch } = props;
   const [formData, setFormData] = useState({
     name: "",
     cardId: "",
@@ -88,31 +89,93 @@ const ModalAddUser = () => {
       return res;
     },
     onSuccess: (data) => {
-      if (data.EC === 0) {
-        toast.success("Thêm khách trọ thành công");
+      if (+data.EC === 0) {
+        toast.success(data.EM);
         resetForm();
         setOpen(false);
+        refetch();
       } else {
-        toast.error("Thêm thất bại");
+        toast.error(data.EM);
       }
     },
   });
 
+  const validateForm = () => {
+    // Kiểm tra tên
+    if (!formData.name.trim()) {
+      toast.error("Tên không được để trống");
+      return false;
+    }
+
+    // Kiểm tra số điện thoại (10 chữ số)
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      toast.error("Số điện thoại phải là 10 chữ số");
+      return false;
+    }
+
+    // Kiểm tra địa chỉ
+    if (!formData.address.trim()) {
+      toast.error("Địa chỉ không được để trống");
+      return false;
+    }
+
+    // Kiểm tra căn cước công dân (12 chữ số)
+    const cardIdRegex = /^\d{12}$/;
+    if (!cardIdRegex.test(formData.cardId)) {
+      toast.error("Số căn cước công dân phải là 12 chữ số");
+      return false;
+    }
+
+    // Kiểm tra ngày sinh
+    if (!formData.birthday) {
+      toast.error("Ngày sinh không được để trống");
+      return false;
+    }
+
+    // Kiểm tra email (định dạng cơ bản)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Email không đúng định dạng");
+      return false;
+    }
+
+    // Kiểm tra ảnh
+    if (!formData.avatar) {
+      toast.error("Ảnh không được để trống");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-    mutationCreateCustomer.mutate(formData);
+    if (validateForm()) {
+      mutationCreateCustomer.mutate(formData);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={() => {
+        setOpen(!open);
+        resetForm();
+      }}
+    >
       <DialogTrigger asChild>
         <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <Plus className="h-5 w-5" />
+          <Plus className="h-5 w-5  text-white" />
           Thêm khách trọ
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-3/5 rounded">
+      <DialogContent
+        className="w-3/5 rounded"
+        onInteractOutside={(event) => {
+          event.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Thêm khách trọ</DialogTitle>
           <DialogDescription>

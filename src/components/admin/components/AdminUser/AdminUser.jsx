@@ -5,77 +5,16 @@ import { ChevronDown, ChevronUp, Download, Plus } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../Pagination/Pagination";
 import TableUser from "./TableUser/TableUser";
-import ModalAddUser from "./ModalAddUser/ModalAddUser";
-
-// Dữ liệu mẫu
-const userData = [
-  {
-    id: 1,
-    HoTen: "Nguyễn Văn A",
-    CCCD: "024200305671",
-    GioiTinh: "Nam",
-    Email: "abc@gmail.com",
-    DienThoai: "0123456789",
-    DiaChi: "Thôn Chùa Xã Hương Vĩ Huyện Yên Thế Tỉnh Bắc Giang.",
-  },
-  {
-    id: 1,
-    HoTen: "Nguyễn Văn A",
-    CCCD: "024200305671",
-    GioiTinh: "Nam",
-    Email: "abc@gmail.com",
-    DienThoai: "0123456789",
-    DiaChi: "Thôn Chùa Xã Hương Vĩ Huyện Yên Thế Tỉnh Bắc Giang.",
-  },
-  {
-    id: 1,
-    HoTen: "Nguyễn Văn A",
-    CCCD: "024200305671",
-    GioiTinh: "Nam",
-    Email: "abc@gmail.com",
-    DienThoai: "0123456789",
-    DiaChi: "Thôn Chùa Xã Hương Vĩ Huyện Yên Thế Tỉnh Bắc Giang.",
-  },
-  {
-    id: 1,
-    HoTen: "Nguyễn Văn A",
-    CCCD: "024200305671",
-    GioiTinh: "Nam",
-    Email: "abc@gmail.com",
-    DienThoai: "0123456789",
-    DiaChi: "Thôn Chùa Xã Hương Vĩ Huyện Yên Thế Tỉnh Bắc Giang.",
-  },
-  {
-    id: 1,
-    HoTen: "Nguyễn Văn A",
-    CCCD: "024200305671",
-    GioiTinh: "Nam",
-    Email: "abc@gmail.com",
-    DienThoai: "0123456789",
-    DiaChi: "Thôn Chùa Xã Hương Vĩ Huyện Yên Thế Tỉnh Bắc Giang.",
-  },
-  {
-    id: 1,
-    HoTen: "Nguyễn Văn A",
-    CCCD: "024200305671",
-    GioiTinh: "Nam",
-    Email: "abc@gmail.com",
-    DienThoai: "0123456789",
-    DiaChi: "Thôn Chùa Xã Hương Vĩ Huyện Yên Thế Tỉnh Bắc Giang.",
-  },
-  {
-    id: 1,
-    HoTen: "Nguyễn Văn A",
-    CCCD: "024200305671",
-    GioiTinh: "Nam",
-    Email: "abc@gmail.com",
-    DienThoai: "0123456789",
-    DiaChi: "Thôn Chùa Xã Hương Vĩ Huyện Yên Thế Tỉnh Bắc Giang.",
-  },
-];
+import ModalAddUser from "./ModalAddCustomer/ModalAddCustomer";
+import { useQuery } from "@tanstack/react-query";
+import { getAllCustomerService } from "@/services/customerServices";
 
 const AdminUser = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+  const { data: userData, refetch } = useQuery({
+    queryKey: ["user"],
+    queryFn: getAllCustomerService,
+  });
 
   return (
     <div className="p-2">
@@ -114,12 +53,8 @@ const AdminUser = () => {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Danh sách khách trọ</h3>
           <div className="flex items-center">
-            {/* <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded-sm">
-              <Plus className="h-5 w-5" />
-              Thêm khách trọ
-            </Button> */}
-            <ModalAddUser />
-            <Button className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded-sm">
+            <ModalAddUser refetch={refetch} />
+            <Button className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded">
               <Download className="h-5 w-5" />
               Xuất file
             </Button>
@@ -129,7 +64,7 @@ const AdminUser = () => {
 
       <div className="min-h-[380px]">
         <div className="rounded border overflow-hidden">
-          <TableUser userData={userData} />
+          <TableUser userData={userData} refetch={refetch} />
         </div>
       </div>
       <div className="my-2">
