@@ -1,5 +1,9 @@
 import axios from "../utils/axiosCustomize";
 
+const getAllCustomerService = async () => {
+  const res = await axios.get("/customer/get-all-customer");
+  return res.data;
+};
 const createCustomerService = async (data) => {
   const formData = new FormData();
   formData.append("HoTen", data.name);
@@ -11,11 +15,6 @@ const createCustomerService = async (data) => {
   formData.append("DiaChi", data.address);
   formData.append("Anh", data.avatar);
   const res = await axios.post("/customer/create-customer", formData);
-  return res.data;
-};
-
-const getAllCustomerService = async () => {
-  const res = await axios.get("/customer/get-all-customer");
   return res.data;
 };
 
@@ -35,4 +34,14 @@ const updateCustomerService = async (id, data) => {
   return res.data;
 };
 
-export { createCustomerService, getAllCustomerService, updateCustomerService };
+const deleteCustomerService = async (id) => {
+  const res = await axios.delete(`/customer/delete-customer/${id}`);
+  return res.data;
+};
+
+export {
+  createCustomerService,
+  getAllCustomerService,
+  updateCustomerService,
+  deleteCustomerService,
+};

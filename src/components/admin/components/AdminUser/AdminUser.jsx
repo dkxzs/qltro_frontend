@@ -1,25 +1,44 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, ChevronUp, Download, Plus } from "lucide-react";
+import { getAllCustomerService } from "@/services/customerServices";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../Pagination/Pagination";
-import TableUser from "./TableUser/TableUser";
 import ModalAddUser from "./ModalAddCustomer/ModalAddCustomer";
-import { useQuery } from "@tanstack/react-query";
-import { getAllCustomerService } from "@/services/customerServices";
+import TableUser from "./TableUser/TableUser";
 
 const AdminUser = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(1);
+
   const { data: userData, refetch } = useQuery({
     queryKey: ["user"],
     queryFn: getAllCustomerService,
   });
 
+  const filteredUserData = userData?.DT.filter((user) =>
+    user.HoTen.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredUserData?.length / itemsPerPage);
+
+  const paginatedData = filteredUserData?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div className="p-2">
       <h2 className="text-xl font-semibold mb-4">Quản lý khách trọ</h2>
-      <Card className="mb-4 rounded py-2">
+      <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div
             className="flex items-center cursor-pointer border-b"
@@ -40,7 +59,9 @@ const AdminUser = () => {
                   <label className="w-27 text-sm">Tên khách trọ:</label>
                   <Input
                     placeholder="Nhập tên khách trọ"
-                    className="flex-1 rounded outline-none"
+                    className="flex-1 rounded outline-none shadow-none"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
                   />
                 </div>
               </div>
@@ -62,13 +83,17 @@ const AdminUser = () => {
         </div>
       </div>
 
-      <div className="min-h-[380px]">
-        <div className="rounded border overflow-hidden">
-          <TableUser userData={userData} refetch={refetch} />
+      <div className="min-h-[380px] border rounded">
+        <div className=" border overflow-hidden">
+          <TableUser userData={paginatedData} refetch={refetch} />
         </div>
       </div>
       <div className="my-2">
-        <Pagination />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );

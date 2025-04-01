@@ -8,38 +8,38 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { deleteCustomerService } from "@/services/customerServices";
+import { deleteServiceService } from "@/services/serviceServices";
 import { useMutation } from "@tanstack/react-query";
 
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalDeleteCustomer = (props) => {
+const ModalDeleteService = (props) => {
   const { dataDelete, refetch } = props;
   const [open, setOpen] = useState(false);
 
-  const mutationDeleteCustomer = useMutation({
+  const mutationDeleteService = useMutation({
     mutationFn: async ({ id }) => {
-      const res = await deleteCustomerService(id);
-      console.log("check res: ", res);
+      const res = await deleteServiceService(id);
+      if (res.EC !== 0) {
+        throw new Error(res.EM || "Có lỗi xảy ra khi xóa dịch vụ");
+      }
       return res;
     },
     onSuccess: (data) => {
-      if (data.EC === 0) {
-        toast.success(data.EM);
-        refetch();
-        setOpen(!open);
-      }
+      toast.success(data.EM);
+      refetch();
+      setOpen(!open);
     },
     onError: (error) => {
-      toast.error(error.response?.data?.EM || "Đã có lỗi xảy ra");
+      toast.error(error.message || "Đã có lỗi xảy ra");
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutationDeleteCustomer.mutate({ id: dataDelete?.MaKH });
+    mutationDeleteService.mutate({ id: dataDelete?.MaDV });
   };
 
   return (
@@ -51,7 +51,7 @@ const ModalDeleteCustomer = (props) => {
     >
       <DialogTrigger asChild>
         <Button className="mr-2 flex items-center cursor-pointer bg-red-500 hover:bg-red-600 rounded text-white">
-          <Trash2 className="h-4 w-4 " />
+          <Trash2 className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent
@@ -61,17 +61,22 @@ const ModalDeleteCustomer = (props) => {
         }}
       >
         <DialogHeader>
-          <DialogTitle>Xoá khách trọ</DialogTitle>
+          <DialogTitle>Xoá dịch vụ</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
 
         <div className="w-full">
-          <h2>Bạn có muốn xóa {dataDelete.HoTen} khỏi hệ thống không?</h2>
+          <h2>
+            Bạn có muốn xóa dịch vụ "{dataDelete?.TenDV}" khỏi hệ thống không?
+          </h2>
+          <p className="text-red-500 mt-2">
+            Lưu ý: Hành động này không thể hoàn tác và có thể ảnh hưởng đến các hóa đơn liên quan.
+          </p>
         </div>
 
         <DialogFooter>
           <Button
-            type="submit"
+            type="button"
             className="cursor-pointer rounded"
             onClick={() => {
               setOpen(!open);
@@ -81,7 +86,7 @@ const ModalDeleteCustomer = (props) => {
           </Button>
           <Button
             type="submit"
-            className="cursor-pointer rounded"
+            className="cursor-pointer rounded bg-red-500 hover:bg-red-600"
             onClick={(e) => {
               handleSubmit(e);
             }}
@@ -94,4 +99,4 @@ const ModalDeleteCustomer = (props) => {
   );
 };
 
-export default ModalDeleteCustomer;
+export default ModalDeleteService;

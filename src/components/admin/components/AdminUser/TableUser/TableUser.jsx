@@ -28,7 +28,7 @@ const TableUser = (props) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {userData?.DT.map((user, index) => (
+          {userData?.map((user, index) => (
             <TableRow
               key={index}
               className={index % 2 === 0 ? "bg-blue-50" : ""}
@@ -47,7 +47,7 @@ const TableUser = (props) => {
               <TableCell>
                 <div className="flex justify-center gap-1">
                   <ModalUpdateUser dataUpdate={user} refetch={refetch} />
-                  <ModalDeleteCustomer />
+                  <ModalDeleteCustomer dataDelete={user} refetch={refetch} />
                 </div>
               </TableCell>
             </TableRow>

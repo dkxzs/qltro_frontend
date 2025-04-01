@@ -183,7 +183,7 @@ const ModalUpdateUser = (props) => {
         }}
       >
         <DialogHeader>
-          <DialogTitle>Sửa thông tin khách trọ</DialogTitle>
+          <DialogTitle>Sửa thông tin</DialogTitle>
           <DialogDescription>
             Vui lòng cập nhật đầy đủ thông tin khách trọ.
           </DialogDescription>
@@ -325,6 +325,15 @@ const ModalUpdateUser = (props) => {
           </div>
         </form>
         <DialogFooter>
+          <Button
+            type="submit"
+            className="cursor-pointer rounded"
+            onClick={() => {
+              setOpen(!open);
+            }}
+          >
+            Đóng
+          </Button>
           <Button
             type="submit"
             className="cursor-pointer rounded"

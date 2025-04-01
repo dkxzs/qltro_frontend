@@ -129,9 +129,9 @@ export function AppSidebar({ ...props }) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter className="border-t">
-        <div className="flex items-center gap-2 justify-center hover:bg-accent rounded-sm">
+        <div className="flex items-center justify-center hover:bg-accent rounded-sm">
           <SidebarMenuButton
-            className="flex justify-center cursor-pointer"
+            className="flex justify-center items-center cursor-pointer"
             onClick={handleLogout}
           >
             <FiLogOut className="size-4" />

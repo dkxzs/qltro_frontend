@@ -101,46 +101,39 @@ const ModalAddUser = (props) => {
   });
 
   const validateForm = () => {
-    // Kiểm tra tên
     if (!formData.name.trim()) {
       toast.error("Tên không được để trống");
       return false;
     }
 
-    // Kiểm tra số điện thoại (10 chữ số)
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(formData.phoneNumber)) {
       toast.error("Số điện thoại phải là 10 chữ số");
       return false;
     }
 
-    // Kiểm tra địa chỉ
     if (!formData.address.trim()) {
       toast.error("Địa chỉ không được để trống");
       return false;
     }
 
-    // Kiểm tra căn cước công dân (12 chữ số)
     const cardIdRegex = /^\d{12}$/;
     if (!cardIdRegex.test(formData.cardId)) {
       toast.error("Số căn cước công dân phải là 12 chữ số");
       return false;
     }
 
-    // Kiểm tra ngày sinh
     if (!formData.birthday) {
       toast.error("Ngày sinh không được để trống");
       return false;
     }
 
-    // Kiểm tra email (định dạng cơ bản)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error("Email không đúng định dạng");
       return false;
     }
 
-    // Kiểm tra ảnh
     if (!formData.avatar) {
       toast.error("Ảnh không được để trống");
       return false;
@@ -324,6 +317,15 @@ const ModalAddUser = (props) => {
           </div>
         </form>
         <DialogFooter>
+          <Button
+            type="submit"
+            className="cursor-pointer rounded"
+            onClick={() => {
+              setOpen(!open);
+            }}
+          >
+            Đóng
+          </Button>
           <Button
             type="submit"
             className="cursor-pointer rounded"
