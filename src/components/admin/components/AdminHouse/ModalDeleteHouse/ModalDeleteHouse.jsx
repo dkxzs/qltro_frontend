@@ -8,20 +8,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { deleteBuildingService } from "@/services/buildingServices";
+import { deleteHouseService } from "@/services/houseServices";
 import { useMutation } from "@tanstack/react-query";
 
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalDeleteBuilding = (props) => {
+const ModalDeleteHouse = (props) => {
   const { dataDelete, refetch } = props;
   const [open, setOpen] = useState(false);
 
-  const mutationDeleteBuilding = useMutation({
+  const mutationDeleteHouse = useMutation({
     mutationFn: async ({ id }) => {
-      const res = await deleteBuildingService(id);
+      const res = await deleteHouseService(id);
       if (res.EC !== 0) {
         throw new Error(res.EM || "Có lỗi xảy ra khi xóa nhà");
       }
@@ -39,7 +39,7 @@ const ModalDeleteBuilding = (props) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutationDeleteBuilding.mutate({ id: dataDelete?.MaNha });
+    mutationDeleteHouse.mutate({ id: dataDelete?.MaNha });
   };
 
   return (
@@ -70,7 +70,8 @@ const ModalDeleteBuilding = (props) => {
             Bạn có muốn xóa nhà "{dataDelete?.TenNha}" khỏi hệ thống không?
           </h2>
           <p className="text-red-500 mt-2">
-            Lưu ý: Hành động này không thể hoàn tác và có thể ảnh hưởng đến các phòng thuộc nhà này.
+            Lưu ý: Hành động này không thể hoàn tác và có thể ảnh hưởng đến các
+            phòng thuộc nhà này.
           </p>
         </div>
 
@@ -99,4 +100,4 @@ const ModalDeleteBuilding = (props) => {
   );
 };
 
-export default ModalDeleteBuilding;
+export default ModalDeleteHouse;

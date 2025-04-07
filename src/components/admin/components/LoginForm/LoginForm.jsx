@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { login, updateAccessToken } from "@/redux/slices/userSlice";
 import { SignIn } from "@/services/authServices";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useDispatch } from "react-redux";
-import { login } from "@/redux/slices/userSlice";
 
-const LoginForm = ({ className, ...props }) => {
+const LoginForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -33,14 +32,18 @@ const LoginForm = ({ className, ...props }) => {
     },
     onSuccess: (res) => {
       if (+res.EC === 0) {
-        // localStorage.setItem("token", res?.data?.token);
+        localStorage.setItem("accessToken", res?.DT?.accessToken);
         console.log("check log: ", res);
         toast.success("Đăng nhập thành công");
+        dispatch(updateAccessToken(res));
         dispatch(login(res));
         navigate("/admin");
       } else {
         toast.error(res.EM);
       }
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.EM);
     },
   });
 
@@ -60,7 +63,7 @@ const LoginForm = ({ className, ...props }) => {
     });
   };
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
+    <form className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-3xl font-bold">Hệ thống quản lý phòng trọ</h1>
         <p className="text-balance text-sm text-muted-foreground">
@@ -75,6 +78,7 @@ const LoginForm = ({ className, ...props }) => {
             type="email"
             name="email"
             placeholder="abc@example.com"
+            className="rounded"
             onChange={handleChange}
             required
           />
@@ -89,13 +93,13 @@ const LoginForm = ({ className, ...props }) => {
             name="password"
             required
             placeholder="......"
-            className="text-2xl"
+            className="rounded"
             onChange={handleChange}
           />
         </div>
         <Button
           type="submit"
-          className="w-full cursor-pointer"
+          className="w-full cursor-pointer rounded py-5"
           onClick={(e) => {
             handleSubmit(e);
           }}

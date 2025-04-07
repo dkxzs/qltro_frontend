@@ -1,24 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getAllBuildingService } from "@/services/buildingServices";
+import { getAllHouseService } from "@/services/houseServices";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useState } from "react";
-import ModalAddBuilding from "./ModalAddBuilding/ModalAddBuilding";
-import TableBuilding from "./TableBuilding/TableBuilding";
+import ModalAddHouse from "./ModalAddHouse/ModalAddHouse";
+import TableHouse from "./TableHouse/TableHouse";
 
-const AdminBuilding = () => {
+const AdminHouse = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
 
-  const { data: buildingData, refetch } = useQuery({
-    queryKey: ["building"],
-    queryFn: getAllBuildingService,
+  const { data: houseData, refetch } = useQuery({
+    queryKey: ["house"],
+    queryFn: getAllHouseService,
   });
 
   const filteredData =
-    buildingData?.DT?.filter((item) => {
+    houseData?.DT?.filter((item) => {
       return (
         item.TenNha.toLowerCase().includes(searchText.toLowerCase()) ||
         item.DiaChi.toLowerCase().includes(searchText.toLowerCase())
@@ -28,7 +28,7 @@ const AdminBuilding = () => {
   return (
     <div className="mx-auto p-2">
       <h2 className="text-xl font-semibold mb-4">Quản lý nhà</h2>
-      <Card className="mb-4 rounded py-2">
+      <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div
             className="flex items-center cursor-pointer border-b"
@@ -49,7 +49,7 @@ const AdminBuilding = () => {
                   <label className="w-27 text-sm">Tên nhà/Địa chỉ:</label>
                   <Input
                     placeholder="Nhập tên nhà hoặc địa chỉ"
-                    className="flex-1 rounded outline-none"
+                    className="flex-1 rounded outline-none shadow-none"
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                   />
@@ -61,10 +61,10 @@ const AdminBuilding = () => {
       </Card>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Danh sách nhà</h1>
+          <h2 className="text-xl font-semibold">Danh sách nhà</h2>
         </div>
         <div className="flex gap-2">
-          <ModalAddBuilding refetch={refetch} />
+          <ModalAddHouse refetch={refetch} />
           <Button className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer hover:text-white rounded-sm">
             <Download className="h-4 w-4" /> Xuất dữ liệu
           </Button>
@@ -72,10 +72,10 @@ const AdminBuilding = () => {
       </div>
 
       <div className="border rounded overflow-x-auto">
-        <TableBuilding buildingData={filteredData} refetch={refetch} />
+        <TableHouse houseData={filteredData} refetch={refetch} />
       </div>
     </div>
   );
 };
 
-export default AdminBuilding;
+export default AdminHouse;

@@ -23,7 +23,7 @@ const AdminService = () => {
     }) || [];
 
   return (
-    <div className="mx-auto p-2">
+    <div className=" p-2">
       <h2 className="text-xl font-semibold mb-4">Quản lý dịch vụ</h2>
       <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">

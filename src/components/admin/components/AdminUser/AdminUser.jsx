@@ -13,7 +13,7 @@ const AdminUser = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(1);
+  const [itemsPerPage] = useState(5);
 
   const { data: userData, refetch } = useQuery({
     queryKey: ["user"],
@@ -34,6 +34,8 @@ const AdminUser = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
+  console.log("filter: ", filteredUserData);
 
   return (
     <div className="p-2">
@@ -72,7 +74,7 @@ const AdminUser = () => {
 
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Danh sách khách trọ</h3>
+          <h2 className="text-xl font-semibold">Danh sách khách trọ</h2>
           <div className="flex items-center">
             <ModalAddUser refetch={refetch} />
             <Button className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded">
@@ -83,18 +85,21 @@ const AdminUser = () => {
         </div>
       </div>
 
-      <div className="min-h-[380px] border rounded">
-        <div className=" border overflow-hidden">
+      <div className="min-h-[380px] rounded">
+        <div className="rounded border overflow-hidden">
           <TableUser userData={paginatedData} refetch={refetch} />
         </div>
       </div>
-      <div className="my-2">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </div>
+
+      {filteredUserData?.length > 0 && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

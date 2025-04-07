@@ -1,14 +1,13 @@
 import { AppSidebar } from "@/components/admin/components/AppSideBar/AppSideBar";
+import NavUser from "@/components/admin/components/NavUser/NavUser";
 import { Separator } from "@/components/ui/separator";
-import { IoMenuOutline } from "react-icons/io5";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import NavUser from "@/components/admin/components/NavUser/NavUser";
+import { IoMenuOutline } from "react-icons/io5";
 import { Outlet } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
 
 const AdminPage = () => {
   return (

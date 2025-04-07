@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   account: {
     isAdmin: false,
+    access_token: "",
   },
   isLogin: false,
 };
@@ -14,13 +15,13 @@ export const userSlice = createSlice({
     login: (state, action) => {
       state.account = {
         ...state.account,
-        isAdmin: action.payload?.DT?.isAdmin,
+        isAdmin: action.payload?.DT?.VaiTro,
       };
       state.isLogin = true;
     },
-    // updateAccessToken: (state, action) => {
-    //   state.account.access_token = action.payload?.DT?.access_token;
-    // },
+    updateAccessToken: (state, action) => {
+      state.account.access_token = action.payload?.DT?.accessToken;
+    },
     logout: (state) => {
       state.account = initialState.account;
       state.isLogin = false;
@@ -28,6 +29,6 @@ export const userSlice = createSlice({
   },
 });
 
-export const { login, logout } = userSlice.actions;
+export const { login, logout, updateAccessToken } = userSlice.actions;
 
 export default userSlice.reducer;

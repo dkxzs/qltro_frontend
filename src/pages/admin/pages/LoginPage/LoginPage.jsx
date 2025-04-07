@@ -10,10 +10,10 @@ const LoginPage = () => {
         <div className="flex flex-col gap-4 p-6 md:p-10">
           <div className="flex justify-center gap-2 md:justify-start">
             <a href="#" className="flex items-center gap-2 font-medium">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <SiGooglecampaignmanager360 className="size-4" />
+              <div className="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <SiGooglecampaignmanager360 className="size-7" />
               </div>
-              <span className="fontFamily text-red-500 text-2xl">Tro247</span>
+              <span className="fontFamily text-red-500 text-3xl">Tro247</span>
             </a>
           </div>
           <div className="flex flex-1 items-center justify-center">

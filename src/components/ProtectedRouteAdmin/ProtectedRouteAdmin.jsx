@@ -7,7 +7,7 @@ const ProtectedRouteAdmin = ({ children }) => {
   if (!isLogin) {
     return <Navigate to="/admin/login" />;
   }
-  if (!isAdmin) {
+  if (isAdmin !== 0) {
     return <Navigate to="/not-found" />;
   }
   return children;

@@ -57,7 +57,7 @@ const AdminRoomType = () => {
       </Card>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-medium">Danh sách loại phòng</h1>
+          <h2 className="text-xl font-medium">Danh sách loại phòng</h2>
         </div>
         <div className="flex gap-2">
           <ModalAddRoomType refetch={refetch} />

@@ -9,76 +9,80 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ChevronDown,
-  ChevronUp,
-  Download,
-  Home,
-  Plus,
-  Trash,
-  Trash2,
-} from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import ModalAddRoom from "./ModalAddRoom/ModalAddRoom";
 import TableRoom from "./TableRoom/TableRoom";
+import { getAllHouseService } from "@/services/houseServices";
+import { useQuery } from "@tanstack/react-query";
+import { getRoomByIdService } from "@/services/roomServices";
 import Pagination from "../Pagination/Pagination";
-
-const roomData = [
-  {
-    id: 1,
-    roomCode: "100A",
-    area: 16,
-    maxOccupants: 10,
-    price: 5500000,
-    description:
-      "Cho thuê căn hộ Belleza, P Phú Mỹ, Quận 7. * Căn hộ thiết kế 1PN,...",
-    status: "Đã cho thuê",
-  },
-  {
-    id: 2,
-    roomCode: "100B",
-    area: 16,
-    maxOccupants: 10,
-    price: 3500000,
-    description: "Cho thuê phòng CHUNG CƯ NEW SAI GON - Quận 7 (chính chủ k...",
-    status: "Còn trống",
-  },
-  {
-    id: 3,
-    roomCode: "101A",
-    area: 15,
-    maxOccupants: 10,
-    price: 4000000,
-    description: "STUDIO/DUPLEX MÁY GIẶT RIÊNG NGAY TÂN QUY SÁT LOTTE ...",
-    status: "Đã đặt cọc",
-  },
-  {
-    id: 4,
-    roomCode: "101B",
-    area: 20,
-    maxOccupants: 10,
-    price: 6000000,
-    description: "CĂN HỘ MINI BAN CÔNG, FULL NỘI THẤT TIỆN NGHI, MÁY GIẶT ...",
-    status: "Đã cho thuê",
-  },
-  {
-    id: 5,
-    roomCode: "102A",
-    area: 15,
-    maxOccupants: 10,
-    price: 2500000,
-    description: "CHO THUÊ PHÒNG TRỌ HSSV GẦN ĐH MỞ Phòng sàn máy lạnh, ...",
-    status: "Còn trống",
-  },
-];
 
 const AdminRoom = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
-  const [currentTab, setCurrentTab] = useState("nha-q7");
+  const [currentTab, setCurrentTab] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+
+  const { data: houseData, isLoading: isLoadingHouse } = useQuery({
+    queryKey: ["house"],
+    queryFn: getAllHouseService,
+  });
+
+  useEffect(() => {
+    if (houseData?.DT && houseData.DT.length > 0) {
+      setCurrentTab(houseData.DT[0].MaNha.toString());
+    }
+  }, [houseData]);
+
+  const {
+    data: roomData,
+    isLoading: isLoadingRoom,
+    refetch,
+  } = useQuery({
+    queryKey: ["room", currentTab],
+    queryFn: () => getRoomByIdService(currentTab),
+    enabled: !!currentTab,
+  });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [currentTab, searchText, statusFilter]);
+
+  const filteredRoomData = roomData?.DT
+    ? roomData.DT.filter((room) => {
+        const matchesSearch = room.TenPhong.toLowerCase().includes(
+          searchText.toLowerCase()
+        );
+
+        let matchesStatus = true;
+        if (statusFilter === "rented") {
+          matchesStatus = room.TrangThai === 1;
+        } else if (statusFilter === "available") {
+          matchesStatus = room.TrangThai === 0;
+        }
+
+        return matchesSearch && matchesStatus;
+      })
+    : [];
+
+  const totalPages = Math.ceil((filteredRoomData?.length || 0) / itemsPerPage);
+
+  const paginatedData = filteredRoomData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   return (
     <div className="p-2">
       <h2 className="text-xl font-semibold mb-4">Quản lý phòng trọ</h2>
-      <Card className="mb-4 rounded py-2">
+      <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div
             className="flex items-center cursor-pointer border-b"
@@ -99,7 +103,9 @@ const AdminRoom = () => {
                   <label className="w-27 text-sm">Tên phòng:</label>
                   <Input
                     placeholder="Nhập tên phòng"
-                    className="flex-1 rounded-none outline-none"
+                    className="flex-1 rounded outline-none shadow-none"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
                   />
                 </div>
               </div>
@@ -107,13 +113,14 @@ const AdminRoom = () => {
                 <div className="flex items-center">
                   <label className="w-25 text-sm">Trạng thái:</label>
                   <Select
-                    defaultValue="all"
-                    className="rounded-none outline-none focus-visible:ring-0 focus-visible:border-0"
+                    value={statusFilter}
+                    onValueChange={setStatusFilter}
+                    className="rounded outline-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
                   >
-                    <SelectTrigger className="flex-1 rounded-none cursor-pointer">
+                    <SelectTrigger className="flex-1 rounded cursor-pointer focus-visible:border-0 focus:none shadow-none">
                       <SelectValue placeholder="Tất cả" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-none">
+                    <SelectContent className="rounded">
                       <SelectItem
                         className="hover:bg-transparent cursor-pointer"
                         value="all"
@@ -132,12 +139,6 @@ const AdminRoom = () => {
                       >
                         Còn trống
                       </SelectItem>
-                      <SelectItem
-                        className="hover:bg-transparent cursor-pointer"
-                        value="deposit"
-                      >
-                        Đã đặt cọc
-                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -148,61 +149,82 @@ const AdminRoom = () => {
       </Card>
 
       <div className="mb-4">
-        <Tabs defaultValue={currentTab} onValueChange={setCurrentTab}>
-          <div className="flex justify-between items-center">
-            <TabsList>
-              <TabsTrigger className="cursor-pointer" value="nha-q7">
-                Nhà Q7
-              </TabsTrigger>
-              <TabsTrigger className="cursor-pointer" value="nha-nha-be">
-                Nhà Nhà Bè
-              </TabsTrigger>
+        <Tabs value={currentTab} onValueChange={setCurrentTab}>
+          <div className="flex justify-between items-center rounded">
+            <TabsList className="rounded">
+              {isLoadingHouse ? (
+                <div className="px-4 py-2">Đang tải...</div>
+              ) : houseData?.DT && houseData.DT.length > 0 ? (
+                houseData?.DT.map((house) => (
+                  <TabsTrigger
+                    className="cursor-pointer rounded-xs"
+                    key={house.MaNha}
+                    value={house.MaNha.toString()}
+                  >
+                    {house.TenNha}
+                  </TabsTrigger>
+                ))
+              ) : (
+                <div className="px-4 py-2">Không có dữ liệu nhà</div>
+              )}
             </TabsList>
             <div className="flex gap-2">
-              <Button className="bg-green-600 hover:bg-green-700 cursor-pointer rounded-sm hover:text-white">
-                <Plus className="h-4 w-4" />
-                Thêm phòng
-              </Button>
+              <ModalAddRoom houseId={currentTab} refetch={refetch} />
               <Button
                 variant="outline"
-                className="bg-yellow-500 hover:bg-yellow-500 text-white rounded-sm   cursor-pointer hover:text-white"
+                className="bg-yellow-500 hover:bg-yellow-500 text-white rounded cursor-pointer hover:text-white"
               >
                 <Download className="h-4 w-4" />
                 Xuất dữ liệu
               </Button>
-              <Button
-                variant="outline"
-                className="bg-blue-600 hover:bg-blue-700 rounded-sm text-white cursor-pointer hover:text-white"
-              >
-                <Home className="h-4 w-4" />
-                Cập nhật nhà
-              </Button>
-              <Button
-                variant="outline"
-                className="bg-red-600 hover:bg-red-700 text-white rounded-sm  cursor-pointer hover:text-white"
-              >
-                <Trash2 className="h-4 w-4" />
-                Xóa nhà
-              </Button>
             </div>
           </div>
 
-          <TabsContent value="nha-q7" className="mt-4">
-            <div className="min-h-[380px]">
-              <div className="rounded border overflow-hidden">
-                <TableRoom roomData={roomData} />
-              </div>
+          {houseData?.DT && houseData.DT.length > 0 ? (
+            houseData?.DT.map((house) => (
+              <TabsContent
+                key={house.MaNha}
+                value={house.MaNha.toString()}
+                className="mt-4"
+              >
+                <div className="min-h-[400px]">
+                  {isLoadingRoom ? (
+                    <div className="flex justify-center items-center h-64">
+                      <p>Đang tải dữ liệu phòng...</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="min-h-[380px] rounded">
+                        <div className="rounded border overflow-hidden">
+                          <TableRoom
+                            roomData={paginatedData}
+                            refetch={refetch}
+                          />
+                        </div>
+                      </div>
+                      {filteredRoomData.length > 0 ? (
+                        <div className="mt-4 flex justify-center">
+                          <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                          />
+                        </div>
+                      ) : (
+                        <div className="mt-4 text-center text-gray-500">
+                          {/* Không có phòng nào phù hợp với điều kiện tìm kiếm */}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </TabsContent>
+            ))
+          ) : (
+            <div className="mt-4 rounded border p-8 text-center text-muted-foreground">
+              Không có dữ liệu nhà. Vui lòng thêm nhà trước khi quản lý phòng.
             </div>
-            <div className="my-2">
-              <Pagination />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="nha-nha-be" className="mt-4">
-            <div className="rounded-md border p-8 text-center text-muted-foreground">
-              Không có dữ liệu cho Nhà Nhà Bè
-            </div>
-          </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import AdminBuilding from "@/components/admin/components/AdminBuilding/AdminBuilding";
+import AdminHouse from "@/components/admin/components/AdminHouse/AdminHouse";
 import AdminDashBoard from "@/components/admin/components/AdminDashBoard/AdminDashBoard";
 import AdminElectricity from "@/components/admin/components/AdminElectricity/AdminElectricity";
 import AdminInvoice from "@/components/admin/components/AdminInvoice/AdminInvoice";
@@ -41,8 +41,8 @@ export const adminRoutes = [
     page: AdminWater,
   },
   {
-    path: "buildings",
-    page: AdminBuilding,
+    path: "houses",
+    page: AdminHouse,
   },
   {
     path: "invoices",

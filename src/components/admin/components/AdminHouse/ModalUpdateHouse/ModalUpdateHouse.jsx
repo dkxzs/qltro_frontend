@@ -11,21 +11,31 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createBuildingService } from "@/services/buildingServices";
+import { updateHouseService } from "@/services/houseServices";
 import { useMutation } from "@tanstack/react-query";
 
-import { Plus } from "lucide-react";
-import { useState } from "react";
+import { Pencil } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalAddBuilding = (props) => {
-  const { refetch } = props;
+const ModalUpdateHouse = (props) => {
+  const { dataUpdate, refetch } = props;
   const [formData, setFormData] = useState({
     TenNha: "",
     DiaChi: "",
     MoTa: "",
   });
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (dataUpdate && open) {
+      setFormData({
+        TenNha: dataUpdate.TenNha || "",
+        DiaChi: dataUpdate.DiaChi || "",
+        MoTa: dataUpdate.MoTa || "",
+      });
+    }
+  }, [dataUpdate, open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,11 +53,11 @@ const ModalAddBuilding = (props) => {
     });
   };
 
-  const mutationCreateBuilding = useMutation({
-    mutationFn: async (data) => {
-      const res = await createBuildingService(data);
+  const mutationUpdateHouse = useMutation({
+    mutationFn: async ({ id, data }) => {
+      const res = await updateHouseService(id, data);
       if (res.EC !== 0) {
-        throw new Error(res.EM || "Có lỗi xảy ra khi thêm nhà");
+        throw new Error(res.EM || "Có lỗi xảy ra khi cập nhật nhà");
       }
       return res;
     },
@@ -79,7 +89,10 @@ const ModalAddBuilding = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      mutationCreateBuilding.mutate(formData);
+      mutationUpdateHouse.mutate({
+        id: dataUpdate.MaNha,
+        data: formData,
+      });
     }
   };
 
@@ -88,13 +101,14 @@ const ModalAddBuilding = (props) => {
       open={open}
       onOpenChange={() => {
         setOpen(!open);
-        resetForm();
+        if (!open) {
+          resetForm();
+        }
       }}
     >
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <Plus className="h-5 w-5 text-white" />
-          Thêm nhà
+        <Button className="mr-2 flex items-center cursor-pointer bg-blue-500 hover:bg-blue-600 rounded text-white">
+          <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent
@@ -104,9 +118,9 @@ const ModalAddBuilding = (props) => {
         }}
       >
         <DialogHeader>
-          <DialogTitle>Thêm nhà</DialogTitle>
+          <DialogTitle>Cập nhật thông tin nhà</DialogTitle>
           <DialogDescription>
-            Vui lòng nhập đầy đủ thông tin để thêm nhà mới.
+            Vui lòng cập nhật thông tin nhà.
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-4">
@@ -163,7 +177,7 @@ const ModalAddBuilding = (props) => {
             className="cursor-pointer rounded"
             onClick={(e) => handleSubmit(e)}
           >
-            Thêm
+            Cập nhật
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -171,4 +185,4 @@ const ModalAddBuilding = (props) => {
   );
 };
 
-export default ModalAddBuilding;
+export default ModalUpdateHouse;

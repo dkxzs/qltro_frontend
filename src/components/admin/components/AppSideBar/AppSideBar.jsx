@@ -48,7 +48,7 @@ const data = {
         },
         {
           title: "Nhà",
-          url: "/admin/buildings",
+          url: "/admin/houses",
         },
       ],
     },

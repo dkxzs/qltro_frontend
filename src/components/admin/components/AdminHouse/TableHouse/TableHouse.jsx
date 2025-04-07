@@ -6,11 +6,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import ModalDeleteRoomType from "../ModalDeleteRoomType/ModalDeleteRoomType";
-import ModalUpdateRoomType from "../ModalUpdateRoomType/ModalUpdateRoomType";
+import ModalUpdateHouse from "../ModalUpdateHouse/ModalUpdateHouse";
+import ModalDeleteHouse from "../ModalDeleteHouse/ModalDeleteHouse";
 
-const TableRoomType = (props) => {
-  const { roomTypeData, refetch } = props;
+const TableHouse = (props) => {
+  const { houseData, refetch } = props;
 
   return (
     <div className="w-full overflow-x-auto">
@@ -21,10 +21,10 @@ const TableRoomType = (props) => {
               STT
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
-              Tên loại phòng
+              Tên nhà
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
-              Đơn giá
+              Địa chỉ
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
               Mô tả
@@ -35,7 +35,7 @@ const TableRoomType = (props) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {roomTypeData?.map((roomType, index) => (
+          {houseData.map((house, index) => (
             <TableRow
               key={index}
               className={
@@ -48,32 +48,26 @@ const TableRoomType = (props) => {
                 {index + 1}
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[200px]">
-                {roomType.TenLoaiPhong}
+                {house.TenNha}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[150px]">
-                {roomType.DonGia.toLocaleString()} VNĐ
+              <TableCell className="py-2 px-4 truncate max-w-[250px]">
+                {house.DiaChi}
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[300px]">
-                {roomType.MoTa}
+                {house.MoTa}
               </TableCell>
               <TableCell className="py-2 px-4 text-center shrink-0 w-32">
                 <div className="flex space-x-2 justify-center">
-                  <ModalUpdateRoomType
-                    dataUpdate={roomType}
-                    refetch={refetch}
-                  />
-                  <ModalDeleteRoomType
-                    dataDelete={roomType}
-                    refetch={refetch}
-                  />
+                  <ModalUpdateHouse dataUpdate={house} refetch={refetch} />
+                  <ModalDeleteHouse dataDelete={house} refetch={refetch} />
                 </div>
               </TableCell>
             </TableRow>
           ))}
-          {!roomTypeData?.length && (
+          {houseData.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-4">
-                Không có dữ liệu loại phòng
+                Không có dữ liệu tòa nhà
               </TableCell>
             </TableRow>
           )}
@@ -83,4 +77,4 @@ const TableRoomType = (props) => {
   );
 };
 
-export default TableRoomType;
+export default TableHouse;
