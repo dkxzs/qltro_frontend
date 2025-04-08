@@ -7,6 +7,8 @@ import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useState } from "react";
 import ModalAddRoomType from "./ModalAddRoomType/ModalAddRoomType";
 import TableRoomType from "./TableRoomType/TableRoomType";
+import { exportToExcel, excelFormatters } from "@/utils/exportToExcel";
+import { toast } from "react-toastify";
 
 const AdminRoomType = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -20,6 +22,43 @@ const AdminRoomType = () => {
   const filteredData = roomTypeData?.DT.filter((item) => {
     return item.TenLoaiPhong.toLowerCase().includes(searchText.toLowerCase());
   });
+
+  const handleExportExcel = async () => {
+    if (!filteredData || filteredData.length === 0) {
+      toast.warning("Không có dữ liệu để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "MaLP", label: "Mã loại phòng" },
+      { key: "TenLoaiPhong", label: "Tên loại phòng" },
+      {
+        key: "DonGia",
+        label: "Đơn giá (VNĐ)",
+        format: (value) => excelFormatters.currency(value),
+      },
+      { key: "MoTa", label: "Mô tả" },
+    ];
+
+    try {
+      const success = await exportToExcel(
+        filteredData,
+        headers,
+        `Danh_sach_loai_phong_${new Date().toISOString().split("T")[0]}`,
+        "Danh sách loại phòng",
+        { title: "DANH SÁCH LOẠI PHÒNG" }
+      );
+
+      if (success) {
+        toast.success("Xuất dữ liệu thành công");
+      } else {
+        toast.error("Xuất dữ liệu thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Xuất dữ liệu thất bại");
+    }
+  };
 
   return (
     <div className=" mx-auto p-2">
@@ -61,8 +100,11 @@ const AdminRoomType = () => {
         </div>
         <div className="flex gap-2">
           <ModalAddRoomType refetch={refetch} />
-          <Button className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer hover:text-white rounded-sm">
-            <Download className=" h-4 w-4" /> Xuất dữ liệu
+          <Button
+            className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
+            onClick={handleExportExcel}
+          >
+            <Download className="h-4 w-4" /> Xuất dữ liệu
           </Button>
         </div>
       </div>

@@ -15,8 +15,10 @@ import ModalAddRoom from "./ModalAddRoom/ModalAddRoom";
 import TableRoom from "./TableRoom/TableRoom";
 import { getAllHouseService } from "@/services/houseServices";
 import { useQuery } from "@tanstack/react-query";
-import { getRoomByIdService } from "@/services/roomServices";
+import { getAllRoomService, getRoomByIdService } from "@/services/roomServices";
 import Pagination from "../Pagination/Pagination";
+import { exportToExcel, excelFormatters } from "@/utils/exportToExcel";
+import { toast } from "react-toastify";
 
 const AdminRoom = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -30,6 +32,13 @@ const AdminRoom = () => {
     queryKey: ["house"],
     queryFn: getAllHouseService,
   });
+
+  const { data: allRoomData } = useQuery({
+    queryKey: ["allRoom"],
+    queryFn: getAllRoomService,
+  });
+
+  console.log("check data: ", allRoomData?.DT);
 
   useEffect(() => {
     if (houseData?.DT && houseData.DT.length > 0) {
@@ -77,6 +86,64 @@ const AdminRoom = () => {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
+  };
+
+  const handleExportExcel = async () => {
+    if (!filteredRoomData || filteredRoomData.length === 0) {
+      toast.warning("Không có dữ liệu để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "MaPT", label: "Mã phòng" },
+      { key: "TenPhong", label: "Tên phòng" },
+      { key: "TenNha", label: "Tên nhà" },
+      { key: "TenLoaiPhong", label: "Loại phòng" },
+      {
+        key: "DonGia",
+        label: "Đơn giá (VNĐ)",
+        format: (value) => excelFormatters.currency(value),
+      },
+      { key: "DienTich", label: "Diện tích (m²)" },
+      { key: "DiaChi", label: "Địa chỉ" },
+      {
+        key: "TrangThai",
+        label: "Trạng thái",
+        format: (value) => excelFormatters.status(value),
+      },
+      { key: "MoTa", label: "Mô tả" },
+    ];
+
+    const exportData = allRoomData?.DT.map((room) => ({
+      MaPT: room.MaPT,
+      TenPhong: room.TenPhong,
+      TenNha: room.Nha.TenNha,
+      TenLoaiPhong: room.LoaiPhong.TenLoaiPhong,
+      DonGia: room.LoaiPhong.DonGia,
+      DienTich: room.DienTich,
+      DiaChi: room.Nha.DiaChi,
+      TrangThai: room.TrangThai,
+      MoTa: room.MoTa,
+    }));
+
+    try {
+      const success = await exportToExcel(
+        exportData,
+        headers,
+        `Danh_sach_phong_tro_${new Date().toISOString().split("T")[0]}`,
+        "Danh sách phòng trọ",
+        { title: "DANH SÁCH PHÒNG TRỌ" }
+      );
+
+      if (success) {
+        toast.success("Xuất dữ liệu thành công");
+      } else {
+        toast.error("Xuất dữ liệu thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Xuất dữ liệu thất bại");
+    }
   };
 
   return (
@@ -173,6 +240,7 @@ const AdminRoom = () => {
               <Button
                 variant="outline"
                 className="bg-yellow-500 hover:bg-yellow-500 text-white rounded cursor-pointer hover:text-white"
+                onClick={handleExportExcel}
               >
                 <Download className="h-4 w-4" />
                 Xuất dữ liệu

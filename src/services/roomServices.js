@@ -1,16 +1,16 @@
 import axios from "../utils/axiosCustomize";
 
-export const getAllRoomService = async () => {
+const getAllRoomService = async () => {
   const res = await axios.get(`/room/get-all-room`);
   return res.data;
 };
 
-export const getRoomByIdService = async (houseId) => {
+const getRoomByIdService = async (houseId) => {
   const res = await axios.get(`/room/get-rooms-by-house/${houseId}`);
   return res.data;
 };
 
-export const createRoomService = async (data) => {
+const createRoomService = async (data) => {
   const dataRoom = new FormData();
   dataRoom.append("TenPhong", data.tenPhong);
   dataRoom.append("MaNha", parseInt(data.maNha));
@@ -23,7 +23,7 @@ export const createRoomService = async (data) => {
   return res.data;
 };
 
-export const updateRoomService = async (id, data) => {
+const updateRoomService = async (id, data) => {
   const dataUpdate = new FormData();
   dataUpdate.append("TenPhong", data.tenPhong);
   dataUpdate.append("MaNha", parseInt(data.maNha));
@@ -36,7 +36,15 @@ export const updateRoomService = async (id, data) => {
   return res.data;
 };
 
-export const deleteRoomService = async (id) => {
+const deleteRoomService = async (id) => {
   const res = await axios.delete(`/room/delete-room/${id}`);
   return res.data;
+};
+
+export {
+  getAllRoomService,
+  getRoomByIdService,
+  createRoomService,
+  updateRoomService,
+  deleteRoomService,
 };

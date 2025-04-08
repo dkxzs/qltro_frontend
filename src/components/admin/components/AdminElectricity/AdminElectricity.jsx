@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 // import { Checkbox } from "@/components/ui/checkbox";
@@ -12,21 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ChevronDown, ChevronUp, FileDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { MdElectricBolt } from "react-icons/md";
+import TableElectricity from "./TableElectricity/TableElectricity";
 
 const AdminElectricity = () => {
   const [month, setMonth] = useState("12/2023");
   //   const [showWarning, setShowWarning] = useState(true);
 
-  // Sample data for the table
   const meterData = [
     {
       id: 1,
@@ -77,19 +69,11 @@ const AdminElectricity = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   return (
     <div className=" mx-auto p-2">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center gap-3">
+        <MdElectricBolt className="size-6 text-gray-600" />
         <h1 className="text-2xl font-semibold text-gray-600">Chỉ số điện</h1>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="bg-blue-500 hover:bg-blue-600 rounded-sm text-white border-none"
-          >
-            <FileDown className="mr-2 h-4 w-4" />
-            Xuất file excel
-          </Button>
-        </div>
       </div>
-      <Card className="mb-4 rounded py-2">
+      <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div
             className="flex items-center cursor-pointer border-b"
@@ -108,30 +92,36 @@ const AdminElectricity = () => {
               <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <label className="block text-sm font-medium text-gray-600 mb-1 w-27">
+                    <label className="block text-md font-medium text-gray-600 mb-1 w-27">
                       Tháng/năm
                     </label>
                     <Input
-                      type="date"
+                      type="month"
                       value={month}
                       onChange={(e) => setMonth(e.target.value)}
-                      className="w-full rounded"
+                      className="w-full rounded shadow-none"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <label className="block text-sm font-medium text-gray-600 mb-1 mr-5">
+                    <label className="block text-md font-medium text-gray-600 mb-1 mr-5">
                       Nhà
                     </label>
                     <Select defaultValue="all">
-                      <SelectTrigger className="w-full rounded">
+                      <SelectTrigger className="w-full rounded shadow-none cursor-pointer">
                         <SelectValue placeholder="Tất cả" />
                       </SelectTrigger>
-                      <SelectContent className="rounded">
-                        <SelectItem value="all">Tất cả</SelectItem>
-                        <SelectItem value="house1">Nhà 1</SelectItem>
-                        <SelectItem value="house2">Nhà 2</SelectItem>
+                      <SelectContent className="rounded shadow-none cursor-pointer">
+                        <SelectItem className="cursor-pointer" value="all">
+                          Tất cả
+                        </SelectItem>
+                        <SelectItem className="cursor-pointer" value="house1">
+                          Nhà 1
+                        </SelectItem>
+                        <SelectItem className="cursor-pointer" value="house2">
+                          Nhà 2
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -170,59 +160,7 @@ const AdminElectricity = () => {
       </div>
 
       <div className="border rounded overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-100">
-              <TableHead className="font-semibold">STT</TableHead>
-              <TableHead className="font-semibold">Nhà</TableHead>
-              <TableHead className="font-semibold ">Phòng</TableHead>
-              <TableHead className="font-semibold text-right">
-                CS Điện Cũ
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                CS Điện Mới
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                Sử dụng
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                Hành động
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {meterData.map((row, index) => (
-              <TableRow key={index}>
-                <TableCell>{row.id}</TableCell>
-                <TableCell>{row.floor}</TableCell>
-                <TableCell>{row.room}</TableCell>
-                <TableCell className="text-right">
-                  <Input
-                    type="text"
-                    value={row.oldReading}
-                    className="w-full text-right"
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Input
-                    type="text"
-                    value={row.newReading}
-                    className="w-full text-right"
-                  />
-                </TableCell>
-                <TableCell className="text-right">{row.usage}</TableCell>
-                <TableCell>
-                  <Button
-                    size="sm"
-                    className="bg-cyan-500 hover:bg-cyan-600 text-white rounded float-right"
-                  >
-                    Lưu
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TableElectricity meterData={meterData} />
       </div>
     </div>
   );

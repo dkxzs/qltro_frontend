@@ -83,8 +83,8 @@ const AdminWater = () => {
             variant="outline"
             className="bg-blue-500 hover:bg-blue-600 rounded-sm text-white border-none"
           >
-            <FileDown className="mr-2 h-4 w-4" />
-            Xuất file excel
+            <FileDown className=" h-4 w-4" />
+            Xuất dữ liệu
           </Button>
         </div>
       </div>

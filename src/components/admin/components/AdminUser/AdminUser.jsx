@@ -78,8 +78,8 @@ const AdminUser = () => {
           <div className="flex items-center">
             <ModalAddUser refetch={refetch} />
             <Button className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded">
-              <Download className="h-5 w-5" />
-              Xuất file
+              <Download className="h-4 w-4" />
+              Xuất dữ liệu
             </Button>
           </div>
         </div>

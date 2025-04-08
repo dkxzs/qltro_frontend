@@ -7,27 +7,59 @@ import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useState } from "react";
 import ModalAddHouse from "./ModalAddHouse/ModalAddHouse";
 import TableHouse from "./TableHouse/TableHouse";
+import { exportToExcel } from "@/utils/exportToExcel";
+import { toast } from "react-toastify";
 
 const AdminHouse = () => {
-  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [searchText, setSearchText] = useState("");
 
-  const { data: houseData, refetch } = useQuery({
+  const {
+    data: houseData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["house"],
     queryFn: getAllHouseService,
   });
 
-  const filteredData =
-    houseData?.DT?.filter((item) => {
-      return (
-        item.TenNha.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.DiaChi.toLowerCase().includes(searchText.toLowerCase())
-      );
-    }) || [];
+  const filteredHouseData = houseData?.DT
+    ? houseData.DT.filter((house) =>
+        house.TenNha.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : [];
+
+  const handleExportExcel = () => {
+    if (!filteredHouseData || filteredHouseData.length === 0) {
+      toast.warning("Không có dữ liệu để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "MaNha", label: "Mã Nhà" },
+      { key: "TenNha", label: "Tên nhà" },
+      { key: "DiaChi", label: "Địa chỉ" },
+      { key: "MoTa", label: "Mô tả" },
+    ];
+
+    const success = exportToExcel(
+      filteredHouseData,
+      headers,
+      `Danh_sach_nha_${new Date().toISOString().split("T")[0]}`,
+      "Danh sách nhà",
+      { title: "DANH SÁCH NHÀ TRỌ" }
+    );
+
+    if (success) {
+      toast.success("Xuất dữ liệu thành công");
+    } else {
+      toast.error("Xuất dữ liệu thất bại");
+    }
+  };
 
   return (
-    <div className="mx-auto p-2">
-      <h2 className="text-xl font-semibold mb-4">Quản lý nhà</h2>
+    <div className="p-2">
+      <h2 className="text-xl font-semibold mb-4">Quản lý nhà trọ</h2>
       <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div
@@ -43,12 +75,12 @@ const AdminHouse = () => {
           </div>
 
           {isFilterExpanded && (
-            <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <label className="w-27 text-sm">Tên nhà/Địa chỉ:</label>
+                  <label className="w-20 text-sm">Tên nhà:</label>
                   <Input
-                    placeholder="Nhập tên nhà hoặc địa chỉ"
+                    placeholder="Nhập tên nhà"
                     className="flex-1 rounded outline-none shadow-none"
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
@@ -59,20 +91,27 @@ const AdminHouse = () => {
           )}
         </CardContent>
       </Card>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">Danh sách nhà</h2>
-        </div>
+
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium">Danh sách nhà trọ</h3>
         <div className="flex gap-2">
           <ModalAddHouse refetch={refetch} />
-          <Button className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer hover:text-white rounded-sm">
-            <Download className="h-4 w-4" /> Xuất dữ liệu
+          <Button
+            className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
+            onClick={handleExportExcel}
+          >
+            <Download className="h-4 w-4" />
+            Xuất dữ liệu
           </Button>
         </div>
       </div>
 
-      <div className="border rounded overflow-x-auto">
-        <TableHouse houseData={filteredData} refetch={refetch} />
+      <div className="rounded border overflow-hidden">
+        {isLoading ? (
+          <div className="p-4 text-center">Đang tải dữ liệu...</div>
+        ) : (
+          <TableHouse houseData={filteredHouseData} refetch={refetch} />
+        )}
       </div>
     </div>
   );
