@@ -18,6 +18,8 @@ const createRoomService = async (data) => {
   dataRoom.append("DienTich", data.dienTich);
   dataRoom.append("MoTa", data.moTa);
   dataRoom.append("TrangThai", data.trangThai);
+  dataRoom.append("ChiSoDien", data.chiSoDien);
+  dataRoom.append("ChiSoNuoc", data.chiSoNuoc);
   dataRoom.append("Anh", data.anh);
   const res = await axios.post("/room/create-room", dataRoom);
   return res.data;

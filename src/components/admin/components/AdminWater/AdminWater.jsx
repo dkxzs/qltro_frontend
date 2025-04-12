@@ -1,6 +1,3 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,85 +7,84 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ChevronDown, ChevronUp, FileDown } from "lucide-react";
-import { useState } from "react";
+import { getAllRoomsWithWaterService } from "@/services/electricWaterServices";
+import { getAllHouseService } from "@/services/houseServices";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { IoWaterSharp } from "react-icons/io5";
 import Pagination from "../Pagination/Pagination";
+import TableWater from "./TableWater/TableWater";
 
 const AdminWater = () => {
-  const [month, setMonth] = useState("12/2023");
-  //   const [showWarning, setShowWarning] = useState(true);
-
-  const meterData = [
-    {
-      id: 1,
-      floor: "Tầng 1",
-      room: "1",
-      tenant: "",
-      oldReading: "0",
-      newReading: "0",
-      usage: "0.0",
-    },
-    {
-      id: 2,
-      floor: "Tầng 1",
-      room: "2",
-      tenant: "",
-      oldReading: "0",
-      newReading: "0",
-      usage: "0.0",
-    },
-    {
-      id: 3,
-      floor: "Tầng 1",
-      room: "3",
-      tenant: "",
-      oldReading: "0",
-      newReading: "0",
-      usage: "0.0",
-    },
-    {
-      id: 4,
-      floor: "Tầng 1",
-      room: "4",
-      tenant: "",
-      oldReading: "0",
-      newReading: "0",
-      usage: "0.0",
-    },
-    {
-      id: 5,
-      floor: "Tầng 1",
-      room: "5",
-      tenant: "",
-      oldReading: "0",
-      newReading: "0",
-      usage: "0.0",
-    },
-  ];
+  const currentDate = new Date();
+  const [month] = useState(
+    `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`
+  );
+  const [selectedHouse, setSelectedHouse] = useState("all");
+  const [roomName, setRoomName] = useState("");
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+
+  const [yearNum, monthNum] = month.split("-").map((num) => parseInt(num, 10));
+
+  const { data: housesData } = useQuery({
+    queryKey: ["houses"],
+    queryFn: getAllHouseService,
+  });
+
+  const { data: roomsWithWaterData } = useQuery({
+    queryKey: ["rooms-with-water", monthNum, yearNum],
+    queryFn: () => getAllRoomsWithWaterService(monthNum, yearNum),
+    enabled: !!monthNum && !!yearNum,
+  });
+
+  const filteredData =
+    roomsWithWaterData?.DT?.filter((item) => {
+      const matchesHouse =
+        selectedHouse === "all" ||
+        item.PhongTro?.MaNha === parseInt(selectedHouse);
+
+      const matchesRoomName =
+        roomName === "" ||
+        (item.PhongTro?.TenPhong &&
+          item.PhongTro?.TenPhong.toLowerCase().includes(
+            roomName.toLowerCase()
+          ));
+
+      return matchesRoomName && matchesHouse;
+    }) || [];
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [roomName, selectedHouse]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const displayMonth = `${String(monthNum).padStart(2, "0")}/${yearNum}`;
+
   return (
-    <div className=" mx-auto p-2">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold text-gray-600">Chỉ số nước</h1>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="bg-blue-500 hover:bg-blue-600 rounded-sm text-white border-none"
-          >
-            <FileDown className=" h-4 w-4" />
-            Xuất dữ liệu
-          </Button>
+    <div className="mx-auto p-2">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <IoWaterSharp className="size-6" />
+          <h1 className="text-2xl font-semibold ">Chỉ số nước</h1>
         </div>
       </div>
-      <Card className="mb-4 rounded py-2">
+
+      <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div
             className="flex items-center cursor-pointer border-b"
@@ -104,51 +100,67 @@ const AdminWater = () => {
 
           {isFilterExpanded && (
             <>
-              <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <label className="block text-sm font-medium text-gray-600 mb-1 w-27">
-                      Tháng/năm
-                    </label>
-                    <Input
-                      type="date"
-                      value={month}
-                      onChange={(e) => setMonth(e.target.value)}
-                      className="w-full rounded"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <label className="block text-sm font-medium text-gray-600 mb-1 mr-5">
+                    <label className="block text-md font-medium text-gray-600 mb-1 mr-5">
                       Nhà
                     </label>
-                    <Select defaultValue="all">
-                      <SelectTrigger className="w-full rounded">
+                    <Select
+                      value={selectedHouse}
+                      onValueChange={(value) => {
+                        setSelectedHouse(value);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-full rounded shadow-none cursor-pointer">
                         <SelectValue placeholder="Tất cả" />
                       </SelectTrigger>
-                      <SelectContent className="rounded">
-                        <SelectItem value="all">Tất cả</SelectItem>
-                        <SelectItem value="house1">Nhà 1</SelectItem>
-                        <SelectItem value="house2">Nhà 2</SelectItem>
+                      <SelectContent className="rounded shadow-none cursor-pointer">
+                        <SelectItem className="cursor-pointer" value="all">
+                          Tất cả
+                        </SelectItem>
+                        {housesData?.DT?.map((house) => (
+                          <SelectItem
+                            key={house.MaNha}
+                            value={house.MaNha.toString()}
+                            className="cursor-pointer"
+                          >
+                            {house.TenNha}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <label className="block text-md font-medium mb-1 mr-5">
+                      Phòng
+                    </label>
+                    <Input
+                      type="text"
+                      value={roomName}
+                      onChange={(e) => setRoomName(e.target.value)}
+                      className="w-full rounded shadow-none"
+                      placeholder="Nhập tên phòng"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className=" p-4 ">
-                <p className="text-sm text-gray-600 font-medium mb-1">Lưu ý:</p>
-                <ul className="text-sm text-gray-600 list-inside">
-                  <li>
-                    - Bạn phải gắn dịch vụ thuộc loại điện cho khách thuê trước
-                    thì phần chỉ số này mới được tính cho phòng đó khi tính
-                    tiền.
-                  </li>
+              <div className="p-4">
+                <p className="text-sm  font-medium mb-1">Lưu ý:</p>
+                <ul className="text-sm  list-inside">
                   <li>
                     - Đối với lần đầu tiên sử dụng phần mềm bạn sẽ phải nhập chỉ
                     số cũ và mới cho tháng sử dụng đầu tiên, các tháng tiếp theo
                     phần mềm sẽ tự động lấy chỉ số mới tháng trước làm chỉ số cũ
                     tháng sau.
+                  </li>
+                  <li>
+                    - Khi cập nhật chỉ số mới cho tháng hiện tại, hệ thống sẽ tự
+                    động tạo bản ghi cho tháng tiếp theo với chỉ số cũ = chỉ số
+                    mới của tháng hiện tại.
                   </li>
                 </ul>
               </div>
@@ -157,75 +169,34 @@ const AdminWater = () => {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <label
-            htmlFor="warning"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            Cảnh báo chỉ số điện cũ nhỏ hơn chỉ số điện mới
+          <label>
+            <span className="text-md font-medium leading-none">
+              Danh sách số nước tháng: {displayMonth}
+            </span>
+          </label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-red-500">
+            Cảnh báo: chỉ số mới phải lớn hơn chỉ số cũ
           </label>
         </div>
       </div>
 
-      <div className="border rounded overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-100">
-              <TableHead className="font-semibold">STT</TableHead>
-              <TableHead className="font-semibold">Nhà</TableHead>
-              <TableHead className="font-semibold ">Phòng</TableHead>
-              <TableHead className="font-semibold text-right">
-                CS Điện Cũ
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                CS Điện Mới
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                Sử dụng
-              </TableHead>
-              <TableHead className="font-semibold text-right">
-                Hành động
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {meterData.map((row, index) => (
-              <TableRow key={index}>
-                <TableCell>{row.id}</TableCell>
-                <TableCell>{row.floor}</TableCell>
-                <TableCell>{row.room}</TableCell>
-                <TableCell className="text-right">
-                  <Input
-                    type="text"
-                    value={row.oldReading}
-                    className="w-full text-right"
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Input
-                    type="text"
-                    value={row.newReading}
-                    className="w-full text-right"
-                  />
-                </TableCell>
-                <TableCell className="text-right">{row.usage}</TableCell>
-                <TableCell>
-                  <Button
-                    size="sm"
-                    className="bg-cyan-500 hover:bg-cyan-600 text-white rounded float-right"
-                  >
-                    Lưu
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="rounded overflow-hidden min-h-[305px]">
+        <TableWater waterData={currentItems} month={monthNum} year={yearNum} />
       </div>
-      <div className="mt-2">
-        <Pagination />
-      </div>
+
+      {filteredData.length > 0 && (
+        <div className="flex justify-center mt-1">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

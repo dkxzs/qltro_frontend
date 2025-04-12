@@ -85,7 +85,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
       setFormData({ ...formData, anh: files[0] });
       setPreviewImage(URL.createObjectURL(files[0]));
     } else if (name === "dienTich") {
-      const numericValue = value.replace(/[^0-9.]/g, "");
+      const numericValue = value.replace(/[^0-9]/g, "");
       setFormData({ ...formData, [name]: numericValue });
     } else {
       setFormData({ ...formData, [name]: value });

@@ -45,7 +45,7 @@ function PaginationLink({ className, isActive, size = "icon", ...props }) {
           variant: isActive ? "outline" : "ghost",
           size,
         }),
-         "hover:bg-transparent",
+         "hover:bg-transparent p-0.5",
         className
       )}
       {...props}

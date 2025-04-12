@@ -1,4 +1,3 @@
-// File: components/TableElectricity/TableElectricity.jsx
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,11 +16,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { History, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import ModalConfirmElectricity from "../ModalConfirmElectricity/ModalConfirmElectricity";
-import ModalHistoryElectricity from "../ModalHistoryElectricity/ModalHistoryElectricity";
+import ModalConfirmWater from "../ModalConfirmWater/ModalConfirmWater";
+import ModalHistoryWater from "../ModalHistoryWater/ModalHistoryWater";
 
-const TableElectricity = (props) => {
-  const { electricData = [], month, year } = props;
+const TableWater = (props) => {
+  const { waterData = [], month, year } = props;
   const queryClient = useQueryClient();
 
   const [editedValues, setEditedValues] = useState({});
@@ -35,7 +34,7 @@ const TableElectricity = (props) => {
   }, [month, year]);
 
   const { data: historyData, refetch: fetchHistory } = useQuery({
-    queryKey: ["electric-history", selectedRoom?.MaPT, selectedRoom?.MaDV],
+    queryKey: ["water-history", selectedRoom?.MaPT, selectedRoom?.MaDV],
     queryFn: () =>
       getElectricWaterHistoryByRoomService(
         selectedRoom.MaPT,
@@ -55,7 +54,7 @@ const TableElectricity = (props) => {
     onSuccess: (data) => {
       if (data.EC === 0) {
         toast.success(data.EM || "Cập nhật thành công");
-        queryClient.invalidateQueries(["rooms-with-electric", month, year]);
+        queryClient.invalidateQueries(["rooms-with-water", month, year]);
         setEditedValues({});
       } else {
         toast.error(data.EM || "Cập nhật thất bại");
@@ -98,6 +97,7 @@ const TableElectricity = (props) => {
     }
 
     const dataToSave = {
+      ChiSoCu: chiSoCu,
       ChiSoMoi: chiSoMoi,
       Thang: month,
       Nam: year,
@@ -157,123 +157,116 @@ const TableElectricity = (props) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {electricData.length === 0 ? (
+          {waterData.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7} className="text-center py-4">
                 Không có dữ liệu
               </TableCell>
             </TableRow>
           ) : (
-            electricData.map((item, index) => {
-              const id = item.MaDN;
-              const editedItem = editedValues[id] || {};
-
-              const chiSoCu =
-                editedItem.ChiSoCu !== undefined
-                  ? editedItem.ChiSoCu
-                  : item.ChiSoCu;
-              const chiSoMoi =
-                editedItem.ChiSoMoi !== undefined
-                  ? editedItem.ChiSoMoi
-                  : item.ChiSoMoi;
-
-              const consumption = chiSoMoi - chiSoCu;
-
-              const invoiced = hasInvoice(item);
-
-              return (
-                <TableRow
-                  key={index}
-                  className={index % 2 === 0 ? "bg-blue-50" : ""}
+            waterData.map((item, index) => (
+              <TableRow
+                key={item.MaDN}
+                className={index % 2 === 0 ? "bg-blue-50" : ""}
+              >
+                <TableCell className="text-center py-3">{index + 1}</TableCell>
+                <TableCell
+                  className="text-center py-3 truncate"
+                  title={item.PhongTro?.TenPhong}
                 >
-                  <TableCell className="text-center py-3">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell
-                    className="text-center py-3 truncate"
-                    title={item.PhongTro?.TenPhong}
-                  >
-                    {item.PhongTro?.TenPhong}
-                  </TableCell>
-                  <TableCell
-                    className="text-center py-3 truncate"
-                    title={item.PhongTro?.TenNha}
-                  >
-                    {item.PhongTro?.TenNha}
-                  </TableCell>
-                  <TableCell className="text-center py-3">
-                    <Input
-                      type="text"
-                      value={chiSoCu}
-                      onChange={(e) =>
-                        handleInputChange(id, "ChiSoCu", e.target.value)
-                      }
-                      className="text-right rounded shadow-none bg-gray-100 w-full max-w-[150px] mx-auto"
-                      disabled={true}
-                    />
-                  </TableCell>
-                  <TableCell className="text-center py-3">
-                    <Input
-                      type="text"
-                      value={chiSoMoi || 0}
-                      onChange={(e) =>
-                        handleInputChange(id, "ChiSoMoi", e.target.value)
-                      }
-                      className={`text-right rounded w-full max-w-[200px] mx-auto ${
-                        invoiced ? "bg-gray-100" : ""
-                      }`}
-                      disabled={invoiced}
-                    />
-                  </TableCell>
-                  <TableCell className="text-center py-3">
-                    {consumption}
-                  </TableCell>
-                  <TableCell className="text-center py-3">
-                    <div className="flex justify-center gap-2">
-                      <Button
-                        onClick={() => handleSave(item)}
-                        className="bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
-                        size="sm"
-                      >
-                        <Save className="mr-1" />
-                        Lưu
-                      </Button>
-                      <Button
-                        onClick={() => handleViewHistory(item)}
-                        className="bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
-                        size="sm"
-                      >
-                        <History className="mr-1" />
-                        Lịch sử
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })
+                  {item.PhongTro?.TenPhong}
+                </TableCell>
+                <TableCell
+                  className="text-center py-3 truncate"
+                  title={item.PhongTro?.TenNha}
+                >
+                  {item.PhongTro?.TenNha}
+                </TableCell>
+                <TableCell className="text-center py-3">
+                  <Input
+                    type="text"
+                    value={
+                      editedValues[item.MaDN]?.ChiSoCu !== undefined
+                        ? editedValues[item.MaDN]?.ChiSoCu
+                        : item.ChiSoCu
+                    }
+                    onChange={(e) =>
+                      handleInputChange(item.MaDN, "ChiSoCu", e.target.value)
+                    }
+                    className="text-right rounded w-full max-w-[150px] mx-auto bg-gray-100"
+                    disabled
+                  />
+                </TableCell>
+                <TableCell className="text-center py-3">
+                  <Input
+                    type="text"
+                    value={
+                      editedValues[item.MaDN]?.ChiSoMoi !== undefined
+                        ? editedValues[item.MaDN]?.ChiSoMoi
+                        : item.ChiSoMoi
+                    }
+                    onChange={(e) =>
+                      handleInputChange(item.MaDN, "ChiSoMoi", e.target.value)
+                    }
+                    className={`text-right rounded w-full max-w-[200px] mx-auto ${
+                      hasInvoice(item) ? "bg-gray-100" : ""
+                    }`}
+                    disabled={hasInvoice(item)}
+                  />
+                </TableCell>
+                <TableCell className="text-center py-3">
+                  {(editedValues[item.MaDN]?.ChiSoMoi !== undefined
+                    ? editedValues[item.MaDN]?.ChiSoMoi
+                    : item.ChiSoMoi) -
+                    (editedValues[item.MaDN]?.ChiSoCu !== undefined
+                      ? editedValues[item.MaDN]?.ChiSoCu
+                      : item.ChiSoCu)}
+                </TableCell>
+                <TableCell className="text-center py-3">
+                  <div className="flex justify-center gap-2">
+                    <Button
+                      size="sm"
+                      className="rounded bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                      onClick={() => handleSave(item)}
+                      disabled={hasInvoice(item)}
+                    >
+                      <Save className="h-4 w-4 mr-1" />
+                      Lưu
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="rounded bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                      onClick={() => handleViewHistory(item)}
+                    >
+                      <History className="h-4 w-4 mr-1" />
+                      Lịch sử
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
           )}
         </TableBody>
       </Table>
 
-      <div>
-        <ModalConfirmElectricity
-          open={confirmDialogOpen}
-          onOpenChange={setConfirmDialogOpen}
-          pendingSave={pendingSave}
-          onConfirm={handleConfirmSave}
-        />
-        <ModalHistoryElectricity
-          open={historyDialogOpen}
-          onOpenChange={setHistoryDialogOpen}
-          historyData={historyData?.DT}
-          roomName={selectedRoom?.TenPhong}
-          houseName={selectedRoom?.TenNha}
-          MaPT={selectedRoom?.MaPT}
-          MaDV={selectedRoom?.MaDV}
-        />
-      </div>
+      <ModalConfirmWater
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        pendingSave={pendingSave}
+        onConfirm={handleConfirmSave}
+      />
+
+      <ModalHistoryWater
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+        historyData={historyData?.DT}
+        roomName={selectedRoom?.TenPhong}
+        houseName={selectedRoom?.TenNha}
+        MaPT={selectedRoom?.MaPT}
+        MaDV={selectedRoom?.MaDV}
+      />
     </div>
   );
 };
 
-export default TableElectricity;
+export default TableWater;

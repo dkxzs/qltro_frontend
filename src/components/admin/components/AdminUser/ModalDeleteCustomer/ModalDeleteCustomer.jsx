@@ -22,7 +22,6 @@ const ModalDeleteCustomer = (props) => {
   const mutationDeleteCustomer = useMutation({
     mutationFn: async ({ id }) => {
       const res = await deleteCustomerService(id);
-      console.log("check res: ", res);
       return res;
     },
     onSuccess: (data) => {

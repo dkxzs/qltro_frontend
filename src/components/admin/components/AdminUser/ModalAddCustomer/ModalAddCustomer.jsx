@@ -294,7 +294,7 @@ const ModalAddUser = (props) => {
                 ref={inputRef}
               />
               <div
-                className="mt-2 border rounded p-4 flex items-center justify-center cursor-pointer"
+                className="mt-2 w-45 h-35 border-2 border-dashed rounded p-4 flex items-center justify-center cursor-pointer"
                 onClick={handleClickImage}
               >
                 {formData.avatar ? (
@@ -303,7 +303,7 @@ const ModalAddUser = (props) => {
                       <img
                         src={previewImage}
                         alt="Avatar"
-                        className="w-25 h-25 object-contain rounded-full border"
+                        className="w-30 h-30 object-contain rounded-full border"
                       />
                     )}
                   </>

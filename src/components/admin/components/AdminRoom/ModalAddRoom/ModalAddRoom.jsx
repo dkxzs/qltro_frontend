@@ -37,6 +37,8 @@ const ModalAddRoom = ({ refetch }) => {
     moTa: "",
     trangThai: 0,
     anh: null,
+    chiSoDien: "", // Đã có trường này
+    chiSoNuoc: "", // Đã có trường này
   });
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -62,10 +64,20 @@ const ModalAddRoom = ({ refetch }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
+
+    // Xử lý đặc biệt cho trường chỉ số điện và nước (chỉ cho phép nhập số)
+    if (name === "chiSoDien" || name === "chiSoNuoc") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numericValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleChangeImage = (e) => {
@@ -131,6 +143,14 @@ const ModalAddRoom = ({ refetch }) => {
       toast.error("Vui lòng nhập diện tích phòng");
       return;
     }
+    if (!formData.chiSoDien) {
+      toast.error("Vui lòng nhập chỉ số điện");
+      return;
+    }
+    if (!formData.chiSoNuoc) {
+      toast.error("Vui lòng nhập chỉ số nước");
+      return;
+    }
     if (!formData.anh) {
       toast.error("Vui lòng chọn ảnh");
       return;
@@ -154,7 +174,7 @@ const ModalAddRoom = ({ refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-1/2 rounded"
+        className="w-1/2 rounded max-h-11/12 overflow-auto"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -254,6 +274,40 @@ const ModalAddRoom = ({ refetch }) => {
               />
             </div>
 
+            {/* Thêm trường chỉ số điện */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="chiSoDien" className="text-right">
+                Chỉ số điện ban đầu
+              </Label>
+              <div className="col-span-3">
+                <Input
+                  id="chiSoDien"
+                  name="chiSoDien"
+                  value={formData.chiSoDien}
+                  onChange={handleChange}
+                  className="col-span-3 rounded shadow-none"
+                  placeholder="Nhập chỉ số điện ban đầu"
+                />
+              </div>
+            </div>
+
+            {/* Thêm trường chỉ số nước */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="chiSoNuoc" className="text-right">
+                Chỉ số nước ban đầu
+              </Label>
+              <div className="col-span-3">
+                <Input
+                  id="chiSoNuoc"
+                  name="chiSoNuoc"
+                  value={formData.chiSoNuoc}
+                  onChange={handleChange}
+                  className="col-span-3 rounded shadow-none"
+                  placeholder="Nhập chỉ số nước ban đầu"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="moTa" className="text-right">
                 Mô tả
@@ -309,6 +363,10 @@ const ModalAddRoom = ({ refetch }) => {
               </div>
             </div>
           </div>
+          <p className="text-xs text-red-500 mt-1 font-bold">
+            * Lưu ý: Chỉ số điện và nước sẽ không thể chỉnh sửa sau khi lưu. Vui
+            lòng nhập chính xác.
+          </p>
           <DialogFooter>
             <Button
               type="button"

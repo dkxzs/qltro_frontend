@@ -35,7 +35,6 @@ const AdminUser = () => {
     setCurrentPage(pageNumber);
   };
 
-  console.log("filter: ", filteredUserData);
 
   return (
     <div className="p-2">

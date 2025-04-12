@@ -86,7 +86,6 @@ const ModalAddRoomType = (props) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("check: ", formData);
     if (validateForm()) {
       const dataToSubmit = {
         ...formData,

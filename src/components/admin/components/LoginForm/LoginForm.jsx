@@ -33,7 +33,6 @@ const LoginForm = () => {
     onSuccess: (res) => {
       if (+res.EC === 0) {
         localStorage.setItem("accessToken", res?.DT?.accessToken);
-        console.log("check log: ", res);
         toast.success("Đăng nhập thành công");
         dispatch(updateAccessToken(res));
         dispatch(login(res));
