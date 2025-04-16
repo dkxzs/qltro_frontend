@@ -11,7 +11,7 @@ import { exportToExcel } from "@/utils/exportToExcel";
 import { toast } from "react-toastify";
 
 const AdminHouse = () => {
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
 
   const {

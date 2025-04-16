@@ -1,0 +1,164 @@
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getAllRentService } from "@/services/rentServices";
+import { formatCurrency } from "@/utils/formatCurrency";
+import { useQuery } from "@tanstack/react-query";
+import { Eye } from "lucide-react";
+import { useState } from "react";
+import ModalViewRent from "../ModalViewRent/ModalViewRent";
+
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const TableRent = ({ filteredData }) => {
+  const [selectedRent, setSelectedRent] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  const { data: rentData, isLoading } = useQuery({
+    queryKey: ["rent-list"],
+    queryFn: getAllRentService,
+  });
+
+  const handleViewRent = (rent) => {
+    setSelectedRent(rent);
+    setIsViewModalOpen(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-32">
+        <span className="text-gray-600 text-sm">Đang tải dữ liệu...</span>
+      </div>
+    );
+  }
+
+  const displayData = filteredData || rentData?.DT || [];
+
+  return (
+    <>
+      <div className="rounded border border-gray-200 shadow-sm bg-white">
+        <div className="overflow-x-auto">
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow className="bg-gray-50/50">
+                <TableHead className="w-[10%] text-sm font-semibold text-gray-700 py-3">
+                  Mã HĐ
+                </TableHead>
+                <TableHead className="w-[15%] text-sm font-semibold text-gray-700 py-3">
+                  Khách trọ
+                </TableHead>
+                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                  Phòng
+                </TableHead>
+                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                  Nhà
+                </TableHead>
+                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                  Ngày bắt đầu
+                </TableHead>
+                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                  Ngày kết thúc
+                </TableHead>
+                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                  Đơn giá (VNĐ)
+                </TableHead>
+                <TableHead className="w-[10%] text-sm font-semibold text-gray-700 py-3">
+                  Trạng thái
+                </TableHead>
+                <TableHead className="w-[7%] min-w-[4rem] text-sm font-semibold text-gray-700 py-3 text-right">
+                  Thao tác
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {displayData.length > 0 ? (
+                displayData.map((rent) => (
+                  <TableRow
+                    key={rent.MaTP}
+                    className="hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100"
+                  >
+                    <TableCell className="font-medium text-gray-900 text-sm py-3">
+                      HD{rent.MaTP.toString().padStart(2, "0")}
+                    </TableCell>
+                    <TableCell className="text-gray-700 text-sm py-3 truncate">
+                      {rent.KhachHang?.HoTen}
+                    </TableCell>
+                    <TableCell className="text-gray-700 text-sm py-3 truncate">
+                      {rent.PhongTro?.TenPhong}
+                    </TableCell>
+                    <TableCell className="text-gray-700 text-sm py-3 truncate">
+                      {rent.PhongTro?.Nha?.TenNha}
+                    </TableCell>
+                    <TableCell className="text-gray-700 text-sm py-3">
+                      {formatDate(rent.NgayBatDau)}
+                    </TableCell>
+                    <TableCell className="text-gray-700 text-sm py-3">
+                      {formatDate(rent.NgayKetThuc)}
+                    </TableCell>
+                    <TableCell className="text-gray-700 text-sm py-3">
+                      {formatCurrency(rent.DonGia)}
+                    </TableCell>
+                    <TableCell className="text-gray-700 text-sm py-3">
+                      <span
+                        className={`inline-flex px-2.5 py-1 rounded text-xs font-medium ${
+                          rent.TrangThai === "Hoạt động"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {rent.TrangThai}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right py-3">
+                      <div className="flex justify-end">
+                        <Button
+                          className="bg-blue-500 hover:bg-blue-600 cursor-pointer rounded"
+                          onClick={() => handleViewRent(rent)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="text-center py-8 text-gray-500"
+                  >
+                    Không có dữ liệu
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {selectedRent && (
+        <ModalViewRent
+          open={isViewModalOpen}
+          onOpenChange={setIsViewModalOpen}
+          rentData={selectedRent}
+        />
+      )}
+    </>
+  );
+};
+
+export default TableRent;

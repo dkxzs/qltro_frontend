@@ -16,7 +16,7 @@ const NavUser = () => {
           <Avatar className="h-8 w-8 rounded-full items-center">
             <FaRegUserCircle className="size-7" />
           </Avatar>
-          <div className="grid flex-1 text-left  text-sm leading-tight">
+          <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">Admin</span>
             <span className="truncate text-xs">Xin chào admin</span>
           </div>

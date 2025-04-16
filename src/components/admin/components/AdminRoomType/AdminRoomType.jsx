@@ -78,7 +78,7 @@ const AdminRoomType = () => {
           </div>
 
           {isFilterExpanded && (
-            <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center">
                   <label className="w-27 text-sm">Tên loại phòng:</label>

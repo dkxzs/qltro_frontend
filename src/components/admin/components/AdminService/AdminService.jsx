@@ -103,7 +103,7 @@ const AdminService = () => {
         <div className="flex gap-2">
           <ModalAddService refetch={refetch} />
           <Button
-            className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer hover:text-white rounded-sm"
+            className="bg-yellow-500 hover:bg-yellow-600 cursor-pointer hover:text-white rounded"
             onClick={handleExportExcel}
           >
             <Download className="h-4 w-4" /> Xuất dữ liệu

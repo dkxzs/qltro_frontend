@@ -141,19 +141,13 @@ const TableWater = (props) => {
       <Table className="min-w-full border rounded table-fixed">
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead className="w-[5%] text-center py-3">STT</TableHead>
-            <TableHead className="w-[10%] text-center py-3">Phòng</TableHead>
-            <TableHead className="w-[10%] text-center py-3">Nhà</TableHead>
-            <TableHead className="w-[20%] text-center py-3">
-              Chỉ số cũ
-            </TableHead>
-            <TableHead className="w-[20%] text-center py-3">
-              Chỉ số mới
-            </TableHead>
-            <TableHead className="w-[10%] text-center py-3">Tiêu thụ</TableHead>
-            <TableHead className="w-[25%] text-center py-3">
-              Hành động
-            </TableHead>
+            <TableHead className="w-[5%] text-center ">STT</TableHead>
+            <TableHead className="w-[10%] text-center ">Phòng</TableHead>
+            <TableHead className="w-[10%] text-center ">Nhà</TableHead>
+            <TableHead className="w-[20%] text-center ">Chỉ số cũ</TableHead>
+            <TableHead className="w-[20%] text-center ">Chỉ số mới</TableHead>
+            <TableHead className="w-[10%] text-center ">Tiêu thụ</TableHead>
+            <TableHead className="w-[25%] text-center ">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -169,20 +163,20 @@ const TableWater = (props) => {
                 key={item.MaDN}
                 className={index % 2 === 0 ? "bg-blue-50" : ""}
               >
-                <TableCell className="text-center py-3">{index + 1}</TableCell>
+                <TableCell className="text-center ">{index + 1}</TableCell>
                 <TableCell
-                  className="text-center py-3 truncate"
+                  className="text-center  truncate"
                   title={item.PhongTro?.TenPhong}
                 >
                   {item.PhongTro?.TenPhong}
                 </TableCell>
                 <TableCell
-                  className="text-center py-3 truncate"
+                  className="text-center  truncate"
                   title={item.PhongTro?.TenNha}
                 >
                   {item.PhongTro?.TenNha}
                 </TableCell>
-                <TableCell className="text-center py-3">
+                <TableCell className="text-center ">
                   <Input
                     type="text"
                     value={
@@ -197,7 +191,7 @@ const TableWater = (props) => {
                     disabled
                   />
                 </TableCell>
-                <TableCell className="text-center py-3">
+                <TableCell className="text-center ">
                   <Input
                     type="text"
                     value={
@@ -214,7 +208,7 @@ const TableWater = (props) => {
                     disabled={hasInvoice(item)}
                   />
                 </TableCell>
-                <TableCell className="text-center py-3">
+                <TableCell className="text-center ">
                   {(editedValues[item.MaDN]?.ChiSoMoi !== undefined
                     ? editedValues[item.MaDN]?.ChiSoMoi
                     : item.ChiSoMoi) -
@@ -222,7 +216,7 @@ const TableWater = (props) => {
                       ? editedValues[item.MaDN]?.ChiSoCu
                       : item.ChiSoCu)}
                 </TableCell>
-                <TableCell className="text-center py-3">
+                <TableCell className="text-center ">
                   <div className="flex justify-center gap-2">
                     <Button
                       size="sm"

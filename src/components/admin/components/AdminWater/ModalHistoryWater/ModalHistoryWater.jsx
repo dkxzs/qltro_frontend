@@ -60,7 +60,7 @@ const ModalHistoryWater = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded w-3/5">
+      <DialogContent className="rounded w-3/5" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
             Lịch sử chỉ số nước - Phòng {roomName} - Nhà {houseName}

@@ -141,19 +141,13 @@ const TableElectricity = (props) => {
       <Table className="min-w-full border rounded table-fixed">
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead className="w-[5%] text-center py-3">STT</TableHead>
-            <TableHead className="w-[10%] text-center py-3">Phòng</TableHead>
-            <TableHead className="w-[10%] text-center py-3">Nhà</TableHead>
-            <TableHead className="w-[20%] text-center py-3">
-              Chỉ số cũ
-            </TableHead>
-            <TableHead className="w-[20%] text-center py-3">
-              Chỉ số mới
-            </TableHead>
-            <TableHead className="w-[10%] text-center py-3">Tiêu thụ</TableHead>
-            <TableHead className="w-[25%] text-center py-3">
-              Hành động
-            </TableHead>
+            <TableHead className="w-[5%] text-center">STT</TableHead>
+            <TableHead className="w-[10%] text-center">Phòng</TableHead>
+            <TableHead className="w-[10%] text-center">Nhà</TableHead>
+            <TableHead className="w-[20%] text-center">Chỉ số cũ</TableHead>
+            <TableHead className="w-[20%] text-center">Chỉ số mới</TableHead>
+            <TableHead className="w-[10%] text-center">Tiêu thụ</TableHead>
+            <TableHead className="w-[25%] text-center">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -186,22 +180,20 @@ const TableElectricity = (props) => {
                   key={index}
                   className={index % 2 === 0 ? "bg-blue-50" : ""}
                 >
-                  <TableCell className="text-center py-3">
-                    {index + 1}
-                  </TableCell>
+                  <TableCell className="text-center">{index + 1}</TableCell>
                   <TableCell
-                    className="text-center py-3 truncate"
+                    className="text-center truncate"
                     title={item.PhongTro?.TenPhong}
                   >
                     {item.PhongTro?.TenPhong}
                   </TableCell>
                   <TableCell
-                    className="text-center py-3 truncate"
+                    className="text-center truncate"
                     title={item.PhongTro?.TenNha}
                   >
                     {item.PhongTro?.TenNha}
                   </TableCell>
-                  <TableCell className="text-center py-3">
+                  <TableCell className="text-center">
                     <Input
                       type="text"
                       value={chiSoCu}
@@ -212,7 +204,7 @@ const TableElectricity = (props) => {
                       disabled={true}
                     />
                   </TableCell>
-                  <TableCell className="text-center py-3">
+                  <TableCell className="text-center">
                     <Input
                       type="text"
                       value={chiSoMoi || 0}
@@ -225,10 +217,8 @@ const TableElectricity = (props) => {
                       disabled={invoiced}
                     />
                   </TableCell>
-                  <TableCell className="text-center py-3">
-                    {consumption}
-                  </TableCell>
-                  <TableCell className="text-center py-3">
+                  <TableCell className="text-center">{consumption}</TableCell>
+                  <TableCell className="text-center">
                     <div className="flex justify-center gap-2">
                       <Button
                         onClick={() => handleSave(item)}

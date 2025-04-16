@@ -1,9 +1,14 @@
 import axios from "../utils/axiosCustomize";
 
-const getAllCustomerService = async () => {
-  const res = await axios.get("/customer/get-all-customer");
+const getAllCustomerService = async (onlyAvailable = false) => {
+  const url = onlyAvailable
+    ? "/customer/get-all-customer?available=true"
+    : "/customer/get-all-customer";
+  const res = await axios.get(url);
   return res.data;
 };
+
+// Các hàm khác giữ nguyên
 const createCustomerService = async (data) => {
   const formData = new FormData();
   formData.append("HoTen", data.name);

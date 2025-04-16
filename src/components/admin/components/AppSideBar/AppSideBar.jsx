@@ -17,6 +17,7 @@ import {
   MdOutlineBedroomParent,
   MdOutlineMiscellaneousServices,
 } from "react-icons/md";
+import { GrConfigure } from "react-icons/gr";
 import { TbReport } from "react-icons/tb";
 import TeamSwitcher from "../TeamSwitcher/TeamSwitcher";
 import { useNavigate } from "react-router-dom";
@@ -109,6 +110,12 @@ const data = {
       icon: TbReport,
       items: [],
     },
+    {
+      title: "Cấu hình",
+      url: "/admin/config",
+      icon: GrConfigure,
+      items: [],
+    },
   ],
 };
 
@@ -129,7 +136,7 @@ export function AppSidebar({ ...props }) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter className="border-t">
-        <div className="flex items-center justify-center hover:bg-accent rounded-sm">
+        <div className="flex items-center justify-center hover:bg-accent rounded">
           <SidebarMenuButton
             className="flex justify-center items-center cursor-pointer"
             onClick={handleLogout}

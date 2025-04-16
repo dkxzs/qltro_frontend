@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 
 const ModalConfirmWater = ({ open, onOpenChange, pendingSave, onConfirm }) => {
-  console.log(pendingSave);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded w-3/5">
