@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 
 const ModalAddUser = (props) => {
   const { refetch } = props;
+  const date = new Date();
   const [formData, setFormData] = useState({
     name: "",
     cardId: "",
@@ -100,6 +101,19 @@ const ModalAddUser = (props) => {
     },
   });
 
+  function isOver18(birthday) {
+    const today = new Date();
+    const birthDate = new Date(birthday);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age >= 18;
+  }
+
   const validateForm = () => {
     if (!formData.name.trim()) {
       toast.error("Tên không được để trống");
@@ -125,6 +139,16 @@ const ModalAddUser = (props) => {
 
     if (!formData.birthday) {
       toast.error("Ngày sinh không được để trống");
+      return false;
+    }
+
+    if (formData.birthday > date) {
+      toast.error("Ngày sinh không được lớn hơn ngày hiện tại");
+      return false;
+    }
+
+    if (!isOver18(formData.birthday)) {
+      toast.error("Khách hàng phải lớn hơn 18 tuổi");
       return false;
     }
 

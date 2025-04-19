@@ -145,9 +145,9 @@ const TableWater = (props) => {
             <TableHead className="w-[10%] text-center ">Phòng</TableHead>
             <TableHead className="w-[10%] text-center ">Nhà</TableHead>
             <TableHead className="w-[20%] text-center ">Chỉ số cũ</TableHead>
-            <TableHead className="w-[20%] text-center ">Chỉ số mới</TableHead>
-            <TableHead className="w-[10%] text-center ">Tiêu thụ</TableHead>
-            <TableHead className="w-[25%] text-center ">Hành động</TableHead>
+            <TableHead className="w-[25%] text-center ">Chỉ số mới</TableHead>
+            <TableHead className="w-[15%] text-center ">Tiêu thụ</TableHead>
+            <TableHead className="w-[15%] text-center ">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -219,21 +219,17 @@ const TableWater = (props) => {
                 <TableCell className="text-center ">
                   <div className="flex justify-center gap-2">
                     <Button
-                      size="sm"
-                      className="rounded bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                      className="rounded bg-green-600 hover:bg-green-700 cursor-pointer"
                       onClick={() => handleSave(item)}
                       disabled={hasInvoice(item)}
                     >
-                      <Save className="h-4 w-4 mr-1" />
-                      Lưu
+                      <Save className="size-4" />
                     </Button>
                     <Button
-                      size="sm"
                       className="rounded bg-blue-500 hover:bg-blue-600 cursor-pointer"
                       onClick={() => handleViewHistory(item)}
                     >
-                      <History className="h-4 w-4 mr-1" />
-                      Lịch sử
+                      <History className="size-4" />
                     </Button>
                   </div>
                 </TableCell>

@@ -145,9 +145,9 @@ const TableElectricity = (props) => {
             <TableHead className="w-[10%] text-center">Phòng</TableHead>
             <TableHead className="w-[10%] text-center">Nhà</TableHead>
             <TableHead className="w-[20%] text-center">Chỉ số cũ</TableHead>
-            <TableHead className="w-[20%] text-center">Chỉ số mới</TableHead>
-            <TableHead className="w-[10%] text-center">Tiêu thụ</TableHead>
-            <TableHead className="w-[25%] text-center">Hành động</TableHead>
+            <TableHead className="w-[25%] text-center">Chỉ số mới</TableHead>
+            <TableHead className="w-[15%] text-center">Tiêu thụ</TableHead>
+            <TableHead className="w-[15%] text-center">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -222,19 +222,15 @@ const TableElectricity = (props) => {
                     <div className="flex justify-center gap-2">
                       <Button
                         onClick={() => handleSave(item)}
-                        className="bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
-                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 rounded cursor-pointer"
                       >
-                        <Save className="mr-1" />
-                        Lưu
+                        <Save className="size-4" />
                       </Button>
                       <Button
                         onClick={() => handleViewHistory(item)}
                         className="bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
-                        size="sm"
                       >
-                        <History className="mr-1" />
-                        Lịch sử
+                        <History className="size-4" />
                       </Button>
                     </div>
                   </TableCell>

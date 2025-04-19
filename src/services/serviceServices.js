@@ -19,3 +19,9 @@ export const deleteServiceService = async (id) => {
   const res = await axios.delete(`/service/delete-service/${id}`);
   return res.data;
 };
+
+// Thêm hàm kiểm tra dịch vụ có đang được sử dụng không
+export const checkServiceInUseService = async (id) => {
+  const res = await axios.get(`/service/check-in-use/${id}`);
+  return res.data;
+};

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -18,8 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { updateRoomService } from "@/services/roomServices";
+import {
+  checkRoomHasRentService,
+  updateRoomService,
+} from "@/services/roomServices";
 import { getAllRoomTypeService } from "@/services/roomTypeServices";
+import { getAllServiceService } from "@/services/serviceServices";
+import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Pencil, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -29,6 +35,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const [open, setOpen] = useState(false);
   const inputRef = useRef(null);
   const [roomTypes, setRoomTypes] = useState([]);
+  const [hasRent, setHasRent] = useState(false);
   const [status] = useState([
     { value: "0", label: "Còn trống" },
     { value: "1", label: "Đã cho thuê" },
@@ -77,6 +84,27 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
       }
     }
   }, [dataUpdate, open]);
+
+  const { data: dataService } = useQuery({
+    queryKey: ["checkRoomHasRent", dataUpdate.MaPT],
+    queryFn: () => getAllServiceService(dataUpdate.MaPT),
+  });
+
+  useEffect(() => {
+    if (open && dataUpdate.MaPT) {
+      const checkHasRent = async () => {
+        try {
+          const res = await checkRoomHasRentService(dataUpdate.MaPT);
+          if (res?.EC === 0) {
+            setHasRent(res.DT);
+          }
+        } catch (error) {
+          console.error("Error checking rent status:", error);
+        }
+      };
+      checkHasRent();
+    }
+  }, [open, dataUpdate.MaPT]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -168,7 +196,8 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                   value={formData.tenPhong}
                   onChange={handleChange}
                   placeholder="Nhập tên phòng"
-                  className="col-span-3 rounded shadow-none"
+                  className="rounded shadow-none"
+                  disabled={hasRent}
                 />
               </div>
               <div className="space-y-2">
@@ -181,7 +210,10 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                     handleSelectChange("maLoaiPhong", value)
                   }
                 >
-                  <SelectTrigger className="col-span-3 w-full rounded shadow-none cursor-pointer">
+                  <SelectTrigger
+                    className="col-span-3 w-full rounded shadow-none cursor-pointer"
+                    disabled={hasRent}
+                  >
                     <SelectValue placeholder="Chọn loại phòng" />
                   </SelectTrigger>
                   <SelectContent className="rounded">
@@ -210,7 +242,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                   value={formData.dienTich}
                   onChange={handleChange}
                   placeholder="Nhập diện tích"
-                  className="col-span-3 rounded shadow-none"
+                  className="rounded shadow-none"
                 />
               </div>
               <div className="space-y-2">
@@ -223,7 +255,10 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                     handleSelectChange("trangThai", value)
                   }
                 >
-                  <SelectTrigger className="col-span-3 w-full rounded cursor-pointer">
+                  <SelectTrigger
+                    className=" w-full rounded cursor-pointer"
+                    disabled={hasRent}
+                  >
                     <SelectValue placeholder="Chọn trạng thái" />
                   </SelectTrigger>
                   <SelectContent className="rounded">
@@ -295,23 +330,60 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
               )}
             </div>
           </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="mr-2 rounded cursor-pointer"
-            >
-              Đóng
-            </Button>
-            <Button
-              type="submit"
-              disabled={mutationUpdateRoom.isPending}
-              className=" rounded cursor-pointer"
-            >
-              {mutationUpdateRoom.isPending ? "Đang xử lý..." : "Lưu"}
-            </Button>
-          </DialogFooter>
         </form>
+        {hasRent && (
+          <>
+            <h2>Dịch vụ phòng</h2>
+            <div>
+              {dataService &&
+                dataService?.DT.map((service, index) => {
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 my-1 rounded bg-gray-50 hover:bg-gray-100 transition"
+                    >
+                      <div className="flex items-center space-x-3 flex-1">
+                        <Checkbox
+                          id={service.MaDV}
+                          // checked={selectedServices.includes(service.MaDV)}
+                          // onCheckedChange={(checked) =>
+                          //   handleServiceChange(service.MaDV, checked)
+                          // }
+                          // disabled={isDefaultService(service)}
+                          className="h-5 w-5 rounded cursor-pointer"
+                        />
+                        <Label
+                          htmlFor={service.MaDV}
+                          className="cursor-pointer flex-1"
+                        >
+                          {service.TenDV}
+                        </Label>
+                      </div>
+                      <span className="text-sm text-gray-600 w-32 text-right">
+                        {formatCurrency(service.DonGia || 0)} VNĐ
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          </>
+        )}
+        <DialogFooter>
+          <Button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="mr-2 rounded cursor-pointer"
+          >
+            Đóng
+          </Button>
+          <Button
+            type="submit"
+            disabled={mutationUpdateRoom.isPending}
+            className=" rounded cursor-pointer"
+          >
+            {mutationUpdateRoom.isPending ? "Đang xử lý..." : "Cập nhật"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -17,7 +17,7 @@ const AdminUser = () => {
 
   const { data: userData, refetch } = useQuery({
     queryKey: ["user"],
-    queryFn: getAllCustomerService,
+    queryFn: () => getAllCustomerService(false),
   });
 
   const filteredUserData = userData?.DT.filter((user) =>
@@ -34,7 +34,6 @@ const AdminUser = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
-
 
   return (
     <div className="p-2">
@@ -54,7 +53,7 @@ const AdminUser = () => {
           </div>
 
           {isFilterExpanded && (
-            <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center">
                   <label className="w-27 text-sm">Tên khách trọ:</label>

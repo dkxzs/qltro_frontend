@@ -14,32 +14,9 @@ import {
 } from "@/components/ui/tooltip";
 import ModalUpdateRoom from "../ModalUpdateRoom/ModalUpdateRoom";
 import ModalDeleteRoom from "../ModalDeleteRoom/ModalDeleteRoom";
+import { getRoomStatusColor, getRoomStatusText } from "@/utils/roomStatusUtils";
 
 const TableRoom = ({ roomData, refetch }) => {
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 0:
-        return "bg-green-100 text-green-800";
-      case 1:
-        return "bg-blue-100 text-red-800";
-      case 2:
-        return "bg-red-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 0:
-        return "Còn trống";
-      case 1:
-        return "Đã cho thuê";
-      case 2:
-        return "Đang sửa chữa";
-    }
-  };
-
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -138,11 +115,11 @@ const TableRoom = ({ roomData, refetch }) => {
                 <TableCell className="py-2 px-2">
                   <div className="flex justify-center">
                     <div
-                      className={`px-2 py-1 rounded text-center whitespace-nowrap ${getStatusColor(
+                      className={`px-2 py-1 rounded text-center whitespace-nowrap ${getRoomStatusColor(
                         room.TrangThai
                       )}`}
                     >
-                      {getStatusText(room.TrangThai)}
+                      {getRoomStatusText(room.TrangThai)}
                     </div>
                   </div>
                 </TableCell>

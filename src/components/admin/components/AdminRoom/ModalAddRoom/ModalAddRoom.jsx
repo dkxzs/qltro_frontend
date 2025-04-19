@@ -18,27 +18,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getAllHouseService } from "@/services/houseServices";
 import { createRoomService } from "@/services/roomServices";
 import { getAllRoomTypeService } from "@/services/roomTypeServices";
-import { getAllHouseService } from "@/services/houseServices";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { ROOM_STATUS, ROOM_STATUS_VALUE } from "@/utils/roomStatusUtils";
 
 const ModalAddRoom = ({ refetch }) => {
   const [open, setOpen] = useState(false);
   const inputRef = useRef(null);
+  // Trong phần khởi tạo form
   const [formData, setFormData] = useState({
     tenPhong: "",
     maNha: "",
     maLoaiPhong: "",
     dienTich: "",
     moTa: "",
-    trangThai: 0,
+    trangThai: ROOM_STATUS_VALUE["Còn trống"], // Mặc định là "Còn trống" (0)
     anh: null,
-    chiSoDien: "", // Đã có trường này
-    chiSoNuoc: "", // Đã có trường này
+    chiSoDien: "",
+    chiSoNuoc: "",
   });
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -65,7 +67,6 @@ const ModalAddRoom = ({ refetch }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Xử lý đặc biệt cho trường chỉ số điện và nước (chỉ cho phép nhập số)
     if (name === "chiSoDien" || name === "chiSoNuoc") {
       const numericValue = value.replace(/[^0-9]/g, "");
       setFormData((prev) => ({
@@ -174,216 +175,236 @@ const ModalAddRoom = ({ refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-1/2 rounded max-h-11/12 overflow-auto"
+        className="w-1/2 rounded max-h-[95vh] overflow-hidden"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
       >
-        <DialogHeader>
-          <DialogTitle>Thêm phòng mới</DialogTitle>
-          <DialogDescription>
-            Vui lòng nhập thông tin của phòng mới.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tenPhong" className="text-right">
-                Tên phòng
-              </Label>
-              <Input
-                id="tenPhong"
-                name="tenPhong"
-                value={formData.tenPhong}
-                onChange={handleChange}
-                className="col-span-3 rounded shadow-none"
-                placeholder="Nhập tên phòng"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="maNha" className="text-right">
-                Nhà
-              </Label>
-              <div className="col-span-3">
-                <Select
-                  value={formData.maNha}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, maNha: value })
-                  }
-                >
-                  <SelectTrigger className="w-full rounded cursor-pointer shadow-none">
-                    <SelectValue placeholder="Chọn nhà" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded">
-                    {houseData?.DT &&
-                      houseData.DT.length > 0 &&
-                      houseData.DT.map((house) => (
-                        <SelectItem
-                          key={house.MaNha}
-                          value={house.MaNha.toString()}
-                          className="cursor-pointer"
-                        >
-                          {house.TenNha}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="maLoaiPhong" className="text-right">
-                Loại phòng
-              </Label>
-              <div className="col-span-3">
-                <Select
-                  value={formData.maLoaiPhong}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, maLoaiPhong: value })
-                  }
-                >
-                  <SelectTrigger className="w-full rounded cursor-pointer shadow-none">
-                    <SelectValue placeholder="Chọn loại phòng" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded">
-                    {roomTypeData?.DT &&
-                      roomTypeData.DT.length > 0 &&
-                      roomTypeData.DT.map((type) => (
-                        <SelectItem
-                          key={type.MaLP}
-                          value={type.MaLP.toString()}
-                          className="cursor-pointer"
-                        >
-                          {type.TenLoaiPhong} - {type.DonGia.toLocaleString()}đ
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="dienTich" className="text-right">
-                Diện tích (m²)
-              </Label>
-              <Input
-                id="dienTich"
-                name="dienTich"
-                value={formData.dienTich}
-                onChange={handleChange}
-                className="col-span-3 rounded shadow-none"
-                placeholder="Nhập diện tích phòng"
-              />
-            </div>
-
-            {/* Thêm trường chỉ số điện */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="chiSoDien" className="text-right">
-                Chỉ số điện ban đầu
-              </Label>
-              <div className="col-span-3">
-                <Input
-                  id="chiSoDien"
-                  name="chiSoDien"
-                  value={formData.chiSoDien}
-                  onChange={handleChange}
-                  className="col-span-3 rounded shadow-none"
-                  placeholder="Nhập chỉ số điện ban đầu"
-                />
-              </div>
-            </div>
-
-            {/* Thêm trường chỉ số nước */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="chiSoNuoc" className="text-right">
-                Chỉ số nước ban đầu
-              </Label>
-              <div className="col-span-3">
-                <Input
-                  id="chiSoNuoc"
-                  name="chiSoNuoc"
-                  value={formData.chiSoNuoc}
-                  onChange={handleChange}
-                  className="col-span-3 rounded shadow-none"
-                  placeholder="Nhập chỉ số nước ban đầu"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="moTa" className="text-right">
-                Mô tả
-              </Label>
-              <Textarea
-                id="moTa"
-                name="moTa"
-                value={formData.moTa}
-                onChange={handleChange}
-                className="col-span-3 shadow-none"
-                placeholder="Nhập mô tả phòng"
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="anh" className="text-right">
-                Hình ảnh
-              </Label>
-              <div className="col-span-3">
-                <Input
-                  id="anh"
-                  name="anh"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleChangeImage(e)}
-                  hidden
-                  className="col-span-3 rounded cursor-pointer"
-                  ref={inputRef}
-                />
-                {previewImage ? (
-                  <>
-                    <div
-                      className="w-35 rounded border-dashed border-2 cursor-pointer"
-                      onClick={() => inputRef.current.click()}
+        <div
+          className="scrollbar-hide overflow-y-auto pr-1"
+          style={{
+            maxHeight: "90vh",
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Thêm phòng mới</DialogTitle>
+            <DialogDescription>
+              Vui lòng nhập thông tin của phòng mới.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tenPhong" className="text-right">
+                    Tên phòng
+                  </Label>
+                  <Input
+                    id="tenPhong"
+                    name="tenPhong"
+                    value={formData.tenPhong}
+                    onChange={handleChange}
+                    className="rounded shadow-none"
+                    placeholder="Nhập tên phòng"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maNha" className="text-right">
+                    Nhà
+                  </Label>
+                  <div>
+                    <Select
+                      value={formData.maNha}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, maNha: value })
+                      }
                     >
-                      <img
-                        src={previewImage}
-                        alt="Preview"
-                        className="w-35 h-35 rounded p-1"
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div
-                      className="w-35 h-35 cursor-pointer rounded border-dashed border-2 flex items-center justify-center"
-                      onClick={() => inputRef.current.click()}
+                      <SelectTrigger className="w-full rounded cursor-pointer shadow-none">
+                        <SelectValue placeholder="Chọn nhà" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded w-full">
+                        {houseData?.DT &&
+                          houseData.DT.length > 0 &&
+                          houseData.DT.map((house) => (
+                            <SelectItem
+                              key={house.MaNha}
+                              value={house.MaNha.toString()}
+                              className="cursor-pointer"
+                            >
+                              {house.TenNha}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="maLoaiPhong" className="text-right">
+                    Loại phòng
+                  </Label>
+                  <div>
+                    <Select
+                      value={formData.maLoaiPhong}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, maLoaiPhong: value })
+                      }
                     >
-                      Chọn ảnh
-                    </div>
-                  </>
-                )}
+                      <SelectTrigger className="w-full rounded cursor-pointer shadow-none">
+                        <SelectValue placeholder="Chọn loại phòng" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded">
+                        {roomTypeData?.DT &&
+                          roomTypeData.DT.length > 0 &&
+                          roomTypeData.DT.map((type) => (
+                            <SelectItem
+                              key={type.MaLP}
+                              value={type.MaLP.toString()}
+                              className="cursor-pointer"
+                            >
+                              {type.TenLoaiPhong} -{" "}
+                              {type.DonGia.toLocaleString()}đ
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dienTich" className="text-right">
+                    Diện tích (m²)
+                  </Label>
+                  <Input
+                    id="dienTich"
+                    name="dienTich"
+                    value={formData.dienTich}
+                    onChange={handleChange}
+                    className="rounded shadow-none"
+                    placeholder="Nhập diện tích phòng"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="chiSoDien" className="text-right">
+                    Chỉ số điện ban đầu
+                  </Label>
+                  <div>
+                    <Input
+                      id="chiSoDien"
+                      name="chiSoDien"
+                      value={formData.chiSoDien}
+                      onChange={handleChange}
+                      className=" rounded shadow-none"
+                      placeholder="Nhập chỉ số điện ban đầu"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="chiSoNuoc" className="text-right">
+                    Chỉ số nước ban đầu
+                  </Label>
+                  <div>
+                    <Input
+                      id="chiSoNuoc"
+                      name="chiSoNuoc"
+                      value={formData.chiSoNuoc}
+                      onChange={handleChange}
+                      className="rounded shadow-none"
+                      placeholder="Nhập chỉ số nước ban đầu"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="grid items-start gap-2">
+                <Label htmlFor="moTa" className="text-right">
+                  Mô tả
+                </Label>
+                <Textarea
+                  id="moTa"
+                  name="moTa"
+                  value={formData.moTa}
+                  onChange={handleChange}
+                  className="shadow-none"
+                  placeholder="Nhập mô tả phòng"
+                  rows={4}
+                />
+              </div>
+              <div className="grid items-start gap-2">
+                <Label htmlFor="anh" className="text-right">
+                  Hình ảnh
+                </Label>
+                <div>
+                  <Input
+                    id="anh"
+                    name="anh"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleChangeImage(e)}
+                    hidden
+                    className=" rounded cursor-pointer"
+                    ref={inputRef}
+                  />
+                  {previewImage ? (
+                    <>
+                      <div
+                        className="w-35 rounded border-dashed border-2 cursor-pointer"
+                        onClick={() => inputRef.current.click()}
+                      >
+                        <img
+                          src={previewImage}
+                          alt="Preview"
+                          className="w-35 h-35 rounded p-1"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        className="w-35 h-35 cursor-pointer rounded border-dashed border-2 flex items-center justify-center"
+                        onClick={() => inputRef.current.click()}
+                      >
+                        Chọn ảnh
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          <p className="text-xs text-red-500 mt-1 font-bold">
-            * Lưu ý: Chỉ số điện và nước sẽ không thể chỉnh sửa sau khi lưu. Vui
-            lòng nhập chính xác.
-          </p>
-          <DialogFooter>
-            <Button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="mr-2 cursor-pointer rounded"
-            >
-              Đóng
-            </Button>
-            <Button
-              type="submit"
-              disabled={mutationCreateRoom.isPending}
-              className="cursor-pointer rounded"
-            >
-              {mutationCreateRoom.isPending ? "Đang xử lý..." : "Thêm"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <p className="text-xs text-red-500 mt-1 font-bold">
+              * Lưu ý: Chỉ số điện và nước sẽ không thể chỉnh sửa sau khi lưu.
+              Vui lòng nhập chính xác.
+            </p>
+            <DialogFooter>
+              <Button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="mr-2 cursor-pointer rounded"
+              >
+                Đóng
+              </Button>
+              <Button
+                type="submit"
+                disabled={mutationCreateRoom.isPending}
+                className="cursor-pointer rounded"
+              >
+                {mutationCreateRoom.isPending ? "Đang xử lý..." : "Thêm"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </div>
+        <style>
+          {`
+            .scrollbar-hide {
+              -ms-overflow-style: none; /* IE and Edge */
+              scrollbar-width: none; /* Firefox */
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none; /* Chrome, Safari, Opera */
+            }
+          `}
+        </style>
       </DialogContent>
     </Dialog>
   );

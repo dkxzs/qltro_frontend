@@ -8,7 +8,6 @@ const getAllCustomerService = async (onlyAvailable = false) => {
   return res.data;
 };
 
-// Các hàm khác giữ nguyên
 const createCustomerService = async (data) => {
   const formData = new FormData();
   formData.append("HoTen", data.name);
@@ -44,9 +43,15 @@ const deleteCustomerService = async (id) => {
   return res.data;
 };
 
+const checkCustomerHasRentService = async (id) => {
+  const res = await axios.get(`/customer/check-has-rent/${id}`);
+  return res.data;
+};
+
 export {
   createCustomerService,
   getAllCustomerService,
   updateCustomerService,
   deleteCustomerService,
+  checkCustomerHasRentService,
 };

@@ -93,7 +93,7 @@ const AdminHouse = () => {
       </Card>
 
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Danh sách nhà trọ</h3>
+        <h3 className="text-xl font-medium">Danh sách nhà trọ</h3>
         <div className="flex gap-2">
           <ModalAddHouse refetch={refetch} />
           <Button

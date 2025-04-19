@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Eye } from "lucide-react";
 import { useState } from "react";
 import ModalViewRent from "../ModalViewRent/ModalViewRent";
+import { getStatusText } from "@/utils/rentStatusUtils";
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -55,31 +56,31 @@ const TableRent = ({ filteredData }) => {
           <Table className="w-full">
             <TableHeader>
               <TableRow className="bg-gray-50/50">
-                <TableHead className="w-[10%] text-sm font-semibold text-gray-700 py-3">
+                <TableHead className="w-[10%] font-semibold text-gray-700 py-2">
                   Mã HĐ
                 </TableHead>
-                <TableHead className="w-[15%] text-sm font-semibold text-gray-700 py-3">
+                <TableHead className="w-[15%] font-semibold text-gray-700 py-2">
                   Khách trọ
                 </TableHead>
-                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
                   Phòng
                 </TableHead>
-                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
                   Nhà
                 </TableHead>
-                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
                   Ngày bắt đầu
                 </TableHead>
-                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
                   Ngày kết thúc
                 </TableHead>
-                <TableHead className="w-[12%] text-sm font-semibold text-gray-700 py-3">
+                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
                   Đơn giá (VNĐ)
                 </TableHead>
-                <TableHead className="w-[10%] text-sm font-semibold text-gray-700 py-3">
+                <TableHead className="w-[10%] font-semibold text-gray-700 py-2">
                   Trạng thái
                 </TableHead>
-                <TableHead className="w-[7%] min-w-[4rem] text-sm font-semibold text-gray-700 py-3 text-right">
+                <TableHead className="w-[7%] min-w-[4rem] font-semibold text-gray-700 py-2 text-right">
                   Thao tác
                 </TableHead>
               </TableRow>
@@ -91,39 +92,39 @@ const TableRent = ({ filteredData }) => {
                     key={rent.MaTP}
                     className="hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100"
                   >
-                    <TableCell className="font-medium text-gray-900 text-sm py-3">
+                    <TableCell className="font-medium text-gray-900 py-2">
                       HD{rent.MaTP.toString().padStart(2, "0")}
                     </TableCell>
-                    <TableCell className="text-gray-700 text-sm py-3 truncate">
+                    <TableCell className="text-gray-700 py-2 truncate">
                       {rent.KhachHang?.HoTen}
                     </TableCell>
-                    <TableCell className="text-gray-700 text-sm py-3 truncate">
+                    <TableCell className="text-gray-700 py-2 truncate">
                       {rent.PhongTro?.TenPhong}
                     </TableCell>
-                    <TableCell className="text-gray-700 text-sm py-3 truncate">
+                    <TableCell className="text-gray-700 py-2 truncate">
                       {rent.PhongTro?.Nha?.TenNha}
                     </TableCell>
-                    <TableCell className="text-gray-700 text-sm py-3">
+                    <TableCell className="text-gray-700 py-2">
                       {formatDate(rent.NgayBatDau)}
                     </TableCell>
-                    <TableCell className="text-gray-700 text-sm py-3">
+                    <TableCell className="text-gray-700 py-2">
                       {formatDate(rent.NgayKetThuc)}
                     </TableCell>
-                    <TableCell className="text-gray-700 text-sm py-3">
+                    <TableCell className="text-gray-700 py-2">
                       {formatCurrency(rent.DonGia)}
                     </TableCell>
-                    <TableCell className="text-gray-700 text-sm py-3">
+                    <TableCell className="text-gray-700 py-2">
                       <span
-                        className={`inline-flex px-2.5 py-1 rounded text-xs font-medium ${
+                        className={`inline-flex px-2.5 py-1 rounded font-medium ${
                           rent.TrangThai === "Hoạt động"
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {rent.TrangThai}
+                        {getStatusText(rent.TrangThai)}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right py-3">
+                    <TableCell className="text-right py-2">
                       <div className="flex justify-end">
                         <Button
                           className="bg-blue-500 hover:bg-blue-600 cursor-pointer rounded"

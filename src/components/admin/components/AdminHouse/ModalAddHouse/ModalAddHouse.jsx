@@ -44,7 +44,7 @@ const ModalAddHouse = (props) => {
   };
 
   const mutationCreateHouse = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async ({ data }) => {
       const res = await createHouseService(data);
       if (res.EC !== 0) {
         throw new Error(res.EM || "Có lỗi xảy ra khi thêm nhà");
@@ -79,7 +79,7 @@ const ModalAddHouse = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      mutationCreateHouse.mutate(formData);
+      mutationCreateHouse.mutate({ data: formData });
     }
   };
 

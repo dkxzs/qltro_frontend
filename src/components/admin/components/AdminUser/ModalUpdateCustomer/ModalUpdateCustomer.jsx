@@ -17,6 +17,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { checkCustomerHasRentService } from "@/services/customerServices";
 
 const ModalUpdateUser = (props) => {
   const { dataUpdate, refetch } = props;
@@ -33,6 +34,7 @@ const ModalUpdateUser = (props) => {
   const [previewImage, setPreviewImage] = useState(null);
   const inputRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [hasRent, setHasRent] = useState(false);
 
   useEffect(() => {
     if (dataUpdate && open) {
@@ -49,6 +51,22 @@ const ModalUpdateUser = (props) => {
       setPreviewImage(dataUpdate?.Anh || null);
     }
   }, [dataUpdate, open]);
+
+  useEffect(() => {
+    if (open && dataUpdate?.MaKH) {
+      const checkHasRent = async () => {
+        try {
+          const response = await checkCustomerHasRentService(dataUpdate.MaKH);
+          if (response.EC === 0) {
+            setHasRent(response.DT);
+          }
+        } catch (error) {
+          console.error("Error checking rent status:", error);
+        }
+      };
+      checkHasRent();
+    }
+  }, [open, dataUpdate]);
 
   useEffect(() => {
     return () => {
@@ -200,6 +218,7 @@ const ModalUpdateUser = (props) => {
                 className="rounded mt-2"
                 value={formData.name}
                 onChange={handleChange}
+                disabled={hasRent}
               />
             </div>
             <div>
@@ -212,6 +231,7 @@ const ModalUpdateUser = (props) => {
                 className="rounded mt-2"
                 value={formData.cardId}
                 onChange={handleChange}
+                disabled={true}
               />
             </div>
             <div>
@@ -255,6 +275,7 @@ const ModalUpdateUser = (props) => {
                 className="rounded mt-2"
                 value={formData.birthday}
                 onChange={handleChange}
+                disabled={hasRent}
               />
             </div>
             <div>
@@ -267,6 +288,7 @@ const ModalUpdateUser = (props) => {
                 className="rounded mt-2"
                 value={formData.phoneNumber}
                 onChange={handleChange}
+                disabled={hasRent}
               />
             </div>
             <div>

@@ -22,17 +22,18 @@ const ModalDeleteCustomer = (props) => {
   const mutationDeleteCustomer = useMutation({
     mutationFn: async ({ id }) => {
       const res = await deleteCustomerService(id);
+      if (res.EC !== 0) {
+        throw new Error(res.EM || "Có lỗi xảy ra khi xóa khách trọ");
+      }
       return res;
     },
     onSuccess: (data) => {
-      if (data.EC === 0) {
-        toast.success(data.EM);
-        refetch();
-        setOpen(!open);
-      }
+      toast.success(data.EM);
+      refetch();
+      setOpen(!open);
     },
     onError: (error) => {
-      toast.error(error.response?.data?.EM || "Đã có lỗi xảy ra");
+      toast.error(error.message || "Đã có lỗi xảy ra");
     },
   });
 
@@ -66,11 +67,14 @@ const ModalDeleteCustomer = (props) => {
 
         <div className="w-full">
           <h2>Bạn có muốn xóa {dataDelete.HoTen} khỏi hệ thống không?</h2>
+          <p className="text-red-500 mt-2">
+            Lưu ý: Hành động này không thể hoàn tác. Khách hàng đang có hợp đồng thuê phòng sẽ không thể xóa.
+          </p>
         </div>
 
         <DialogFooter>
           <Button
-            type="submit"
+            type="button"
             className="cursor-pointer rounded"
             onClick={() => {
               setOpen(!open);

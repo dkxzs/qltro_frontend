@@ -20,9 +20,16 @@ const deleteHouseService = async (id) => {
   return res.data;
 };
 
+// Thêm hàm kiểm tra nhà có phòng đang được thuê không
+const checkHouseHasRentService = async (id) => {
+  const res = await axios.get(`/house/check-has-rent/${id}`);
+  return res.data;
+};
+
 export {
   getAllHouseService,
   createHouseService,
   updateHouseService,
   deleteHouseService,
+  checkHouseHasRentService, // Thêm export
 };

@@ -8,16 +8,33 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { deleteServiceService } from "@/services/serviceServices";
+import { deleteServiceService, checkServiceInUseService } from "@/services/serviceServices";
 import { useMutation } from "@tanstack/react-query";
 
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 const ModalDeleteService = (props) => {
   const { dataDelete, refetch } = props;
   const [open, setOpen] = useState(false);
+  const [isInUse, setIsInUse] = useState(false);
+
+  useEffect(() => {
+    if (open && dataDelete?.MaDV) {
+      const checkInUse = async () => {
+        try {
+          const res = await checkServiceInUseService(dataDelete.MaDV);
+          if (res?.EC === 0) {
+            setIsInUse(res.DT);
+          }
+        } catch (error) {
+          console.error("Error checking service usage:", error);
+        }
+      };
+      checkInUse();
+    }
+  }, [open, dataDelete?.MaDV]);
 
   const mutationDeleteService = useMutation({
     mutationFn: async ({ id }) => {
@@ -28,9 +45,9 @@ const ModalDeleteService = (props) => {
       return res;
     },
     onSuccess: (data) => {
-      toast.success(data.EM);
+      toast.success(data.EM || "Xóa dịch vụ thành công");
       refetch();
-      setOpen(!open);
+      setOpen(false);
     },
     onError: (error) => {
       toast.error(error.message || "Đã có lỗi xảy ra");
@@ -39,59 +56,51 @@ const ModalDeleteService = (props) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (isInUse) {
+      toast.error("Không thể xóa dịch vụ đang được sử dụng trong hợp đồng thuê");
+      return;
+    }
+    
     mutationDeleteService.mutate({ id: dataDelete?.MaDV });
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={() => {
-        setOpen(!open);
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-red-500 hover:bg-red-600 rounded text-white">
+        <Button className="bg-red-500 hover:bg-red-600 cursor-pointer rounded text-white">
           <Trash2 className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent
-        className="w-2/5 rounded"
-        onInteractOutside={(event) => {
-          event.preventDefault();
-        }}
-      >
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Xoá dịch vụ</DialogTitle>
-          <DialogDescription></DialogDescription>
+          <DialogTitle>Xóa dịch vụ</DialogTitle>
+          <DialogDescription>
+            Bạn có chắc chắn muốn xóa dịch vụ này không?
+          </DialogDescription>
         </DialogHeader>
-
-        <div className="w-full">
-          <h2>
-            Bạn có muốn xóa dịch vụ "{dataDelete?.TenDV}" khỏi hệ thống không?
-          </h2>
-          <p className="text-red-500 mt-2">
-            Lưu ý: Hành động này không thể hoàn tác và có thể ảnh hưởng đến các hóa đơn liên quan.
-          </p>
-        </div>
-
+        
+        {isInUse && (
+          <div className="text-red-500 font-medium">
+            Không thể xóa dịch vụ này vì đang được sử dụng trong hợp đồng thuê.
+          </div>
+        )}
+        
         <DialogFooter>
           <Button
             type="button"
-            className="cursor-pointer rounded"
-            onClick={() => {
-              setOpen(!open);
-            }}
+            onClick={() => setOpen(false)}
+            className="mr-2 cursor-pointer rounded"
           >
-            Đóng
+            Hủy
           </Button>
           <Button
             type="submit"
-            className="cursor-pointer rounded bg-red-500 hover:bg-red-600"
-            onClick={(e) => {
-              handleSubmit(e);
-            }}
+            disabled={isInUse || mutationDeleteService.isPending}
+            className="bg-red-500 hover:bg-red-600 cursor-pointer rounded text-white"
+            onClick={handleSubmit}
           >
-            Xoá
+            {mutationDeleteService.isPending ? "Đang xử lý..." : "Xóa"}
           </Button>
         </DialogFooter>
       </DialogContent>

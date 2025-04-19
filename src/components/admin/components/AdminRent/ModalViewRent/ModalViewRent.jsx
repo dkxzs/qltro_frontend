@@ -571,11 +571,11 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
             <style>
               {`
                 .scrollbar-hide {
-                  -ms-overflow-style: none; /* IE and Edge */
-                  scrollbar-width: none; /* Firefox */
+                  -ms-overflow-style: none;
+                  scrollbar-width: none;
                 }
                 .scrollbar-hide::-webkit-scrollbar {
-                  display: none; /* Chrome, Safari, and Opera */
+                  display: none;
                 }
               `}
             </style>
@@ -602,7 +602,7 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
                   CCCD số: 123456789012 Ngày cấp: 01/01/2020 Nơi cấp: Cục Cảnh
                   sát quản lý hành chính về trật tự xã hội
                 </p>
-                <p>Thường Trú: Xuân Phương, Nam Từ Liêm, Hà Nội</p>
+                <p>Thường Trú: Xuân Phương, Nam Từ Liêm, Hà Nôi</p>
                 <p>Số điện thoại: 0987654321</p>
               </div>
             </div>
