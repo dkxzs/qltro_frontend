@@ -23,7 +23,7 @@ import { getAllHouseService } from "@/services/houseServices";
 import { getRoomByIdService } from "@/services/roomServices";
 import { createRentService } from "@/services/rentServices";
 import { getAllServiceService } from "@/services/serviceServices";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/utils/formatCurrency";
@@ -32,7 +32,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RENT_STATUS_VALUE } from "@/utils/rentStatusUtils";
 import { ROOM_STATUS_VALUE } from "@/utils/roomStatusUtils";
 
-const ModalAddRent = ({ refetch }) => {
+const ModalAddRent = () => {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
@@ -43,6 +44,7 @@ const ModalAddRent = ({ refetch }) => {
     ngayKetThuc: "",
     ghiChu: "",
     donGia: "",
+    datCoc: "",
   });
   // eslint-disable-next-line no-unused-vars
   const [roomPrice, setRoomPrice] = useState(0);
@@ -117,7 +119,8 @@ const ModalAddRent = ({ refetch }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "donGia" ? formatCurrency(value) : value,
+      [name]:
+        name === "donGia" || name === "datCoc" ? formatCurrency(value) : value,
     }));
   };
 
@@ -140,19 +143,21 @@ const ModalAddRent = ({ refetch }) => {
       ngayKetThuc: "",
       ghiChu: "",
       donGia: "",
+      datCoc: "",
     });
   };
 
   const createRentMutation = useMutation({
     mutationFn: (data) => createRentService(data),
-    onSuccess: (response) => {
-      if (response.EC === 0) {
-        toast.success(response.EM);
+    onSuccess: (data) => {
+      if (data.EC === 0) {
+        toast.success(data.EM);
         setOpen(false);
         resetForm();
-        if (refetch) refetch();
+        // Làm mới danh sách hợp đồng
+        queryClient.invalidateQueries(["rent-list"]);
       } else {
-        toast.error(response.EM);
+        toast.error(data.EM);
       }
     },
     onError: (error) => {
@@ -179,41 +184,30 @@ const ModalAddRent = ({ refetch }) => {
       return;
     }
 
-    // const startDate = new Date(formData.ngayBatDau);
-    // if (startDate.getDate() > 5) {
-    //   toast.error("Ngày bắt đầu phải từ ngày 1 đến ngày 5 của tháng");
-    //   return;
-    // }
-
     if (!formData.ngayKetThuc) {
       toast.error("Vui lòng chọn ngày kết thúc");
       return;
     }
 
-    if (new Date(formData.ngayKetThuc) <= new Date(formData.ngayBatDau)) {
-      toast.error("Ngày kết thúc phải sau ngày bắt đầu");
+    if (!formData.datCoc) {
+      toast.error("Vui lòng nhập tiền đặt cọc");
       return;
     }
-
-    if (!formData.donGia) {
-      toast.error("Vui lòng nhập đơn giá");
-      return;
-    }
-
-    if (selectedServices.length === 0) {
-      toast.error("Vui lòng chọn ít nhất một dịch vụ");
-      return;
-    }
-
-    const donGiaValue = formData.donGia.toString().replace(/\./g, "");
 
     const rentData = {
       maKH: selectedCustomer,
       maPT: selectedRoom,
       ngayBatDau: formData.ngayBatDau,
-      ngayKetThuc: formData.ngayKetThuc,
-      ghiChu: formData.ghiChu,
-      donGia: donGiaValue,
+      ngayKetThuc: formData.ngayKetThuc || null,
+      ghiChu: formData.ghiChu || "",
+      donGia:
+        typeof formData.donGia === "string"
+          ? parseInt(formData.donGia.replace(/\D/g, ""))
+          : formData.donGia || 0,
+      datCoc:
+        typeof formData.datCoc === "string"
+          ? parseInt(formData.datCoc.replace(/\D/g, ""))
+          : formData.datCoc || 0,
       dichVu: selectedServices,
     };
 
@@ -238,7 +232,7 @@ const ModalAddRent = ({ refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-4/5 max-w-4xl rounded max-h-[95%] overflow-hidden"
+        className="w-4/5 max-w-4xl rounded max-h-[95vh] overflow-hidden"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -246,18 +240,18 @@ const ModalAddRent = ({ refetch }) => {
         <div
           className="scrollbar-hide"
           style={{
-            maxHeight: "65vh",
+            maxHeight: "80vh",
             overflowY: "auto",
             borderRadius: "inherit",
           }}
         >
           <DialogHeader>
             <DialogTitle>Thêm hợp đồng</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="-mt-1">
               Vui lòng nhập đầy đủ thông tin vào hợp đồng mới.
             </DialogDescription>
           </DialogHeader>
-          <form className="space-y-4 w-full" onSubmit={handleSubmit}>
+          <form className="space-y-4 w-full mt-3" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-6 w-full">
               <div className="w-full">
                 <Label htmlFor="khachTro">Khách trọ</Label>
@@ -359,6 +353,17 @@ const ModalAddRent = ({ refetch }) => {
                   name="ngayKetThuc"
                   type="date"
                   value={formData.ngayKetThuc}
+                  onChange={handleChange}
+                  className="w-full rounded mt-2 shadow-none"
+                />
+              </div>
+
+              <div className="w-full">
+                <Label htmlFor="datCoc">Tiền đặt cọc (VNĐ)</Label>
+                <Input
+                  id="datCoc"
+                  name="datCoc"
+                  value={formatCurrency(formData.datCoc)}
                   onChange={handleChange}
                   className="w-full rounded mt-2 shadow-none"
                 />

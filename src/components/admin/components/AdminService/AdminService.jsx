@@ -19,6 +19,8 @@ const AdminService = () => {
     queryFn: getAllServiceService,
   });
 
+  console.log("serviceData", serviceData?.DT);
+
   const filteredData =
     serviceData?.DT?.filter((item) => {
       return item.TenDV.toLowerCase().includes(searchText.toLowerCase());

@@ -19,9 +19,3 @@ export const deleteRentService = async (id) => {
   const res = await axios.delete(`/rent/delete-rent/${id}`);
   return res.data;
 };
-
-// Thêm service mới để lấy dịch vụ của phòng
-export const getRoomServicesService = async (roomId) => {
-  const res = await axios.get(`/rent/get-room-services/${roomId}`);
-  return res.data;
-};

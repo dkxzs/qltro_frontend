@@ -30,6 +30,8 @@ const ModalUpdateUser = (props) => {
     email: "",
     address: "",
     avatar: "",
+    dateOfIssue: "", // Thêm ngày cấp
+    placeOfIssue: "", // Thêm nơi cấp
   });
   const [previewImage, setPreviewImage] = useState(null);
   const inputRef = useRef(null);
@@ -46,11 +48,15 @@ const ModalUpdateUser = (props) => {
         phoneNumber: dataUpdate?.DienThoai || "",
         email: dataUpdate?.Email || "",
         address: dataUpdate?.DiaChi || "",
+        dateOfIssue: formatDateForInput(dataUpdate?.NgayCap) || "", // Thêm ngày cấp
+        placeOfIssue: dataUpdate?.NoiCap || "", // Thêm nơi cấp
         avatar: dataUpdate?.Anh || "",
       });
       setPreviewImage(dataUpdate?.Anh || null);
     }
   }, [dataUpdate, open]);
+
+  console.log("dataUpdate", dataUpdate);
 
   useEffect(() => {
     if (open && dataUpdate?.MaKH) {
@@ -113,6 +119,8 @@ const ModalUpdateUser = (props) => {
       email: "",
       address: "",
       avatar: "",
+      dateOfIssue: "",
+      placeOfIssue: "",
     });
     setPreviewImage(null);
   };
@@ -222,19 +230,6 @@ const ModalUpdateUser = (props) => {
               />
             </div>
             <div>
-              <Label htmlFor="cardId">Số căn cước công dân</Label>
-              <Input
-                type="number"
-                id="cardId"
-                name="cardId"
-                placeholder="123456789"
-                className="rounded mt-2"
-                value={formData.cardId}
-                onChange={handleChange}
-                disabled={true}
-              />
-            </div>
-            <div>
               <Label htmlFor="gender">Giới tính</Label>
               <RadioGroup
                 value={formData.gender}
@@ -265,6 +260,43 @@ const ModalUpdateUser = (props) => {
                   </div>
                 </div>
               </RadioGroup>
+            </div>
+            <div>
+              <Label htmlFor="cardId">Số căn cước công dân</Label>
+              <Input
+                type="number"
+                id="cardId"
+                name="cardId"
+                placeholder="123456789"
+                className="rounded mt-2"
+                value={formData.cardId}
+                onChange={handleChange}
+                disabled={true}
+              />
+            </div>
+            <div>
+              <Label>Ngày cấp:</Label>
+              <Input
+                type="date"
+                id="dateOfIssue"
+                name="dateOfIssue"
+                className="rounded mt-2 shadow-none"
+                value={formData.dateOfIssue}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <Label>Nơi cấp:</Label>
+              <Input
+                type="text"
+                id="placeOfIssue"
+                name="placeOfIssue"
+                className="rounded mt-2 shadow-none"
+                value={formData.placeOfIssue}
+                onChange={handleChange}
+                placeholder="Nơi cấp"
+              />
             </div>
             <div>
               <Label htmlFor="birthday">Ngày sinh</Label>
@@ -328,18 +360,18 @@ const ModalUpdateUser = (props) => {
                 ref={inputRef}
               />
               <div
-                className="mt-2 border rounded p-4 flex items-center justify-center cursor-pointer"
+                className="mt-2 border-2 w-40 h-40 border-dashed rounded p-4 flex items-center justify-center cursor-pointer"
                 onClick={handleClickImage}
               >
                 {previewImage ? (
                   <img
                     src={previewImage}
                     alt="Avatar"
-                    className="w-25 h-25 object-contain rounded-full border"
+                    className="w-30 h-30 object-contain rounded-full border"
                   />
                 ) : (
                   <div className="flex items-center justify-center cursor-pointer">
-                    Không có ảnh
+                    Chọn ảnh
                   </div>
                 )}
               </div>

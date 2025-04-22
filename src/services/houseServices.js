@@ -31,5 +31,5 @@ export {
   createHouseService,
   updateHouseService,
   deleteHouseService,
-  checkHouseHasRentService, // Thêm export
+  checkHouseHasRentService, 
 };

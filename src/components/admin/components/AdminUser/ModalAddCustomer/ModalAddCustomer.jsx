@@ -30,6 +30,8 @@ const ModalAddUser = (props) => {
     email: "",
     address: "",
     avatar: "",
+    dateOfIssue: "",
+    placeOfIssue: "",
   });
   const [previewImage, setPreviewImage] = useState(null);
   const inputRef = useRef(null);
@@ -80,6 +82,8 @@ const ModalAddUser = (props) => {
       email: "",
       address: "",
       avatar: "",
+      dateOfIssue: "", // Thêm ngày cấp
+      placeOfIssue: "", // Thêm nơi cấp
     });
     setPreviewImage(null);
   };
@@ -163,6 +167,16 @@ const ModalAddUser = (props) => {
       return false;
     }
 
+    if (!formData.dateOfIssue) {
+      toast.error("Ngày cấp không được để trống");
+      return false;
+    }
+
+    if (!formData.placeOfIssue.trim()) {
+      toast.error("Nơi cấp không được để trống");
+      return false;
+    }
+
     return true;
   };
 
@@ -208,20 +222,8 @@ const ModalAddUser = (props) => {
                 id="name"
                 name="name"
                 placeholder="Nguyễn Văn A"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.name}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="cardId">Số căn cước công dân</Label>
-              <Input
-                type="number"
-                id="cardId"
-                name="cardId"
-                placeholder="123456789"
-                className="rounded mt-2"
-                value={formData.cardId}
                 onChange={handleChange}
               />
             </div>
@@ -238,7 +240,7 @@ const ModalAddUser = (props) => {
                     <RadioGroupItem
                       value="Nam"
                       id="r1"
-                      className="cursor-pointer"
+                      className="cursor-pointer border-black"
                     />
                     <Label htmlFor="r1" className="font-normal cursor-pointer">
                       Nam
@@ -248,23 +250,59 @@ const ModalAddUser = (props) => {
                     <RadioGroupItem
                       value="Nu"
                       id="r2"
-                      className="cursor-pointer"
+                      className="cursor-pointer border-slate-500"
                     />
-                    <Label htmlFor="r2" className="font-normal cursor-pointer">
+                    <Label htmlFor="r2" className="font-normal cursor-pointer ">
                       Nữ
                     </Label>
                   </div>
                 </div>
               </RadioGroup>
             </div>
+            <div>
+              <Label htmlFor="cardId">Số căn cước công dân</Label>
+              <Input
+                type="number"
+                id="cardId"
+                name="cardId"
+                placeholder="123456789"
+                className="rounded mt-2 shadow-none"
+                value={formData.cardId}
+                onChange={handleChange}
+              />
+            </div>
 
+            <div>
+              <Label>Ngày cấp:</Label>
+              <Input
+                type="date"
+                id="dateOfIssue"
+                name="dateOfIssue"
+                className="rounded mt-2 shadow-none"
+                value={formData.dateOfIssue}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <Label>Nơi cấp:</Label>
+              <Input
+                type="text"
+                id="placeOfIssue"
+                name="placeOfIssue"
+                className="rounded mt-2 shadow-none"
+                value={formData.placeOfIssue}
+                onChange={handleChange}
+                placeholder="Nơi cấp"
+              />
+            </div>
             <div>
               <Label htmlFor="birthday">Ngày sinh</Label>
               <Input
                 type="date"
                 id="birthday"
                 name="birthday"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.birthday}
                 onChange={handleChange}
               />
@@ -276,7 +314,7 @@ const ModalAddUser = (props) => {
                 id="phoneNumber"
                 name="phoneNumber"
                 placeholder="0123456789"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.phoneNumber}
                 onChange={handleChange}
               />
@@ -288,7 +326,7 @@ const ModalAddUser = (props) => {
                 id="email"
                 name="email"
                 placeholder="abc@gmail.com"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -300,7 +338,7 @@ const ModalAddUser = (props) => {
                 id="address"
                 name="address"
                 placeholder="Địa chỉ"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.address}
                 onChange={handleChange}
               />
@@ -318,7 +356,7 @@ const ModalAddUser = (props) => {
                 ref={inputRef}
               />
               <div
-                className="mt-2 w-45 h-35 border-2 border-dashed rounded p-4 flex items-center justify-center cursor-pointer"
+                className="mt-2 w-40 h-40 border-2 border-dashed rounded p-4 flex items-center justify-center cursor-pointer"
                 onClick={handleClickImage}
               >
                 {formData.avatar ? (
@@ -332,8 +370,9 @@ const ModalAddUser = (props) => {
                     )}
                   </>
                 ) : (
-                  <div className="flex items-center justify-center cursor-pointer">
-                    Không có ảnh
+                  <div className="flex items-center justify-center cursor-pointer gap-1 text-lg font-mono">
+                    <Plus className="size-7 text-black" />
+                    Chọn ảnh
                   </div>
                 )}
               </div>

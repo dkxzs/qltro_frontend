@@ -9,6 +9,7 @@ import AdminRoomType from "@/components/admin/components/AdminRoomType/AdminRoom
 import AdminService from "@/components/admin/components/AdminService/AdminService";
 import AdminUser from "@/components/admin/components/AdminUser/AdminUser";
 import AdminWater from "@/components/admin/components/AdminWater/AdminWater";
+import AdminExpense from "@/components/admin/components/AdminExpense/AdminExpense";
 
 export const adminRoutes = [
   {
@@ -51,6 +52,10 @@ export const adminRoutes = [
   {
     path: "reports",
     page: AdminReport,
+  },
+  {
+    path: "expenses",
+    page: AdminExpense,
   },
   {
     path: "rents",

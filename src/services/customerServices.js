@@ -18,6 +18,8 @@ const createCustomerService = async (data) => {
   formData.append("Email", data.email);
   formData.append("DiaChi", data.address);
   formData.append("Anh", data.avatar);
+  formData.append("NgayCap", data.dateOfIssue); // Thêm ngày cấp
+  formData.append("NoiCap", data.placeOfIssue); // Thêm nơi cấp
   const res = await axios.post("/customer/create-customer", formData);
   return res.data;
 };
@@ -31,6 +33,8 @@ const updateCustomerService = async (id, data) => {
   formData.append("DienThoai", data.phoneNumber);
   formData.append("Email", data.email);
   formData.append("DiaChi", data.address);
+  formData.append("NgayCap", data.dateOfIssue); // Thêm ngày cấp
+  formData.append("NoiCap", data.placeOfIssue); // Thêm nơi cấp
   if (data.avatar instanceof File) {
     formData.append("Anh", data.avatar);
   }

@@ -7,9 +7,12 @@ import {
   SidebarMenuButton,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { logout } from "@/redux/slices/userSlice";
 import { LayoutDashboard, UserCog } from "lucide-react";
 import { BsHouseGear } from "react-icons/bs";
 import { FiLogOut } from "react-icons/fi";
+import { GiExpense } from "react-icons/gi";
+import { GrConfigure } from "react-icons/gr";
 import { IoWaterOutline } from "react-icons/io5";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import {
@@ -17,12 +20,10 @@ import {
   MdOutlineBedroomParent,
   MdOutlineMiscellaneousServices,
 } from "react-icons/md";
-import { GrConfigure } from "react-icons/gr";
 import { TbReport } from "react-icons/tb";
-import TeamSwitcher from "../TeamSwitcher/TeamSwitcher";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { logout } from "@/redux/slices/userSlice";
+import { useNavigate } from "react-router-dom";
+import TeamSwitcher from "../TeamSwitcher/TeamSwitcher";
 
 const data = {
   navMain: [
@@ -108,6 +109,12 @@ const data = {
       title: "Thống kê báo cáo",
       url: "/admin/reports",
       icon: TbReport,
+      items: [],
+    },
+    {
+      title: "Chi phí phát sinh",
+      url: "/admin/expenses",
+      icon: GiExpense,
       items: [],
     },
     {

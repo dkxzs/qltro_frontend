@@ -48,6 +48,18 @@ const checkRoomHasRentService = async (id) => {
   return res.data;
 };
 
+const updateRoomServicesService = async (id, services) => {
+  const res = await axios.post(`/room/update-room-services/${id}`, {
+    services,
+  });
+  return res.data;
+};
+
+const getRoomServicesService = async (roomId) => {
+  const res = await axios.get(`/room/get-room-services/${roomId}`);
+  return res.data;
+};
+
 export {
   getAllRoomService,
   getRoomByIdService,
@@ -55,4 +67,6 @@ export {
   updateRoomService,
   deleteRoomService,
   checkRoomHasRentService,
+  updateRoomServicesService,
+  getRoomServicesService,
 };
