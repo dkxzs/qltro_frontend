@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -10,380 +9,184 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { getAllHouseService } from "@/services/houseServices";
-import { getRoomByIdService } from "@/services/roomServices";
 import { updateExpenseService } from "@/services/expenseServices";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Pencil, Loader2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalUpdateExpense = ({ dataUpdate, refetch }) => {
+const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
   const [open, setOpen] = useState(false);
-  const [houses, setHouses] = useState([]);
-  const [rooms, setRooms] = useState([]);
-  const [loading] = useState(false);
-  const [initialFormData, setInitialFormData] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [displayTongTien, setDisplayTongTien] = useState("");
   const [formData, setFormData] = useState({
     maNha: "",
     maPT: "",
     tongTien: "",
-    thangNam: "",
-    nguoiChiTra: "",
     moTa: "",
   });
 
-  // Lấy danh sách nhà
-  const { data: dataHouses, isLoading: isLoadingHouses } = useQuery({
-    queryKey: ["houses"],
-    queryFn: () => getAllHouseService(),
-    enabled: open,
-  });
-
-  useEffect(() => {
-    if (dataHouses?.DT) {
-      setHouses(dataHouses.DT);
-    }
-  }, [dataHouses]);
-
-  // Lấy danh sách phòng theo nhà
-  const {
-    data: dataRooms,
-    isLoading: isLoadingRooms,
-    refetch: refetchRooms,
-  } = useQuery({
-    queryKey: ["rooms", formData.maNha],
-    queryFn: () => getRoomByIdService(formData.maNha),
-    enabled: open && !!formData.maNha,
-  });
-
-  useEffect(() => {
-    if (dataRooms?.DT) {
-      setRooms(dataRooms.DT);
-    }
-  }, [dataRooms]);
-
-  // Xử lý khi chọn nhà
-  useEffect(() => {
-    if (formData.maNha) {
-      refetchRooms();
-    }
-  }, [formData.maNha, refetchRooms]);
-
-  // Xử lý khi mở modal và có dữ liệu cập nhật
+  // Đồng bộ dữ liệu khi mở modal
   useEffect(() => {
     if (dataUpdate && open) {
-      const thangNam = dataUpdate.ThangNam
-        ? new Date(dataUpdate.ThangNam).toISOString().substring(0, 7)
-        : "";
+      const tongTien = dataUpdate.TongTien?.toString() || "";
 
-      const newFormData = {
+      setFormData({
         maNha: dataUpdate.MaNha?.toString() || "",
         maPT: dataUpdate.MaPT?.toString() || "",
-        tongTien: dataUpdate.TongTien?.toString() || "",
-        thangNam: thangNam,
-        nguoiChiTra: dataUpdate.NguoiChiTra || "",
+        tongTien,
         moTa: dataUpdate.MoTa || "",
-      };
-
-      setFormData(newFormData);
-      setInitialFormData(newFormData);
+      });
+      setDisplayTongTien(tongTien ? formatCurrency(tongTien) : "");
     }
   }, [dataUpdate, open]);
+
+  // Đồng bộ giá trị hiển thị tổng tiền
+  useEffect(() => {
+    setDisplayTongTien(
+      formData.tongTien ? formatCurrency(formData.tongTien) : ""
+    );
+  }, [formData.tongTien]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === "tongTien") {
-      // Chỉ cho phép nhập số
+    if (name === "thangNam" && value) {
+      const [nam, thang] = value.split("-");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        thang: parseInt(thang, 10),
+        nam: parseInt(nam, 10),
+      }));
+    } else if (name === "tongTien") {
       const numericValue = value.replace(/[^0-9]/g, "");
-      setFormData({ ...formData, [name]: numericValue });
+      const parsedValue = numericValue ? parseInt(numericValue, 10) : "";
+      setFormData((prev) => ({
+        ...prev,
+        [name]: parsedValue,
+      }));
+      setDisplayTongTien(parsedValue ? formatCurrency(parsedValue) : "");
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSelectChange = (name, value) => {
-    if (name === "maNha" && value !== formData.maNha) {
-      setFormData({ ...formData, [name]: value, maPT: "" });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const isFormDataChanged = () => {
-    if (!initialFormData) return true;
-    return (
-      formData.maNha !== initialFormData.maNha ||
-      formData.maPT !== initialFormData.maPT ||
-      formData.tongTien !== initialFormData.tongTien ||
-      formData.thangNam !== initialFormData.thangNam ||
-      formData.nguoiChiTra !== initialFormData.nguoiChiTra ||
-      formData.moTa !== initialFormData.moTa
-    );
-  };
-
-  const mutationUpdateExpense = useMutation({
-    mutationFn: async ({ id, data }) => {
-      return await updateExpenseService(id, data);
-    },
-    onSuccess: (data) => {
-      if (data.EC === 0) {
-        toast.success(data.EM);
-        setOpen(false);
-        if (refetch) refetch();
-      } else {
-        toast.error(data.EM);
-      }
-    },
-    onError: (error) => {
-      console.error("Error:", error);
-      toast.error("Đã xảy ra lỗi khi cập nhật chi phí phát sinh");
-    },
-  });
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!isFormDataChanged()) {
-      toast.info("Không có thay đổi để cập nhật");
-      return;
-    }
-
-    // Kiểm tra dữ liệu
-    if (!formData.maNha) {
-      toast.error("Vui lòng chọn nhà");
-      return;
-    }
-
     if (!formData.tongTien) {
-      toast.error("Vui lòng nhập tổng tiền");
+      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
 
-    if (!formData.thangNam) {
-      toast.error("Vui lòng chọn tháng năm");
+    const parsedTongTien = parseInt(formData.tongTien, 10);
+    if (isNaN(parsedTongTien) || parsedTongTien <= 0) {
+      toast.error("Tổng tiền phải là số lớn hơn 0");
       return;
     }
 
-    if (!formData.nguoiChiTra) {
-      toast.error("Vui lòng nhập người chi trả");
-      return;
-    }
+    try {
+      setIsSubmitting(true);
+      const data = {
+        MaNha: formData.maNha ? parseInt(formData.maNha, 10) : null,
+        MaPT: formData.maPT ? parseInt(formData.maPT, 10) : null,
+        TongTien: parsedTongTien,
+        MoTa: formData.moTa,
+      };
 
-    // Gửi dữ liệu
-    mutationUpdateExpense.mutate({
-      id: dataUpdate.MaCPPS,
-      data: formData,
-    });
+      const response = await updateExpenseService(dataUpdate.MaCPPS, data);
+
+      if (response.EC === 0) {
+        toast.success("Cập nhật chi phí phát sinh thành công");
+        setOpen(false);
+        refetch();
+      } else {
+        toast.error(response.EM);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi cập nhật chi phí phát sinh");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  const isLoadingData = isLoadingHouses || isLoadingRooms || loading;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-blue-500 hover:bg-blue-600 rounded text-white">
+        <Button
+          className="mr-2 flex items-center cursor-pointer bg-blue-500 hover:bg-blue-600 rounded text-white"
+          disabled={disabled}
+        >
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-1/2 max-h-[95vh] overflow-hidden rounded"
+        className="w-2/5 rounded"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
-        style={{ animation: "none" }}
+        aria-describedby={undefined}
       >
-        <div
-          className="scrollbar-hide overflow-y-auto pr-1"
-          style={{
-            maxHeight: "90vh",
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Cập nhật chi phí phát sinh</DialogTitle>
-            <DialogDescription>
-              Chỉnh sửa thông tin chi phí phát sinh. Nhấn Lưu khi hoàn tất.
-            </DialogDescription>
-          </DialogHeader>
-          {isLoadingData ? (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              <span className="ml-2">Đang tải dữ liệu...</span>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="maNha" className="text-right">
-                      Nhà
-                    </Label>
-                    <Select
-                      value={formData.maNha}
-                      onValueChange={(value) =>
-                        handleSelectChange("maNha", value)
-                      }
-                    >
-                      <SelectTrigger className="w-full rounded shadow-none cursor-pointer">
-                        <SelectValue placeholder="Chọn nhà" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded">
-                        {houses.map((house) => (
-                          <SelectItem
-                            key={house.MaNha}
-                            value={house.MaNha.toString()}
-                            className="cursor-pointer"
-                          >
-                            {house.TenNha}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="maPT" className="text-right">
-                      Phòng (tùy chọn)
-                    </Label>
-                    <Select
-                      value={formData.maPT}
-                      onValueChange={(value) =>
-                        handleSelectChange("maPT", value)
-                      }
-                      disabled={!formData.maNha || rooms.length === 0}
-                    >
-                      <SelectTrigger className="w-full rounded shadow-none cursor-pointer">
-                        <SelectValue placeholder="Chọn phòng" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded">
-                        <SelectItem value="" className="cursor-pointer">
-                          Không chọn phòng
-                        </SelectItem>
-                        {rooms.map((room) => (
-                          <SelectItem
-                            key={room.MaPT}
-                            value={room.MaPT.toString()}
-                            className="cursor-pointer"
-                          >
-                            {room.TenPhong}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tongTien" className="text-right">
-                      Tổng tiền (VNĐ)
-                    </Label>
-                    <Input
-                      id="tongTien"
-                      name="tongTien"
-                      value={formData.tongTien}
-                      onChange={handleChange}
-                      placeholder="Nhập tổng tiền"
-                      className="rounded shadow-none"
-                    />
-                    {formData.tongTien && (
-                      <p className="text-sm text-gray-500">
-                        {formatCurrency(formData.tongTien)} VNĐ
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="thangNam" className="text-right">
-                      Tháng năm
-                    </Label>
-                    <Input
-                      id="thangNam"
-                      name="thangNam"
-                      type="month"
-                      value={formData.thangNam}
-                      onChange={handleChange}
-                      className="rounded shadow-none"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="nguoiChiTra" className="text-right">
-                    Người chi trả
-                  </Label>
-                  <Input
-                    id="nguoiChiTra"
-                    name="nguoiChiTra"
-                    value={formData.nguoiChiTra}
-                    onChange={handleChange}
-                    placeholder="Nhập tên người chi trả"
-                    className="rounded shadow-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="moTa" className="text-right">
-                    Mô tả
-                  </Label>
-                  <Textarea
-                    id="moTa"
-                    name="moTa"
-                    value={formData.moTa}
-                    onChange={handleChange}
-                    placeholder="Nhập mô tả chi phí"
-                    className="rounded shadow-none"
-                    rows={3}
-                  />
-                </div>
+        <DialogHeader>
+          <DialogTitle>Cập nhật chi phí phát sinh</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="tongTien" className="text-right">
+                Tổng tiền <span className="text-red-500">*</span>
+              </Label>
+              <div className="col-span-3">
+                <Input
+                  id="tongTien"
+                  name="tongTien"
+                  type="text"
+                  value={displayTongTien}
+                  onChange={handleChange}
+                  required
+                  className="rounded shadow-none"
+                  placeholder="Nhập số tiền (VD: 1000000)"
+                />
               </div>
-              <DialogFooter className="mt-2">
-                <Button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="mr-2 rounded cursor-pointer"
-                  variant="outline"
-                >
-                  Đóng
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    mutationUpdateExpense.isPending ||
-                    isLoadingData ||
-                    !isFormDataChanged()
-                  }
-                  className="rounded cursor-pointer"
-                >
-                  {mutationUpdateExpense.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Đang xử lý...
-                    </>
-                  ) : (
-                    "Cập nhật"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
-        </div>
-        <style>
-          {`
-            .scrollbar-hide {
-              -ms-overflow-style: none; /* IE and Edge */
-              scrollbar-width: none; /* Firefox */
-            }
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none; /* Chrome, Safari, Opera */
-            }
-          `}
-        </style>
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="moTa" className="text-right">
+                Mô tả
+              </Label>
+              <div className="col-span-3">
+                <Textarea
+                  id="moTa"
+                  name="moTa"
+                  value={formData.moTa}
+                  onChange={handleChange}
+                  rows={3}
+                  className="rounded shadow-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="cursor-pointer rounded"
+            >
+              Hủy
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="cursor-pointer rounded"
+            >
+              {isSubmitting ? "Đang xử lý..." : "Cập nhật"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

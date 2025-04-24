@@ -56,31 +56,15 @@ const TableRent = ({ filteredData }) => {
           <Table className="w-full">
             <TableHeader>
               <TableRow className="bg-gray-50/50">
-                <TableHead className="w-[10%] font-semibold text-gray-700 py-2">
-                  Mã HĐ
-                </TableHead>
-                <TableHead className="w-[15%] font-semibold text-gray-700 py-2">
-                  Khách trọ
-                </TableHead>
-                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
-                  Phòng
-                </TableHead>
-                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
-                  Nhà
-                </TableHead>
-                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
-                  Ngày bắt đầu
-                </TableHead>
-                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
-                  Ngày kết thúc
-                </TableHead>
-                <TableHead className="w-[12%] font-semibold text-gray-700 py-2">
-                  Đơn giá (VNĐ)
-                </TableHead>
-                <TableHead className="w-[10%] font-semibold text-gray-700 py-2">
-                  Trạng thái
-                </TableHead>
-                <TableHead className="w-[7%] min-w-[4rem] font-semibold text-gray-700 py-2 text-right">
+                <TableHead className="w-[10%]  py-2">Mã HĐ</TableHead>
+                <TableHead className="w-[15%]  py-2">Khách trọ</TableHead>
+                <TableHead className="w-[12%]  py-2">Phòng</TableHead>
+                <TableHead className="w-[12%]  py-2">Nhà</TableHead>
+                <TableHead className="w-[12%]  py-2">Ngày bắt đầu</TableHead>
+                <TableHead className="w-[12%]  py-2">Ngày kết thúc</TableHead>
+                <TableHead className="w-[12%]  py-2">Đơn giá (VNĐ)</TableHead>
+                <TableHead className="w-[10%]  py-2">Trạng thái</TableHead>
+                <TableHead className="w-[7%] min-w-[4rem]  py-2 text-right">
                   Thao tác
                 </TableHead>
               </TableRow>
@@ -92,7 +76,7 @@ const TableRent = ({ filteredData }) => {
                     key={rent.MaTP}
                     className="hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100"
                   >
-                    <TableCell className="font-medium text-gray-900 py-2">
+                    <TableCell className="py-2">
                       HD{rent.MaTP.toString().padStart(2, "0")}
                     </TableCell>
                     <TableCell className="text-gray-700 py-2 truncate">

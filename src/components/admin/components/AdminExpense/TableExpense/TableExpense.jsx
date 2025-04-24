@@ -1,35 +1,17 @@
-import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Edit, Trash2 } from "lucide-react";
-import { useState } from "react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Pencil, Trash2 } from "lucide-react";
 import ModalDeleteExpense from "../ModalDeleteExpense/ModalDeleteExpense";
 import ModalUpdateExpense from "../ModalUpdateExpense/ModalUpdateExpense";
 
 const TableExpense = ({ expenseData, refetch }) => {
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedExpense, setSelectedExpense] = useState(null);
-
-  const handleEdit = (expense) => {
-    setSelectedExpense(expense);
-    setShowEditModal(true);
-  };
-
-  const handleDelete = (expense) => {
-    setSelectedExpense(expense);
-    setShowDeleteModal(true);
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return `${date.getMonth() + 1}/${date.getFullYear()}`;
-  };
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -37,148 +19,108 @@ const TableExpense = ({ expenseData, refetch }) => {
     }).format(amount);
   };
 
+  const isPastMonth = (thang, nam) => {
+    console.log(
+      `Thang: ${thang} (type: ${typeof thang}), Nam: ${nam} (type: ${typeof nam})`
+    );
+
+    const parsedThang = Number(thang);
+    const parsedNam = Number(nam);
+
+    if (
+      isNaN(parsedThang) ||
+      isNaN(parsedNam) ||
+      parsedThang < 1 ||
+      parsedThang > 12 ||
+      parsedNam < 1900
+    ) {
+      console.log(
+        `Invalid Thang: ${parsedThang}, Nam: ${parsedNam}, returning false`
+      );
+      return false;
+    }
+
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+
+    const isPast =
+      parsedNam < currentYear ||
+      (parsedNam === currentYear && parsedThang < currentMonth);
+
+    console.log(
+      `Parsed Thang: ${parsedThang}, Nam: ${parsedNam}, isPastMonth: ${isPast}`
+    );
+    return isPast;
+  };
+
+  const isLocked = (expense) => {
+    const pastMonth = isPastMonth(expense.Thang, expense.Nam);
+    const hasInvoice = expense.hasInvoice || false; // Từ API
+    console.log(
+      `Expense MaCPPS: ${expense.MaCPPS}, isPastMonth: ${pastMonth}, hasInvoice: ${hasInvoice}, isLocked: ${pastMonth || hasInvoice}`
+    );
+    return pastMonth || hasInvoice;
+  };
+
   return (
     <>
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              STT
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Phòng
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Tháng/Năm
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Người chi trả
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Tổng tiền
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Mô tả
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Thao tác
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="px-2 py-2">STT</TableHead>
+            <TableHead className="px-2 py-2">Phòng</TableHead>
+            <TableHead className="px-2 py-2">Thời gian</TableHead>
+            <TableHead className="px-2 py-2">Người chi trả</TableHead>
+            <TableHead className="px-2 py-2">Tổng tiền</TableHead>
+            <TableHead className="px-2 py-2 text-center">Mô tả</TableHead>
+            <TableHead className="text-right pr-7 py-2">Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {expenseData && expenseData.length > 0 ? (
             expenseData.map((expense, index) => (
-              <tr key={expense.MaCPPS}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {index + 1}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <TableRow key={expense.MaCPPS}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>
                   {expense.PhongTro?.TenPhong || "Không có phòng"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(expense.ThangNam)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {expense.NguoiChiTra}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatCurrency(expense.TongTien)}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                </TableCell>
+                <TableCell>
+                  {expense.Thang}/{expense.Nam}
+                </TableCell>
+                <TableCell>{expense.NguoiChiTra}</TableCell>
+                <TableCell>{formatCurrency(expense.TongTien)}</TableCell>
+                <TableCell className="max-w-xs truncate">
                   {expense.MoTa}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                </TableCell>
+                <TableCell className="">
                   <div className="flex justify-end space-x-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleEdit(expense)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Chỉnh sửa</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                            onClick={() => handleDelete(expense)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Xóa</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <ModalUpdateExpense
+                      dataUpdate={expense}
+                      refetch={refetch}
+                      disabled={isLocked(expense)}
+                    />
+                    <ModalDeleteExpense
+                      dataDelete={expense}
+                      refetch={refetch}
+                      disabled={isLocked(expense)}
+                    />
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))
           ) : (
-            <tr>
-              <td
-                colSpan="7"
-                className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center"
+            <TableRow>
+              <TableCell
+                colSpan={7}
+                className="text-center text-muted-foreground"
               >
                 Không có dữ liệu
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )}
-        </tbody>
-      </table>
-
-      {showEditModal && (
-        <ModalUpdateExpense
-          expense={selectedExpense}
-          open={showEditModal}
-          onOpenChange={setShowEditModal}
-          refetch={refetch}
-        />
-      )}
-
-      {showDeleteModal && (
-        <ModalDeleteExpense
-          expense={selectedExpense}
-          open={showDeleteModal}
-          onOpenChange={setShowDeleteModal}
-          refetch={refetch}
-        />
-      )}
+        </TableBody>
+      </Table>
     </>
   );
 };

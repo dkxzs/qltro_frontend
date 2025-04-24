@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -8,37 +7,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAllExpensesService } from "@/services/expenseServices";
+import {
+  getAllExpensesService,
+  getExpensesByHouseAndRoomService,
+  getExpensesByHouseService,
+} from "@/services/expenseServices";
+import { getAllHouseService } from "@/services/houseServices";
+import { getRoomByIdService } from "@/services/roomServices";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Pagination from "../Pagination/Pagination";
 import ModalAddExpense from "./ModalAddExpense/ModalAddExpense";
 import TableExpense from "./TableExpense/TableExpense";
-import { getAllHouseService } from "@/services/houseServices";
-import { getRoomByIdService } from "@/services/roomServices";
 
 const AdminExpense = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [selectedHouse, setSelectedHouse] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(7);
 
-  const { data: expenseData, refetch } = useQuery({
-    queryKey: ["expenses"],
-    queryFn: () => getAllExpensesService(),
-  });
-
+  // Lấy danh sách nhà
   const { data: dataHouse } = useQuery({
     queryKey: ["houses"],
     queryFn: () => getAllHouseService(),
   });
 
+  // Lấy danh sách phòng theo nhà
   const { data: dataRoom, refetch: refetchRooms } = useQuery({
     queryKey: ["rooms", selectedHouse],
     queryFn: () => getRoomByIdService(selectedHouse),
     enabled: !!selectedHouse,
+  });
+
+  // Lấy chi phí phát sinh
+  const { data: expenseData, refetch } = useQuery({
+    queryKey: ["expenses", selectedHouse, selectedRoom],
+    queryFn: () => {
+      if (selectedRoom && selectedRoom !== "all") {
+        return getExpensesByHouseAndRoomService(selectedHouse, selectedRoom);
+      } else if (selectedHouse && selectedHouse !== "all") {
+        return getExpensesByHouseService(selectedHouse);
+      }
+      return getAllExpensesService();
+    },
+    enabled: true,
   });
 
   // Xử lý khi thay đổi nhà, reset phòng và gọi lại API lấy phòng
@@ -52,14 +66,15 @@ const AdminExpense = () => {
   const handleHouseChange = (value) => {
     setSelectedHouse(value);
     setSelectedRoom("");
+    setCurrentPage(1);
   };
 
-  const filteredExpenseData = expenseData?.DT?.filter((expense) => {
-    const matchesHouse = selectedHouse ? expense.Nha === selectedHouse : true;
-    const matchesRoom = selectedRoom ? expense.Phong === selectedRoom : true;
+  const handleRoomChange = (value) => {
+    setSelectedRoom(value);
+    setCurrentPage(1);
+  };
 
-    return matchesHouse && matchesRoom;
-  });
+  const filteredExpenseData = expenseData?.DT || [];
 
   const totalPages = Math.ceil(
     (filteredExpenseData?.length || 0) / itemsPerPage
@@ -104,12 +119,9 @@ const AdminExpense = () => {
                       <SelectValue placeholder="Chọn nhà" />
                     </SelectTrigger>
                     <SelectContent className="rounded">
-                      <SelectItem value="all" className="cursor-pointer">
-                        Tất cả
-                      </SelectItem>
-                      {dataHouse?.DT?.map((house, index) => (
+                      {dataHouse?.DT?.map((house) => (
                         <SelectItem
-                          key={index}
+                          key={house.MaNha}
                           value={house.MaNha.toString()}
                           className="cursor-pointer"
                         >
@@ -123,11 +135,15 @@ const AdminExpense = () => {
               <div className="space-y-2">
                 <div className="flex items-center">
                   <label className="w-28 text-sm">Phòng:</label>
-                  <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+                  <Select
+                    value={selectedRoom}
+                    onValueChange={handleRoomChange}
+                    disabled={!selectedHouse || selectedHouse === "all"}
+                  >
                     <SelectTrigger className="flex-1 rounded cursor-pointer shadow-none">
                       <SelectValue placeholder="Chọn phòng" />
                     </SelectTrigger>
-                    <SelectContent className="rounded ">
+                    <SelectContent className="rounded">
                       <SelectItem value="all" className="cursor-pointer">
                         Tất cả
                       </SelectItem>
@@ -167,7 +183,7 @@ const AdminExpense = () => {
       </div>
 
       {filteredExpenseData?.length > 0 && (
-        <div className="mt-4">
+        <div className="mt-5">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

@@ -47,7 +47,7 @@ const AdminRent = () => {
 
         const matchesRoomName =
           roomName === "" ||
-          (rent.PhongTro?.TenPhong &&
+          (rent.PhongTro?.TenPhong&&
             rent.PhongTro.TenPhong.toLowerCase().includes(
               roomName.toLowerCase()
             ));
