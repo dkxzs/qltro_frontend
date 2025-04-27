@@ -1,14 +1,23 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getAllRoomTypeService } from "@/services/roomTypeServices";
+import { excelFormatters, exportToExcel } from "@/utils/exportToExcel";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import { VscTypeHierarchySub } from "react-icons/vsc";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import ModalAddRoomType from "./ModalAddRoomType/ModalAddRoomType";
 import TableRoomType from "./TableRoomType/TableRoomType";
-import { exportToExcel, excelFormatters } from "@/utils/exportToExcel";
-import { toast } from "react-toastify";
 
 const AdminRoomType = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -62,7 +71,27 @@ const AdminRoomType = () => {
 
   return (
     <div className=" mx-auto p-2">
-      <h2 className="text-xl font-semibold mb-4">Quản lý loại phòng</h2>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-1">
+          <VscTypeHierarchySub className="size-6" />
+          <h1 className="text-2xl font-semibold">Quản lý loại phòng</h1>
+        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="text-md font-semibold">
+                Tổng quan
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-md font-semibold">
+                Quản lý loại phòng
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
       <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div

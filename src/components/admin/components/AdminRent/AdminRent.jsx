@@ -16,6 +16,14 @@ import { useEffect, useState } from "react";
 import { FaFileContract } from "react-icons/fa";
 import TableRent from "./TableRent/TableRent";
 import ModalAddRent from "./ModalAddRent/ModalAddRent";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const AdminRent = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -47,7 +55,7 @@ const AdminRent = () => {
 
         const matchesRoomName =
           roomName === "" ||
-          (rent.PhongTro?.TenPhong&&
+          (rent.PhongTro?.TenPhong &&
             rent.PhongTro.TenPhong.toLowerCase().includes(
               roomName.toLowerCase()
             ));
@@ -61,9 +69,26 @@ const AdminRent = () => {
 
   return (
     <div className="p-2">
-      <div className="flex items-center gap-2 mb-3">
-        <FaFileContract className="size-5" />
-        <h1 className="text-2xl font-semibold ">Quản lý thuê phòng</h1>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1">
+          <FaFileContract className="size-5" />
+          <h1 className="text-2xl font-semibold ">Quản lý thuê phòng</h1>
+        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="text-md font-semibold">
+                Tổng quan
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-md font-semibold">
+                Quản lý hợp đồng
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
       <Card className="mb-4 rounded-xs py-2 shadow-none">

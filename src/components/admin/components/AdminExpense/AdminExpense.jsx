@@ -20,6 +20,15 @@ import { useEffect, useState } from "react";
 import Pagination from "../Pagination/Pagination";
 import ModalAddExpense from "./ModalAddExpense/ModalAddExpense";
 import TableExpense from "./TableExpense/TableExpense";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { GiExpense } from "react-icons/gi";
 
 const AdminExpense = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -91,7 +100,27 @@ const AdminExpense = () => {
 
   return (
     <div className="p-2">
-      <h2 className="text-xl font-semibold mb-4">Quản lý chi phí phát sinh</h2>
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-1">
+          <GiExpense className="size-5" />
+          <h1 className="text-2xl font-semibold ">Quản lý chi phí phát sinh</h1>
+        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="text-md font-semibold">
+                Tổng quan
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-md font-semibold">
+                Quản lý chi phí phát sinh
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
       <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div
@@ -183,7 +212,7 @@ const AdminExpense = () => {
       </div>
 
       {filteredExpenseData?.length > 0 && (
-        <div className="mt-5">
+        <div className="mt-3">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

@@ -3,12 +3,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getAllHouseService } from "@/services/houseServices";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import { ChevronDown, ChevronUp, Download, House } from "lucide-react";
 import { useState } from "react";
 import ModalAddHouse from "./ModalAddHouse/ModalAddHouse";
 import TableHouse from "./TableHouse/TableHouse";
 import { exportToExcel } from "@/utils/exportToExcel";
 import { toast } from "react-toastify";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const AdminHouse = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -59,7 +67,27 @@ const AdminHouse = () => {
 
   return (
     <div className="p-2">
-      <h2 className="text-xl font-semibold mb-4">Quản lý nhà trọ</h2>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-1">
+          <House className="size-6" />
+          <h1 className="text-2xl font-semibold">Quản lý nhà trọ</h1>
+        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="text-md font-semibold">
+                Tổng quan
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-md font-semibold">
+                Quản lý nhà
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
       <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div

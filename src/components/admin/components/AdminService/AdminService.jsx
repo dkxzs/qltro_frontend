@@ -9,6 +9,15 @@ import ModalAddService from "./ModalAddService/ModalAddService";
 import TableService from "./TableService/TableService";
 import { exportToExcel, excelFormatters } from "@/utils/exportToExcel";
 import { toast } from "react-toastify";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { MdMiscellaneousServices } from "react-icons/md";
 
 const AdminService = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -65,8 +74,28 @@ const AdminService = () => {
   };
 
   return (
-    <div className=" p-2">
-      <h2 className="text-xl font-semibold mb-4">Quản lý dịch vụ</h2>
+    <div className="p-2">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-1">
+          <MdMiscellaneousServices className="size-6" />
+          <h1 className="text-2xl font-semibold ">Quản lý dịch vụ</h1>
+        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="text-md font-semibold">
+                Tổng quan
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-md font-semibold">
+                Quản lý dịch vụ
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
       <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div

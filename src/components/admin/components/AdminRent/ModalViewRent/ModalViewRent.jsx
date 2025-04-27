@@ -6,36 +6,55 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatCurrency } from "@/utils/formatCurrency";
-import { Download } from "lucide-react";
-import { useRef } from "react";
+import { formatCurrency, numberToText } from "@/utils/formatCurrency";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
+  AlignmentType,
+  BorderStyle,
   Document,
   Packer,
   Paragraph,
-  TextRun,
-  AlignmentType,
   Table,
-  TableRow,
   TableCell,
+  TableRow,
+  TextRun,
   WidthType,
-  BorderStyle,
 } from "docx";
 import { saveAs } from "file-saver";
+import { Download } from "lucide-react";
+import { useRef } from "react";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 const ModalViewRent = ({ open, onOpenChange, rentData }) => {
   const contractRef = useRef(null);
+  const template = useSelector((state) => state.contractConfig.template);
+  const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
+
+  console.log("rentData", rentData);
+
+  // Hàm trích xuất tỉnh/thành phố từ địa chỉ
+  const extractProvince = (address) => {
+    if (!address) return "Tp. Hà Nội";
+    const parts = address.split(",").map((part) => part.trim());
+    return parts[parts.length - 1] || "Tp. Hà Nội";
+  };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "";
+    if (!dateString) return "[Ngày]";
     return format(new Date(dateString), "dd/MM/yyyy", { locale: vi });
   };
 
+  const formatContractDate = (dateString) => {
+    if (!dateString) return "[Ngày]";
+    return format(new Date(dateString), "dd 'tháng' MM 'năm' yyyy", {
+      locale: vi,
+    });
+  };
+
   const calculateMonths = (startDate, endDate) => {
-    if (!startDate || !endDate) return "";
+    if (!startDate || !endDate) return "[Số tháng]";
     const start = new Date(startDate);
     const end = new Date(endDate);
     const months =
@@ -44,361 +63,217 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
     return months;
   };
 
-  const getCurrentDate = () => {
-    return format(new Date(), "dd 'tháng' MM 'năm' yyyy", { locale: vi });
+  // Hàm thay thế placeholder
+  const replacePlaceholders = (text) => {
+    if (!rentData) return text;
+    return text
+      .replace(
+        "[NgayKy]",
+        format(rentData.NgayBatDau, "dd/MM/yyyy") || "[Ngày ký]"
+      )
+      .replace("[ngay]", format(rentData.NgayBatDau, "dd") || "[Ngày]")
+      .replace("[thang]", format(rentData.NgayBatDau, "MM") || "[Tháng]")
+      .replace("[nam]", format(rentData.NgayBatDau, "yyyy") || "[Năm]")
+      .replace("[DiaChiPT]", rentData.PhongTro?.Nha?.DiaChi || "[Địa chỉ]")
+      .replace("[SoHD]", rentData.MaTP || "[Số hợp đồng]")
+      .replace("[HoTenCT]", personalInfo?.HoTen || "[Họ tên chủ trọ]")
+      .replace(
+        "[NgaySinhCT]",
+        format(personalInfo.NgaySinh, "yyyy") || "[Năm sinh]"
+      )
+      .replace("[CCCDCT]", personalInfo.CCCD || "[Số CCCD]")
+      .replace(
+        "[NgayCapCT]",
+        format(personalInfo.NgayCap, "dd/MM/yyyy") || "[Ngày cấp]"
+      )
+      .replace("[NoiCapCT]", personalInfo.NoiCap || "[Nơi cấp]")
+      .replace("[DiaChiCT]", personalInfo.DiaChi || "[Địa chỉ chủ trọ]")
+      .replace("[DienThoaiCT]", personalInfo.DienThoai || "[Số điện thoại]")
+      .replace("[HoTen]", rentData.KhachHang?.HoTen || "[Tên khách hàng]")
+      .replace(
+        "[NgaySinh]",
+        rentData.KhachHang?.NgaySinh
+          ? format(new Date(rentData.KhachHang.NgaySinh), "yyyy")
+          : "[Năm sinh]"
+      )
+      .replace("[CCCD]", rentData.KhachHang?.CCCD || "[Số CCCD]")
+      .replace(
+        "[NgayCap]",
+        rentData.KhachHang?.NgayCap
+          ? formatDate(rentData.KhachHang.NgayCap)
+          : "[Ngày cấp]"
+      )
+      .replace("[NoiCap]", rentData.KhachHang?.NoiCap || "[Nơi cấp]")
+      .replace("[DiaChi]", rentData.KhachHang?.DiaChi || "[Địa chỉ khách hàng]")
+      .replace(
+        "[DienThoai]",
+        rentData.KhachHang?.DienThoai || "[Số điện thoại]"
+      )
+      .replace("[TenPhong]", rentData.PhongTro?.TenPhong || "[Tên phòng]")
+      .replace("[TenNha]", rentData.PhongTro?.Nha?.TenNha || "[Tên nhà]")
+      .replace("[DiaChi]", rentData.PhongTro?.Nha?.DiaChi || "[Địa chỉ nhà]")
+      .replace(
+        "[DonGia]",
+        rentData.DonGia
+          ? rentData.DonGia.toLocaleString("vi-VN") + " đồng"
+          : "[Giá thuê]"
+      )
+      .replace(
+        "[NgayBatDau]",
+        rentData.NgayBatDau ? formatDate(rentData.NgayBatDau) : "[Ngày bắt đầu]"
+      )
+      .replace(
+        "[ThoiHanThue]",
+        calculateMonths(rentData.NgayBatDau, rentData.NgayKetThuc)
+      )
+      .replace("[DatCoc]", formatCurrency(rentData.DatCoc) || "[Đã đặt cọc]")
+      .replace("[DonGiaChu]", numberToText(rentData.DonGia))
+      .replace("[DatCocChu]", numberToText(rentData.DatCoc))
+      .replace(
+        "[CurrentDate]",
+        rentData.NgayBatDau
+          ? formatContractDate(rentData.NgayBatDau)
+          : formatContractDate(new Date())
+      );
   };
+
+  const safeTemplate =
+    template && Object.keys(template).length > 0 ? template : "";
 
   const handleDownloadWord = async () => {
     try {
+      const province = extractProvince(rentData.PhongTro?.Nha?.DiaChi);
       const doc = new Document({
         sections: [
           {
             properties: {},
             children: [
               // Header
+              ...safeTemplate.header.preamble.map(
+                (line, index) =>
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [
+                      new TextRun({
+                        text: replacePlaceholders(line),
+                        bold: index === 0,
+                        size: index === 0 ? 28 : 26,
+                      }),
+                    ],
+                  })
+              ),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
                 children: [
                   new TextRun({
-                    text: "CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM",
-                    bold: true,
-                    size: 28,
-                  }),
-                ],
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: "Độc Lập-Tự Do-Hạnh Phúc",
-                    size: 26,
-                  }),
-                ],
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [new TextRun("---oOo---")],
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: "HỢP ĐỒNG CHO THUÊ PHÒNG TRỌ",
+                    text: replacePlaceholders(safeTemplate.header.title),
                     bold: true,
                     size: 32,
                   }),
                 ],
                 spacing: { before: 400, after: 400 },
               }),
+              
+              // Thêm thông tin hợp đồng
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: replacePlaceholders(safeTemplate.header.contractInfo),
+                    size: 24,
+                  }),
+                ],
+                spacing: { after: 200 },
+              }),
+              
+              // Thêm căn cứ pháp lý
+              ...safeTemplate.header.legalBasis.map(
+                (basis) =>
+                  new Paragraph({
+                    children: [new TextRun(replacePlaceholders(basis))],
+                    spacing: { after: 100 },
+                  })
+              ),
 
               // Bên A
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: "BÊN A : BÊN CHO THUÊ PHÒNG TRỌ",
+                    text: replacePlaceholders(safeTemplate.benA.title),
                     bold: true,
                     size: 24,
                   }),
                 ],
                 spacing: { after: 200 },
               }),
-              new Paragraph({
-                children: [new TextRun("Họ và Tên: Nguyễn Văn A")],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [new TextRun("Năm sinh: 1980")],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "CCCD số: 123456789012 Ngày cấp: 01/01/2020 Nơi cấp: Cục Cảnh sát quản lý hành chính về trật tự xã hội"
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    `Thường Trú: ${rentData.PhongTro?.Nha?.DiaChi || ""}`
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [new TextRun("Số điện thoại: 0987654321")],
-                indent: { left: 720 },
-                spacing: { after: 200 },
-              }),
+              ...safeTemplate.benA.details.map(
+                (detail) =>
+                  new Paragraph({
+                    children: [new TextRun(replacePlaceholders(detail))],
+                    indent: { left: 720 },
+                  })
+              ),
+              new Paragraph({ spacing: { after: 200 } }),
 
               // Bên B
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: "BÊN B : BÊN THUÊ PHÒNG TRỌ",
+                    text: replacePlaceholders(safeTemplate.benB.title),
                     bold: true,
                     size: 24,
                   }),
                 ],
                 spacing: { after: 200 },
               }),
-              new Paragraph({
-                children: [
-                  new TextRun(`Họ và Tên: ${rentData.KhachHang?.HoTen || ""}`),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    `Năm sinh: ${
-                      rentData.KhachHang?.NgaySinh
-                        ? format(new Date(rentData.KhachHang.NgaySinh), "yyyy")
-                        : ""
-                    }`
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    `CCCD số: ${rentData.KhachHang?.CCCD || ""} Ngày cấp: ${
-                      rentData.KhachHang?.NgayCap
-                        ? formatDate(rentData.KhachHang.NgayCap)
-                        : ""
-                    } Nơi cấp: ${rentData.KhachHang?.NoiCap || ""}`
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    `Thường Trú: ${rentData.KhachHang?.DiaChi || ""}`
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    `Số điện thoại: ${rentData.KhachHang?.DienThoai || ""}`
-                  ),
-                ],
-                indent: { left: 720 },
-                spacing: { after: 200 },
-              }),
+              ...safeTemplate.benB.details.map(
+                (detail) =>
+                  new Paragraph({
+                    children: [new TextRun(replacePlaceholders(detail))],
+                    indent: { left: 720 },
+                  })
+              ),
+              new Paragraph({ spacing: { after: 200 } }),
 
+              // Thỏa thuận
               new Paragraph({
                 children: [
-                  new TextRun(
-                    "Hai bên cùng thỏa thuận và đồng ý với nội dung sau :"
-                  ),
+                  new TextRun(replacePlaceholders(safeTemplate.thoaThuan)),
                 ],
                 spacing: { after: 200 },
               }),
 
-              // Điều 1
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "Điều 1:",
-                    bold: true,
-                    size: 24,
-                  }),
-                ],
-                spacing: { after: 200 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    `• Bên A đồng ý cho bên B thuê một phòng trọ thuộc địa chỉ: ${
-                      rentData.PhongTro?.TenPhong || ""
-                    }, ${rentData.PhongTro?.Nha?.TenNha || ""}, ${
-                      rentData.PhongTro?.Nha?.DiaChi || ""
-                    }`
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    `• Thời hạn thuê phòng trọ là ${calculateMonths(
-                      rentData.NgayBatDau,
-                      rentData.NgayKetThuc
-                    )} tháng kể từ ngày ${formatDate(rentData.NgayBatDau)}`
-                  ),
-                ],
-                indent: { left: 720 },
-                spacing: { after: 200 },
-              }),
-
-              // Điều 2
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "Điều 2:",
-                    bold: true,
-                    size: 24,
-                  }),
-                ],
-                spacing: { after: 200 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    `• Giá tiền thuê phòng trọ là ${formatCurrency(
-                      rentData.DonGia
-                    )}/tháng (Bằng chữ: Một triệu hai trăm nghìn đồng)`
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Tiền thuê phòng trọ bên B thanh toán cho bên A từ ngày 05 hàng tháng."
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Bên B đặt tiền thế chân trước 2,000,000 đồng (Bằng chữ: Hai triệu đồng) cho bên A. Tiền thế chân sẽ được trả lại đầy đủ cho bên thuê (Bên B) khi hết hợp đồng thuê phòng trọ và thanh toán đầy đủ tiền điện, nước, phí dịch vụ và các khoản khác liên quan."
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Bên B ngưng hợp đồng trước thời hạn thì phải chịu mất tiền thế chân."
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Bên A ngưng hợp đồng (lấy lại phòng trọ) trước thời hạn thì bồi thường gấp đôi số tiền bên B đã thế chân."
-                  ),
-                ],
-                indent: { left: 720 },
-                spacing: { after: 200 },
-              }),
-
-              // Điều 3
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "Điều 3: Trách nhiệm bên A.",
-                    bold: true,
-                    size: 24,
-                  }),
-                ],
-                spacing: { after: 200 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Giao phòng trọ, trang thiết bị trong phòng trọ cho bên B đúng ngày ký hợp đồng."
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Hướng dẫn bên B chấp hành đúng các quy định của địa phương, hoàn tất mọi thủ tục giấy tờ đăng ký tạm trú cho bên B."
-                  ),
-                ],
-                indent: { left: 720 },
-                spacing: { after: 200 },
-              }),
-
-              // Điều 4
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "Điều 4: Trách nhiệm bên B.",
-                    bold: true,
-                    size: 24,
-                  }),
-                ],
-                spacing: { after: 200 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Trả tiền thuê phòng trọ hàng tháng theo hợp đồng."
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Sử dụng đúng mục đích thuê nhà, khi cần sửa chữa, cải tạo theo yêu cầu sử dụng riêng phải được sự đồng ý của bên A."
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Đồ đạt trang thiết bị trong phòng trọ phải có trách nhiệm bảo quản cẩn thận không làm hư hỏng mất mát."
-                  ),
-                ],
-                indent: { left: 720 },
-                spacing: { after: 200 },
-              }),
-
-              // Điều 5
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "Điều 5: Điều khoản chung.",
-                    bold: true,
-                    size: 24,
-                  }),
-                ],
-                spacing: { after: 200 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Bên A và bên B thực hiện đúng các điều khoản ghi trong hợp đồng."
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Trường hợp có tranh chấp hoặc một bên vi phạm hợp đồng thì hai bên cùng nhau bàn bạc giải quyết, nếu không giải quyết được thì yêu cầu cơ quan có thẩm quyền giải quyết."
-                  ),
-                ],
-                indent: { left: 720 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun(
-                    "• Hợp đồng được lập thành 02 bản có giá trị ngang nhau, mỗi bên giữ 01 bản"
-                  ),
-                ],
-                indent: { left: 720 },
-                spacing: { after: 400 },
-              }),
+              // Điều khoản
+              ...safeTemplate.dieuKhoan.flatMap((dieu) => [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: replacePlaceholders(dieu.title),
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                  spacing: { after: 200 },
+                }),
+                ...dieu.items.map(
+                  (item) =>
+                    new Paragraph({
+                      children: [new TextRun(`• ${replacePlaceholders(item)}`)],
+                      indent: { left: 720 },
+                    })
+                ),
+                new Paragraph({ spacing: { after: 200 } }),
+              ]),
 
               // Footer
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 children: [
-                  new TextRun(`Tp. Hồ Chí Minh, Ngày ${getCurrentDate()}`),
+                  new TextRun(
+                    `${replacePlaceholders(
+                      province
+                    )}, Ngày ${replacePlaceholders(safeTemplate.footer.date)}`
+                  ),
                 ],
                 spacing: { before: 400, after: 400 },
               }),
@@ -411,125 +286,76 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
                 },
                 rows: [
                   new TableRow({
-                    children: [
-                      new TableCell({
-                        width: {
-                          size: 50,
-                          type: WidthType.PERCENTAGE,
-                        },
-                        children: [
-                          new Paragraph({
-                            alignment: AlignmentType.CENTER,
-                            children: [
-                              new TextRun({
-                                text: "BÊN A",
-                                bold: true,
-                              }),
-                            ],
-                          }),
-                        ],
-                        borders: {
-                          top: { style: BorderStyle.NONE },
-                          bottom: { style: BorderStyle.NONE },
-                          left: { style: BorderStyle.NONE },
-                          right: { style: BorderStyle.NONE },
-                        },
-                      }),
-                      new TableCell({
-                        width: {
-                          size: 50,
-                          type: WidthType.PERCENTAGE,
-                        },
-                        children: [
-                          new Paragraph({
-                            alignment: AlignmentType.CENTER,
-                            children: [
-                              new TextRun({
-                                text: "BÊN B",
-                                bold: true,
-                              }),
-                            ],
-                          }),
-                        ],
-                        borders: {
-                          top: { style: BorderStyle.NONE },
-                          bottom: { style: BorderStyle.NONE },
-                          left: { style: BorderStyle.NONE },
-                          right: { style: BorderStyle.NONE },
-                        },
-                      }),
-                    ],
+                    children: safeTemplate.footer.signatures.map(
+                      (sig) =>
+                        new TableCell({
+                          width: {
+                            size: 50,
+                            type: WidthType.PERCENTAGE,
+                          },
+                          children: [
+                            new Paragraph({
+                              alignment: AlignmentType.CENTER,
+                              children: [
+                                new TextRun({
+                                  text: replacePlaceholders(sig.party),
+                                  bold: true,
+                                }),
+                              ],
+                            }),
+                          ],
+                          borders: {
+                            top: { style: BorderStyle.NONE },
+                            bottom: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                          },
+                        })
+                    ),
                   }),
                   new TableRow({
-                    children: [
-                      new TableCell({
-                        width: {
-                          size: 50,
-                          type: WidthType.PERCENTAGE,
-                        },
-                        children: [new Paragraph({ text: "" })],
-                        borders: {
-                          top: { style: BorderStyle.NONE },
-                          bottom: { style: BorderStyle.NONE },
-                          left: { style: BorderStyle.NONE },
-                          right: { style: BorderStyle.NONE },
-                        },
-                      }),
-                      new TableCell({
-                        width: {
-                          size: 50,
-                          type: WidthType.PERCENTAGE,
-                        },
-                        children: [new Paragraph({ text: "" })],
-                        borders: {
-                          top: { style: BorderStyle.NONE },
-                          bottom: { style: BorderStyle.NONE },
-                          left: { style: BorderStyle.NONE },
-                          right: { style: BorderStyle.NONE },
-                        },
-                      }),
-                    ],
+                    children: safeTemplate.footer.signatures.map(
+                      () =>
+                        new TableCell({
+                          width: {
+                            size: 50,
+                            type: WidthType.PERCENTAGE,
+                          },
+                          children: [new Paragraph({ text: "" })],
+                          borders: {
+                            top: { style: BorderStyle.NONE },
+                            bottom: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                          },
+                        })
+                    ),
                     height: { value: 1000 },
                   }),
                   new TableRow({
-                    children: [
-                      new TableCell({
-                        width: {
-                          size: 50,
-                          type: WidthType.PERCENTAGE,
-                        },
-                        children: [
-                          new Paragraph({
-                            alignment: AlignmentType.CENTER,
-                            children: [new TextRun("(Ký và ghi rõ họ tên)")],
-                          }),
-                        ],
-                        borders: {
-                          top: { style: BorderStyle.NONE },
-                          bottom: { style: BorderStyle.NONE },
-                          left: { style: BorderStyle.NONE },
-                          right: { style: BorderStyle.NONE },
-                        },
-                      }),
-                      new TableCell({
-                        width: {
-                          size: 50,
-                          type: WidthType.PERCENTAGE,
-                        },
-                        children: [
-                          new Paragraph({
-                            alignment: AlignmentType.CENTER,
-                            children: [new TextRun("(Ký và ghi rõ họ tên)")],
-                          }),
-                        ],
-                        borders: {
-                          top: { style: BorderStyle.NONE },
-                          bottom: { style: BorderStyle.NONE },
-                          left: { style: BorderStyle.NONE },
-                          right: { style: BorderStyle.NONE },
-                        },
-                      }),
-                    ],
+                    children: safeTemplate.footer.signatures.map(
+                      (sig) =>
+                        new TableCell({
+                          width: {
+                            size: 50,
+                            type: WidthType.PERCENTAGE,
+                          },
+                          children: [
+                            new Paragraph({
+                              alignment: AlignmentType.CENTER,
+                              children: [
+                                new TextRun(replacePlaceholders(sig.note)),
+                              ],
+                            }),
+                          ],
+                          borders: {
+                            top: { style: BorderStyle.NONE },
+                            bottom: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                          },
+                        })
+                    ),
                   }),
                 ],
               }),
@@ -538,7 +364,6 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
         ],
       });
 
-      // Tạo file và tải xuống
       Packer.toBlob(doc).then((blob) => {
         saveAs(
           blob,
@@ -554,9 +379,15 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
 
   if (!rentData) return null;
 
+  // Lấy tỉnh/thành phố từ địa chỉ nhà
+  const province = extractProvince(rentData.PhongTro?.Nha?.DiaChi);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[95vh] rounded overflow-hidden">
+      <DialogContent
+        className="max-w-4xl max-h-[95vh] rounded overflow-hidden"
+        aria-describedby={undefined}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             Hợp đồng thuê phòng trọ
@@ -582,169 +413,88 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
 
             {/* Header */}
             <div className="text-center mb-6">
-              <p className="uppercase font-bold text-lg">
-                CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM
-              </p>
-              <p className="font-medium">Độc Lập-Tự Do-Hạnh Phúc</p>
-              <p className="my-2">---oOo---</p>
+              {(safeTemplate.header?.preamble || []).map((line, index) => (
+                <p
+                  key={index}
+                  className={
+                    index === 0 ? "uppercase font-bold text-lg" : "font-medium"
+                  }
+                >
+                  {replacePlaceholders(line)}
+                </p>
+              ))}
               <h1 className="uppercase font-bold text-xl mt-4">
-                HỢP ĐỒNG CHO THUẺ PHÒNG TRỌ
+                {replacePlaceholders(safeTemplate.header?.title || "")}
               </h1>
+              <p className="text-lg mt-1 font-semibold">
+                {replacePlaceholders(safeTemplate.header?.contractInfo || "")}
+              </p>
+              <div className="mt-5">
+                {(safeTemplate.header?.legalBasis || []).map((line, index) => {
+                  return (
+                    <p key={index} className="text-left">
+                      {replacePlaceholders(line)}
+                    </p>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Bên A */}
             <div className="mb-4">
-              <p className="font-bold">BÊN A : BÊN CHO THUÊ PHÒNG TRỌ</p>
+              <p className="font-bold">
+                {replacePlaceholders(safeTemplate.benA?.title || "")}
+              </p>
               <div className="ml-4 mt-2 space-y-2">
-                <p>Họ và Tên: Nguyễn Văn A</p>
-                <p>Năm sinh: 1980</p>
-                <p>
-                  CCCD số: 123456789012 Ngày cấp: 01/01/2020 Nơi cấp: Cục Cảnh
-                  sát quản lý hành chính về trật tự xã hội
-                </p>
-                <p>Thường Trú: Xuân Phương, Nam Từ Liêm, Hà Nôi</p>
-                <p>Số điện thoại: 0987654321</p>
+                {(safeTemplate.benA?.details || []).map((detail, index) => (
+                  <p key={index}>{replacePlaceholders(detail)}</p>
+                ))}
               </div>
             </div>
 
             {/* Bên B */}
             <div className="mb-4">
-              <p className="font-bold">BÊN B : BÊN THUÊ PHÒNG TRỌ</p>
+              <p className="font-bold">
+                {replacePlaceholders(safeTemplate.benB?.title || "")}
+              </p>
               <div className="ml-4 mt-2 space-y-2">
-                <p>Họ và Tên: {rentData.KhachHang?.HoTen || ""}</p>
-                <p>
-                  Năm sinh:{" "}
-                  {rentData.KhachHang?.NgaySinh
-                    ? format(new Date(rentData.KhachHang.NgaySinh), "yyyy")
-                    : ""}
-                </p>
-                <p>
-                  CCCD số: {rentData.KhachHang?.CCCD || ""} Ngày cấp:{" "}
-                  {rentData.KhachHang?.NgayCap
-                    ? formatDate(rentData.KhachHang.NgayCap)
-                    : ""}{" "}
-                  Nơi cấp: {rentData.KhachHang?.NoiCap || ""}
-                </p>
-                <p>Thường Trú: {rentData.KhachHang?.DiaChi || ""}</p>
-                <p>Số điện thoại: {rentData.KhachHang?.DienThoai || ""}</p>
+                {(safeTemplate.benB?.details || []).map((detail, index) => (
+                  <p key={index}>{replacePlaceholders(detail)}</p>
+                ))}
               </div>
             </div>
 
             <p className="mb-4">
-              Hai bên cùng thỏa thuận và đồng ý với nội dung sau :
+              {replacePlaceholders(safeTemplate.thoaThuan || "")}
             </p>
 
-            {/* Điều 1 */}
-            <div className="mb-4">
-              <p className="font-bold">Điều 1:</p>
-              <ul className="list-disc ml-8 mt-2 space-y-2">
-                <li>
-                  Bên A đồng ý cho bên B thuê một phòng trọ thuộc địa chỉ:{" "}
-                  {rentData.PhongTro?.TenPhong || ""},{" "}
-                  {rentData.PhongTro?.Nha?.TenNha || ""},{" "}
-                  {rentData.PhongTro?.Nha?.DiaChi || ""}
-                </li>
-                <li>
-                  Thời hạn thuê phòng trọ là{" "}
-                  {calculateMonths(rentData.NgayBatDau, rentData.NgayKetThuc)}{" "}
-                  tháng kể từ ngày {formatDate(rentData.NgayBatDau)}
-                </li>
-              </ul>
-            </div>
-
-            {/* Điều 2 */}
-            <div className="mb-4">
-              <p className="font-bold">Điều 2:</p>
-              <ul className="list-disc ml-8 mt-2 space-y-2">
-                <li>
-                  Giá tiền thuê phòng trọ là {formatCurrency(rentData.DonGia)}
-                  /tháng (Bằng chữ: Một triệu hai trăm nghìn đồng)
-                </li>
-                <li>
-                  Tiền thuê phòng trọ bên B thanh toán cho bên A từ ngày 05 hàng
-                  tháng.
-                </li>
-                <li>
-                  Bên B đặt tiền thế chân trước 2,000,000 đồng (Bằng chữ: Hai
-                  triệu đồng) cho bên A. Tiền thế chân sẽ được trả lại đầy đủ
-                  cho bên thuê (Bên B) khi hết hợp đồng thuê phòng trọ và thanh
-                  toán đầy đủ tiền điện, nước, phí dịch vụ và các khoản khác
-                  liên quan.
-                </li>
-                <li>
-                  Bên B ngưng hợp đồng trước thời hạn thì phải chịu mất tiền thế
-                  chân.
-                </li>
-                <li>
-                  Bên A ngưng hợp đồng (lấy lại phòng trọ) trước thời hạn thì
-                  bồi thường gấp đôi số tiền bên B đã thế chân.
-                </li>
-              </ul>
-            </div>
-
-            {/* Điều 3 */}
-            <div className="mb-4">
-              <p className="font-bold">Điều 3: Trách nhiệm bên A.</p>
-              <ul className="list-disc ml-8 mt-2 space-y-2">
-                <li>
-                  Giao phòng trọ, trang thiết bị trong phòng trọ cho bên B đúng
-                  ngày ký hợp đồng.
-                </li>
-                <li>
-                  Hướng dẫn bên B chấp hành đúng các quy định của địa phương,
-                  hoàn tất mọi thủ tục giấy tờ đăng ký tạm trú cho bên B.
-                </li>
-              </ul>
-            </div>
-
-            {/* Điều 4 */}
-            <div className="mb-4">
-              <p className="font-bold">Điều 4: Trách nhiệm bên B.</p>
-              <ul className="list-disc ml-8 mt-2 space-y-2">
-                <li>Trả tiền thuê phòng trọ hàng tháng theo hợp đồng.</li>
-                <li>
-                  Sử dụng đúng mục đích thuê nhà, khi cần sửa chữa, cải tạo theo
-                  yêu cầu sử dụng riêng phải được sự đồng ý của bên A.
-                </li>
-                <li>
-                  Đồ đạt trang thiết bị trong phòng trọ phải có trách nhiệm bảo
-                  quản cẩn thận không làm hư hỏng mất mát.
-                </li>
-              </ul>
-            </div>
-
-            {/* Điều 5 */}
-            <div className="mb-4">
-              <p className="font-bold">Điều 5: Điều khoản chung.</p>
-              <ul className="list-disc ml-8 mt-2 space-y-2">
-                <li>
-                  Bên A và bên B thực hiện đúng các điều khoản ghi trong hợp
-                  đồng.
-                </li>
-                <li>
-                  Trường hợp có tranh chấp hoặc một bên vi phạm hợp đồng thì hai
-                  bên cùng nhau bàn bạc giải quyết, nếu không giải quyết được
-                  thì yêu cầu cơ quan có thẩm quyền giải quyết.
-                </li>
-                <li>
-                  Hợp đồng được lập thành 02 bản có giá trị ngang nhau, mỗi bên
-                  giữ 01 bản
-                </li>
-              </ul>
-            </div>
+            {/* Điều khoản */}
+            {(safeTemplate.dieuKhoan || []).map((dieu, index) => (
+              <div key={index} className="mb-4">
+                <p className="font-bold">{replacePlaceholders(dieu.title)}</p>
+                <ul className="list-disc ml-8 mt-2 space-y-2">
+                  {(dieu.items || []).map((item, idx) => (
+                    <li key={idx}>{replacePlaceholders(item)}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
 
             {/* Footer */}
             <div className="mt-8 text-right">
-              <p>Tp. Hồ Chí Minh, Ngày {getCurrentDate()}</p>
+              <p>
+                {replacePlaceholders(province)}, Ngày{" "}
+                {replacePlaceholders(safeTemplate.footer.date)}
+              </p>
               <div className="flex justify-between mt-4">
-                <div className="text-center">
-                  <p className="font-bold">BÊN A</p>
-                  <p className="mt-16">(Ký và ghi rõ họ tên)</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-bold">BÊN B</p>
-                  <p className="mt-16">(Ký và ghi rõ họ tên)</p>
-                </div>
+                {(safeTemplate.footer?.signatures || []).map((sig, index) => (
+                  <div key={index} className="text-center">
+                    <p className="font-bold">
+                      {replacePlaceholders(sig.party)}
+                    </p>
+                    <p className="mt-16">{replacePlaceholders(sig.note)}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -760,9 +510,7 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
             </Button>
           </div>
           <Button
-            onClick={() => {
-              onOpenChange(false);
-            }}
+            onClick={() => onOpenChange(false)}
             className="text-white rounded cursor-pointer"
           >
             Đóng

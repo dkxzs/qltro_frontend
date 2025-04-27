@@ -10,6 +10,7 @@ import AdminService from "@/components/admin/components/AdminService/AdminServic
 import AdminUser from "@/components/admin/components/AdminUser/AdminUser";
 import AdminWater from "@/components/admin/components/AdminWater/AdminWater";
 import AdminExpense from "@/components/admin/components/AdminExpense/AdminExpense";
+import AdminConfig from "@/components/admin/components/AdminConfig/AdminConfig";
 
 export const adminRoutes = [
   {
@@ -60,5 +61,9 @@ export const adminRoutes = [
   {
     path: "rents",
     page: AdminRent,
+  },
+  {
+    path: "config",
+    page: AdminConfig,
   },
 ];

@@ -8,6 +8,15 @@ import { useState } from "react";
 import Pagination from "../Pagination/Pagination";
 import ModalAddUser from "./ModalAddCustomer/ModalAddCustomer";
 import TableUser from "./TableUser/TableUser";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { FaUserFriends } from "react-icons/fa";
 
 const AdminUser = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -37,7 +46,27 @@ const AdminUser = () => {
 
   return (
     <div className="p-2">
-      <h2 className="text-xl font-semibold mb-4">Quản lý khách trọ</h2>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-1">
+          <FaUserFriends className="size-6" />
+          <h1 className="text-2xl font-semibold">Quản lý khách trọ</h1>
+        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="text-md font-semibold">
+                Tổng quan
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-md font-semibold">
+                Quản lý khách trọ
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
       <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div

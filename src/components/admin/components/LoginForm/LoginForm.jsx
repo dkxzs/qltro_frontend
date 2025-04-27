@@ -49,7 +49,6 @@ const LoginForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Regex kiểm tra email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error("Email không hợp lệ. Vui lòng nhập đúng định dạng.");

@@ -15,6 +15,14 @@ import { useEffect, useState } from "react";
 import { MdElectricBolt } from "react-icons/md";
 import Pagination from "../Pagination/Pagination";
 import TableElectricity from "./TableElectricity/TableElectricity";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const AdminElectricity = () => {
   const currentDate = new Date();
@@ -82,6 +90,21 @@ const AdminElectricity = () => {
           <MdElectricBolt className="size-6 " />
           <h1 className="text-2xl font-semibold ">Chỉ số điện</h1>
         </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="text-md font-semibold">
+                Tổng quan
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-md font-semibold">
+                Quản lý điện
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
       <Card className="mb-4 rounded py-2 shadow-none">
