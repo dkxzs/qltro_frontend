@@ -13,6 +13,8 @@ const initialState = {
     NgaySinh: "",
     DienThoai: "",
     DiaChi: "",
+    TenNganHang: "",
+    SoTaiKhoan: "",
   },
 };
 

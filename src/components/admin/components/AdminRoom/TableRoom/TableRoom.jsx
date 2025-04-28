@@ -15,6 +15,7 @@ import {
 import ModalUpdateRoom from "../ModalUpdateRoom/ModalUpdateRoom";
 import ModalDeleteRoom from "../ModalDeleteRoom/ModalDeleteRoom";
 import { getRoomStatusColor, getRoomStatusText } from "@/utils/roomStatusUtils";
+import ModalAddMember from "../ModalAddMember/ModalAddMember";
 
 const TableRoom = ({ roomData, refetch }) => {
   const formatPrice = (price) => {
@@ -23,6 +24,8 @@ const TableRoom = ({ roomData, refetch }) => {
       currency: "VND",
     }).format(price);
   };
+
+  console.log(roomData);
 
   return (
     <div className="w-full">
@@ -47,10 +50,10 @@ const TableRoom = ({ roomData, refetch }) => {
             <TableHead className="py-3 px-2 text-left w-[25%] min-w-[150px]">
               Mô tả
             </TableHead>
-            <TableHead className="py-3 px-2 text-center w-[15%] min-w-[100px]">
+            <TableHead className="py-3 px-2 text-center w-[10%] min-w-[100px]">
               Trạng thái
             </TableHead>
-            <TableHead className="py-3 px-2 text-center w-[10%] min-w-[100px]">
+            <TableHead className="py-3 px-2 text-center w-[15%] min-w-[100px]">
               Hành động
             </TableHead>
           </TableRow>
@@ -125,6 +128,7 @@ const TableRoom = ({ roomData, refetch }) => {
                 </TableCell>
                 <TableCell className="py-2 px-2">
                   <div className="flex justify-center space-x-2">
+                    {room.TrangThai === 1 && <ModalAddMember room={room} />}
                     <ModalUpdateRoom dataUpdate={room} refetch={refetch} />
                     <ModalDeleteRoom dataDelete={room} refetch={refetch} />
                   </div>

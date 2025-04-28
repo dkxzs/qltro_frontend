@@ -29,8 +29,7 @@ import { useEffect, useState } from "react";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { toast } from "react-toastify";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RENT_STATUS_VALUE } from "@/utils/rentStatusUtils";
-import { ROOM_STATUS_VALUE } from "@/utils/roomStatusUtils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ModalAddRent = () => {
   const queryClient = useQueryClient();
@@ -73,7 +72,6 @@ const ModalAddRent = () => {
     enabled: !!selectedHouse && open,
   });
 
-  // Tự động chọn dịch vụ Điện, Nước, Vệ sinh, Internet khi mở modal
   useEffect(() => {
     if (open && dataServices?.DT) {
       const defaultServices = dataServices.DT.filter(
@@ -124,7 +122,6 @@ const ModalAddRent = () => {
     }));
   };
 
-  // Xử lý chọn/bỏ chọn dịch vụ
   const handleServiceChange = (maDV, isChecked) => {
     if (isChecked) {
       setSelectedServices((prev) => [...prev, maDV]);
@@ -145,6 +142,7 @@ const ModalAddRent = () => {
       donGia: "",
       datCoc: "",
     });
+    setRoomPrice(0);
   };
 
   const createRentMutation = useMutation({
@@ -154,7 +152,6 @@ const ModalAddRent = () => {
         toast.success(data.EM);
         setOpen(false);
         resetForm();
-        // Làm mới danh sách hợp đồng
         queryClient.invalidateQueries(["rent-list"]);
       } else {
         toast.error(data.EM);
@@ -232,217 +229,243 @@ const ModalAddRent = () => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-4/5 max-w-4xl rounded max-h-[95vh] overflow-hidden"
+        className="w-4/5 max-w-4xl rounded max-h-[90vh] min-h-[90vh] flex flex-col"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
       >
-        <div
-          className="scrollbar-hide"
-          style={{
-            maxHeight: "80vh",
-            overflowY: "auto",
-            borderRadius: "inherit",
-          }}
+        <DialogHeader>
+          <DialogTitle>Thêm hợp đồng</DialogTitle>
+          <DialogDescription className="-mt-1">
+            Vui lòng nhập đầy đủ thông tin vào hợp đồng mới.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="w-full mt-3 flex-1 flex flex-col"
+          onSubmit={handleSubmit}
         >
-          <DialogHeader>
-            <DialogTitle>Thêm hợp đồng</DialogTitle>
-            <DialogDescription className="-mt-1">
-              Vui lòng nhập đầy đủ thông tin vào hợp đồng mới.
-            </DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4 w-full mt-3" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-6 w-full">
-              <div className="w-full">
-                <Label htmlFor="khachTro">Khách trọ</Label>
-                <Select
-                  value={selectedCustomer}
-                  onValueChange={setSelectedCustomer}
-                  className=""
-                >
-                  <SelectTrigger
-                    id="khachTro"
-                    className="w-full rounded mt-2 shadow-none cursor-pointer"
-                  >
-                    <SelectValue placeholder="Chọn khách trọ" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto rounded">
-                    {customersData?.DT?.map((customer) => (
-                      <SelectItem
-                        key={customer.MaKH}
-                        value={customer.MaKH.toString()}
-                        className="cursor-pointer"
-                      >
-                        {customer.HoTen} - {customer.CCCD}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full">
-                <Label htmlFor="nha">Nhà</Label>
-                <Select
-                  value={selectedHouse}
-                  onValueChange={setSelectedHouse}
-                  className=""
-                >
-                  <SelectTrigger
-                    id="nha"
-                    className="w-full rounded mt-2 shadow-none cursor-pointer"
-                  >
-                    <SelectValue placeholder="Chọn nhà" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto rounded">
-                    {housesData?.DT?.map((house) => (
-                      <SelectItem
-                        key={house.MaNha}
-                        value={house.MaNha.toString()}
-                        className="cursor-pointer"
-                      >
-                        {house.TenNha}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full">
-                <Label htmlFor="phong">Phòng</Label>
-                <Select
-                  value={selectedRoom}
-                  onValueChange={setSelectedRoom}
-                  className=""
-                >
-                  <SelectTrigger
-                    id="phong"
-                    className="w-full rounded mt-2 shadow-none cursor-pointer"
-                  >
-                    <SelectValue placeholder="Chọn phòng" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto rounded">
-                    {availableRooms.map((room) => (
-                      <SelectItem
-                        key={room.MaPT}
-                        value={room.MaPT.toString()}
-                        className="cursor-pointer"
-                      >
-                        {room.TenPhong} - {room.LoaiPhong?.TenLoaiPhong || ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full">
-                <Label htmlFor="ngayBatDau">Ngày bắt đầu (ngày 1-5)</Label>
-                <Input
-                  id="ngayBatDau"
-                  name="ngayBatDau"
-                  type="date"
-                  value={formData.ngayBatDau}
-                  onChange={handleChange}
-                  className="w-full rounded mt-2 shadow-none"
-                />
-              </div>
-
-              <div className="w-full">
-                <Label htmlFor="ngayKetThuc">Ngày kết thúc</Label>
-                <Input
-                  id="ngayKetThuc"
-                  name="ngayKetThuc"
-                  type="date"
-                  value={formData.ngayKetThuc}
-                  onChange={handleChange}
-                  className="w-full rounded mt-2 shadow-none"
-                />
-              </div>
-
-              <div className="w-full">
-                <Label htmlFor="datCoc">Tiền đặt cọc (VNĐ)</Label>
-                <Input
-                  id="datCoc"
-                  name="datCoc"
-                  value={formatCurrency(formData.datCoc)}
-                  onChange={handleChange}
-                  className="w-full rounded mt-2 shadow-none"
-                />
-              </div>
-
-              <div className="w-full">
-                <Label htmlFor="donGia">Đơn giá (VNĐ/tháng)</Label>
-                <Input
-                  id="donGia"
-                  name="donGia"
-                  value={formatCurrency(formData.donGia)}
-                  onChange={handleChange}
-                  className="w-full rounded mt-2 shadow-none"
-                  disabled
-                />
-              </div>
-
-              <div className="w-full col-span-2">
-                <Label htmlFor="ghiChu">Ghi chú</Label>
-                <Textarea
-                  id="ghiChu"
-                  name="ghiChu"
-                  value={formData.ghiChu}
-                  onChange={handleChange}
-                  className="w-full rounded mt-2 shadow-none"
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <div className="w-full">
-              <Label className="text-lg font-semibold">Dịch vụ</Label>
-              <div className="mt-2 grid grid-cols-1 gap-2">
-                {dataServices?.DT?.map((service) => (
-                  <div
-                    key={service.MaDV}
-                    className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 transition"
-                  >
-                    <div className="flex items-center space-x-3 flex-1">
-                      <Checkbox
-                        id={service.MaDV}
-                        checked={selectedServices.includes(service.MaDV)}
-                        onCheckedChange={(checked) =>
-                          handleServiceChange(service.MaDV, checked)
-                        }
-                        disabled={isDefaultService(service)}
-                        className="h-5 w-5"
-                      />
-                      <Label
-                        htmlFor={service.MaDV}
-                        className="cursor-pointer flex-1"
-                      >
-                        {service.TenDV}
-                      </Label>
-                    </div>
-                    <span className="text-sm text-gray-600 w-32 text-right">
-                      {formatCurrency(service.DonGia || 0)} VNĐ
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded cursor-pointer"
+          <Tabs defaultValue="tab1" className="w-full flex-1 flex flex-col">
+            <TabsList className="w-full p-0 bg-background justify-start border-b rounded-none">
+              <TabsTrigger
+                value="tab1"
+                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
               >
-                Hủy
-              </Button>
-              <Button type="submit" className="rounded cursor-pointer">
-                {createRentMutation.isPending
-                  ? "Đang xử lý..."
-                  : "Tạo hợp đồng"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </div>
+                Thông tin hợp đồng
+              </TabsTrigger>
+              <TabsTrigger
+                value="tab2"
+                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer "
+              >
+                Dịch vụ
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Nội dung tab với chiều cao cố định và cuộn */}
+            <div
+              className="scrollbar-hide flex-1"
+              style={{
+                height: "50vh", // Giảm chiều cao để dành không gian cho footer
+                overflowY: "auto",
+                borderRadius: "inherit",
+              }}
+            >
+              {/* Tab 1: Thông tin hợp đồng */}
+              <TabsContent value="tab1" className="pt-4">
+                <div className="grid grid-cols-2 gap-6 w-full">
+                  <div className="w-full">
+                    <Label htmlFor="khachTro">Khách trọ</Label>
+                    <Select
+                      value={selectedCustomer}
+                      onValueChange={setSelectedCustomer}
+                      className=""
+                    >
+                      <SelectTrigger
+                        id="khachTro"
+                        className="w-full rounded mt-2 shadow-none cursor-pointer"
+                      >
+                        <SelectValue placeholder="Chọn khách trọ" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto rounded">
+                        {customersData?.DT?.map((customer) => (
+                          <SelectItem
+                            key={customer.MaKH}
+                            value={customer.MaKH.toString()}
+                            className="cursor-pointer"
+                          >
+                            {customer.HoTen} - {customer.CCCD}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="w-full">
+                    <Label htmlFor="nha">Nhà</Label>
+                    <Select
+                      value={selectedHouse}
+                      onValueChange={setSelectedHouse}
+                      className=""
+                    >
+                      <SelectTrigger
+                        id="nha"
+                        className="w-full rounded mt-2 shadow-none cursor-pointer"
+                      >
+                        <SelectValue placeholder="Chọn nhà" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto rounded">
+                        {housesData?.DT?.map((house) => (
+                          <SelectItem
+                            key={house.MaNha}
+                            value={house.MaNha.toString()}
+                            className="cursor-pointer"
+                          >
+                            {house.TenNha}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="w-full">
+                    <Label htmlFor="phong">Phòng</Label>
+                    <Select
+                      value={selectedRoom}
+                      onValueChange={setSelectedRoom}
+                      className=""
+                    >
+                      <SelectTrigger
+                        id="phong"
+                        className="w-full rounded mt-2 shadow-none cursor-pointer"
+                      >
+                        <SelectValue placeholder="Chọn phòng" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto rounded">
+                        {availableRooms.map((room) => (
+                          <SelectItem
+                            key={room.MaPT}
+                            value={room.MaPT.toString()}
+                            className="cursor-pointer"
+                          >
+                            {room.TenPhong} -{" "}
+                            {room.LoaiPhong?.TenLoaiPhong || ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="w-full">
+                    <Label htmlFor="ngayBatDau">Ngày bắt đầu (ngày 1-5)</Label>
+                    <Input
+                      id="ngayBatDau"
+                      name="ngayBatDau"
+                      type="date"
+                      value={formData.ngayBatDau}
+                      onChange={handleChange}
+                      className="w-full rounded mt-2 shadow-none"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <Label htmlFor="ngayKetThuc">Ngày kết thúc</Label>
+                    <Input
+                      id="ngayKetThuc"
+                      name="ngayKetThuc"
+                      type="date"
+                      value={formData.ngayKetThuc}
+                      onChange={handleChange}
+                      className="w-full rounded mt-2 shadow-none"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <Label htmlFor="datCoc">Tiền đặt cọc (VNĐ)</Label>
+                    <Input
+                      id="datCoc"
+                      name="datCoc"
+                      value={formatCurrency(formData.datCoc)}
+                      onChange={handleChange}
+                      className="w-full rounded mt-2 shadow-none"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <Label htmlFor="donGia">Đơn giá (VNĐ/tháng)</Label>
+                    <Input
+                      id="donGia"
+                      name="donGia"
+                      value={formatCurrency(formData.donGia)}
+                      onChange={handleChange}
+                      className="w-full rounded mt-2 shadow-none"
+                      disabled
+                    />
+                  </div>
+
+                  <div className="w-full col-span-2">
+                    <Label htmlFor="ghiChu">Ghi chú</Label>
+                    <Textarea
+                      id="ghiChu"
+                      name="ghiChu"
+                      value={formData.ghiChu}
+                      onChange={handleChange}
+                      className="w-full rounded mt-2 shadow-none"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* Tab 2: Dịch vụ */}
+              <TabsContent value="tab2" className="pt-4">
+                <div className="w-full">
+                  <Label className="text-lg font-semibold">Dịch vụ</Label>
+                  <div className="mt-2 grid grid-cols-1 gap-2">
+                    {dataServices?.DT?.map((service) => (
+                      <div
+                        key={service.MaDV}
+                        className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 transition"
+                      >
+                        <div className="flex items-center space-x-3 flex-1">
+                          <Checkbox
+                            id={service.MaDV}
+                            checked={selectedServices.includes(service.MaDV)}
+                            onCheckedChange={(checked) =>
+                              handleServiceChange(service.MaDV, checked)
+                            }
+                            disabled={isDefaultService(service)}
+                            className="h-5 w-5"
+                          />
+                          <Label
+                            htmlFor={service.MaDV}
+                            className="cursor-pointer flex-1"
+                          >
+                            {service.TenDV}
+                          </Label>
+                        </div>
+                        <span className="text-sm text-gray-600 w-32 text-right">
+                          {formatCurrency(service.DonGia || 0)} VNĐ
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            </div>
+          </Tabs>
+
+          <DialogFooter className="pt-4">
+            <Button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded cursor-pointer"
+            >
+              Hủy
+            </Button>
+            <Button type="submit" className="rounded cursor-pointer">
+              {createRentMutation.isPending ? "Đang xử lý..." : "Tạo hợp đồng"}
+            </Button>
+          </DialogFooter>
+        </form>
         <style>
           {`
             .scrollbar-hide {

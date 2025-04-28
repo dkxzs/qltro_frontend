@@ -27,11 +27,24 @@ import {
 } from "@/services/roomServices";
 import { getAllRoomTypeService } from "@/services/roomTypeServices";
 import { getAllServiceService } from "@/services/serviceServices";
+import {
+  getAllMembersService,
+  updateMembersService,
+} from "@/services/memberServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Pencil, Plus, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Hàm định dạng ngày tháng sang YYYY-MM-DD
+const formatDateForInput = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return ""; // Nếu không phải ngày hợp lệ
+  return date.toISOString().split("T")[0]; // Trả về YYYY-MM-DD
+};
 
 const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const [open, setOpen] = useState(false);
@@ -42,6 +55,8 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const [selectedServices, setSelectedServices] = useState([]);
   const [initialFormData, setInitialFormData] = useState(null);
   const [initialServices, setInitialServices] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [initialMembers, setInitialMembers] = useState([]);
   const [status] = useState([
     { value: "0", label: "Còn trống" },
     { value: "1", label: "Đã cho thuê" },
@@ -123,7 +138,9 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
             service.TenDV.toLowerCase()
           )
         ).map((service) => service.MaDV.toString()) || [];
-      const newSelectedServices = [...new Set([...serviceIds, ...defaultServiceIds])];
+      const newSelectedServices = [
+        ...new Set([...serviceIds, ...defaultServiceIds]),
+      ];
       setSelectedServices(newSelectedServices);
       if (!initialServices.length) {
         setInitialServices(newSelectedServices);
@@ -142,13 +159,46 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     }
   }, [roomServices, dataService]);
 
+  const { data: membersData, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ["members", dataUpdate.MaPT],
+    queryFn: async () => {
+      const response = await getAllMembersService();
+      const roomMembers = response.DT.filter(
+        (member) => member.MaTP === dataUpdate.MaTP
+      );
+      return roomMembers;
+    },
+    enabled: open && !!dataUpdate.MaTP,
+  });
+
+  useEffect(() => {
+    if (membersData && membersData.length > 0) {
+      const formattedMembers = membersData.map((member) => ({
+        MaTV: member.MaTV,
+        MaTP: member.MaTP,
+        TenTV: member.TenTV,
+        CCCD: member.CCCD,
+        NgaySinh: formatDateForInput(member.NgaySinh),
+        DienThoai: member.DienThoai || "",
+        DiaChi: member.DiaChi || "",
+        TrangThai: member.TrangThai,
+      }));
+      setMembers(formattedMembers);
+      if (!initialMembers.length) {
+        setInitialMembers(formattedMembers);
+      }
+    } else {
+      setMembers([]);
+      setInitialMembers([]);
+    }
+  }, [membersData]);
+
   useEffect(() => {
     const checkHasRent = async () => {
       if (open && dataUpdate.MaPT) {
         try {
           setLoading(true);
           const res = await checkRoomHasRentService(dataUpdate.MaPT);
-          console.log("checkRoomHasRentService response:", res);
           if (res?.EC === 0) {
             setHasRent(res.DT);
           }
@@ -195,6 +245,29 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     }
   };
 
+  const handleMemberChange = (index, e) => {
+    const { name, value } = e.target;
+    setMembers((prev) => {
+      const updatedMembers = [...prev];
+      updatedMembers[index] = {
+        ...updatedMembers[index],
+        [name]: value,
+      };
+      return updatedMembers;
+    });
+  };
+
+  const handleMemberStatusChange = (index, checked) => {
+    setMembers((prev) => {
+      const updatedMembers = [...prev];
+      updatedMembers[index] = {
+        ...updatedMembers[index],
+        TrangThai: checked,
+      };
+      return updatedMembers;
+    });
+  };
+
   const isFormDataChanged = () => {
     if (!initialFormData) return true;
     return (
@@ -217,15 +290,33 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     );
   };
 
+  const isMembersChanged = () => {
+    if (!initialMembers) return true;
+    return (
+      members.length !== initialMembers.length ||
+      members.some((member, index) => {
+        const initialMember = initialMembers[index];
+        if (!initialMember) return true;
+        return (
+          member.TenTV !== initialMember.TenTV ||
+          member.CCCD !== initialMember.CCCD ||
+          member.NgaySinh !== initialMember.NgaySinh ||
+          member.DienThoai !== initialMember.DienThoai ||
+          member.DiaChi !== initialMember.DiaChi ||
+          member.TrangThai !== initialMember.TrangThai
+        );
+      })
+    );
+  };
+
   const isServiceChangeAllowed = () => {
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
-    return currentDay <= 4; // Cho phép thay đổi dịch vụ trong 4 ngày đầu tháng
+    return currentDay <= 4;
   };
 
   const mutationUpdateRoom = useMutation({
-    mutationFn: async ({ id, data, services }) => {
-      console.log("Updating room with ID:", id, "Data:", data, "Services:", services);
+    mutationFn: async ({ id, data, services, membersData }) => {
       let roomResponse = null;
       if (isFormDataChanged()) {
         roomResponse = await updateRoomService(id, data);
@@ -239,12 +330,19 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
           throw new Error("Cập nhật dịch vụ thất bại: " + serviceResponse.EM);
         }
       }
-      return roomResponse || { EC: 0, EM: "Cập nhật dịch vụ thành công" };
+      if (hasRent && membersData?.length > 0 && isMembersChanged()) {
+        const memberResponse = await updateMembersService(membersData);
+        if (memberResponse.EC !== 0) {
+          throw new Error("Cập nhật thành viên thất bại: " + memberResponse.EM);
+        }
+      }
+      return roomResponse || { EC: 0, EM: "Cập nhật thành công" };
     },
     onSuccess: (data) => {
       toast.success(data.EM);
       setOpen(false);
       setInitialServices([...selectedServices]);
+      setInitialMembers([...members]);
       if (refetch) refetch();
     },
     onError: (error) => {
@@ -256,8 +354,8 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!isFormDataChanged() && !isServicesChanged()) {
-      toast.info("Không có thay đổi để cập nhật");
+    if (!isFormDataChanged() && !isServicesChanged() && !isMembersChanged()) {
+      toast.info("Không có thay đổi ở cả 3 tab để cập nhật");
       return;
     }
 
@@ -278,10 +376,22 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
       }
     }
 
+    if (isMembersChanged()) {
+      for (const member of members) {
+        if (!member.TenTV || !member.CCCD) {
+          toast.error(
+            "Vui lòng nhập đầy đủ Tên và CCCD cho tất cả thành viên!"
+          );
+          return;
+        }
+      }
+    }
+
     mutationUpdateRoom.mutate({
       id: dataUpdate.MaPT,
       data: formData,
       services: hasRent ? selectedServices : [],
+      membersData: hasRent ? members : [],
     });
   };
 
@@ -295,7 +405,11 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   };
 
   const isLoadingData =
-    isLoadingRoomType || isLoadingService || isLoadingRoomServices || loading;
+    isLoadingRoomType ||
+    isLoadingService ||
+    isLoadingRoomServices ||
+    isLoadingMembers ||
+    loading;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -305,52 +419,74 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-1/2 max-h-[95vh] overflow-hidden rounded"
+        className="w-4/5 max-w-4xl rounded max-h-[90vh] min-h-[90vh] flex flex-col"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
-        style={{ animation: "none" }}
       >
-        <div
-          className="scrollbar-hide overflow-y-auto pr-1"
-          style={{
-            maxHeight: "90vh",
-          }}
+        <DialogHeader>
+          <DialogTitle>Cập nhật phòng</DialogTitle>
+          <DialogDescription className="-mt-1">
+            Chỉnh sửa thông tin phòng, dịch vụ hoặc thành viên. Nhấn Cập nhật
+            khi hoàn tất.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="w-full mt-3 flex-1 flex flex-col"
+          onSubmit={handleSubmit}
         >
-          <DialogHeader>
-            <DialogTitle>Cập nhật phòng</DialogTitle>
-            <DialogDescription>
-              Chỉnh sửa thông tin phòng hoặc dịch vụ. Nhấn Lưu khi hoàn tất.
-            </DialogDescription>
-          </DialogHeader>
-          {isLoadingData ? (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              <span className="ml-2">Đang tải dữ liệu...</span>
-            </div>
-          ) : (
-            <>
-              <form onSubmit={handleSubmit}>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="tenPhong" className="text-right">
-                        Tên phòng
-                      </Label>
+          <Tabs defaultValue="tab1" className="w-full flex-1 flex flex-col">
+            <TabsList className="w-full p-0 bg-background justify-start border-b rounded-none">
+              <TabsTrigger
+                value="tab1"
+                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
+              >
+                Thông tin phòng
+              </TabsTrigger>
+              <TabsTrigger
+                value="tab2"
+                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
+              >
+                Dịch vụ phòng
+              </TabsTrigger>
+              <TabsTrigger
+                value="tab3"
+                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
+              >
+                Thành viên
+              </TabsTrigger>
+            </TabsList>
+
+            <div
+              className="scrollbar-hide flex-1"
+              style={{
+                height: "50vh",
+                overflowY: "auto",
+                borderRadius: "inherit",
+              }}
+            >
+              <TabsContent value="tab1" className="pt-4">
+                {isLoadingData ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                    <span className="ml-2">Đang tải dữ liệu...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-6 w-full">
+                    <div className="w-full">
+                      <Label htmlFor="tenPhong">Tên phòng</Label>
                       <Input
                         id="tenPhong"
                         name="tenPhong"
                         value={formData.tenPhong}
                         onChange={handleChange}
                         placeholder="Nhập tên phòng"
-                        className="rounded shadow-none"
+                        className="w-full rounded mt-2 shadow-none"
                         disabled={hasRent}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="maLoaiPhong" className="text-right">
-                        Loại phòng
-                      </Label>
+                    <div className="w-full">
+                      <Label htmlFor="maLoaiPhong">Loại phòng</Label>
                       <Select
                         value={formData.maLoaiPhong}
                         onValueChange={(value) =>
@@ -358,12 +494,13 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         }
                       >
                         <SelectTrigger
-                          className="col-span-3 w-full rounded shadow-none cursor-pointer"
+                          id="maLoaiPhong"
+                          className="w-full rounded mt-2 shadow-none cursor-pointer"
                           disabled={hasRent}
                         >
                           <SelectValue placeholder="Chọn loại phòng" />
                         </SelectTrigger>
-                        <SelectContent className="rounded">
+                        <SelectContent className="max-h-60 overflow-y-auto rounded">
                           {roomTypes.map((type) => (
                             <SelectItem
                               key={type.MaLP}
@@ -376,25 +513,19 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="dienTich" className="text-right">
-                        Diện tích (m²)
-                      </Label>
+                    <div className="w-full">
+                      <Label htmlFor="dienTich">Diện tích (m²)</Label>
                       <Input
                         id="dienTich"
                         name="dienTich"
                         value={formData.dienTich}
                         onChange={handleChange}
                         placeholder="Nhập diện tích"
-                        className="rounded shadow-none"
+                        className="w-full rounded mt-2 shadow-none"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="trangThai" className="text-right">
-                        Trạng thái
-                      </Label>
+                    <div className="w-full">
+                      <Label htmlFor="trangThai">Trạng thái</Label>
                       <Select
                         value={formData.trangThai}
                         onValueChange={(value) =>
@@ -402,12 +533,13 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         }
                       >
                         <SelectTrigger
-                          className="w-full rounded cursor-pointer"
+                          id="trangThai"
+                          className="w-full rounded mt-2 shadow-none cursor-pointer"
                           disabled={hasRent}
                         >
                           <SelectValue placeholder="Chọn trạng thái" />
                         </SelectTrigger>
-                        <SelectContent className="rounded">
+                        <SelectContent className="max-h-60 overflow-y-auto rounded">
                           {status.map((item) => (
                             <SelectItem
                               key={item.value}
@@ -420,118 +552,260 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="moTa" className="text-right">
-                      Mô tả
-                    </Label>
-                    <Textarea
-                      id="moTa"
-                      name="moTa"
-                      value={formData.moTa}
-                      onChange={handleChange}
-                      placeholder="Nhập mô tả phòng"
-                      className="col-span-3 shadow-none"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="anh" className="text-right">
-                      Hình ảnh
-                    </Label>
-                    <Input
-                      id="anh"
-                      name="anh"
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      onChange={handleChange}
-                      className="col-span-3"
-                      ref={inputRef}
-                    />
-                    {previewImage ? (
-                      <div
-                        className="border-2 w-30 h-30 border-dashed cursor-pointer"
-                        onClick={() => inputRef.current.click()}
-                      >
-                        <img
-                          src={previewImage}
-                          alt="Preview"
-                          className="p-1 object-contain rounded"
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className="w-30 h-30 border-2 border-dashed flex items-center justify-center cursor-pointer"
-                        onClick={() => inputRef.current.click()}
-                      >
-                        <Plus className="h-8 w-8 mx-auto mt-2" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </form>
-              {!isLoadingData &&
-              hasRent &&
-              Array.isArray(dataService?.DT) &&
-              dataService.DT.length > 0 ? (
-                <div className="mt-4 border-t pt-4">
-                  <h2 className="font-semibold text-lg mb-2">Dịch vụ phòng</h2>
-                  <Label className="font-normal mb-2 text-red-500">
-                    Lưu ý: chỉ có thể thay đổi dịch vụ trong 4 ngày đầu của tháng
-                  </Label>
-                  <div className="space-y-2 overflow-y-auto pr-1">
-                    {dataService.DT.map((service, index) => (
-                      <div
-                        key={service.MaDV || index}
-                        className="flex items-center justify-between p-3 my-1 rounded bg-gray-50 hover:bg-gray-100"
-                      >
-                        <div className="flex items-center space-x-3 flex-1">
-                          <Checkbox
-                            id={`service-${service.MaDV}`}
-                            className="h-5 w-5 rounded cursor-pointer"
-                            checked={selectedServices.includes(
-                              service.MaDV.toString()
-                            )}
-                            onCheckedChange={() =>
-                              handleServiceChange(service.MaDV.toString())
-                            }
-                            disabled={
-                              isDefaultService(service.MaDV.toString()) ||
-                              !isServiceChangeAllowed()
-                            }
+                    <div className="w-full col-span-2">
+                      <Label htmlFor="moTa">Mô tả</Label>
+                      <Textarea
+                        id="moTa"
+                        name="moTa"
+                        value={formData.moTa}
+                        onChange={handleChange}
+                        placeholder="Nhập mô tả phòng"
+                        className="w-full rounded mt-2 shadow-none"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="w-full col-span-2">
+                      <Label htmlFor="anh">Hình ảnh</Label>
+                      <Input
+                        id="anh"
+                        name="anh"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={handleChange}
+                        className="w-full"
+                        ref={inputRef}
+                      />
+                      {previewImage ? (
+                        <div
+                          className="border-2 w-30 h-30 border-dashed cursor-pointer"
+                          onClick={() => inputRef.current.click()}
+                        >
+                          <img
+                            src={previewImage}
+                            alt="Preview"
+                            className="p-1 object-contain rounded"
                           />
-                          <Label
-                            htmlFor={`service-${service.MaDV}`}
-                            className="cursor-pointer flex-1"
-                          >
-                            {service.TenDV}
-                          </Label>
                         </div>
-                        <span className="text-sm text-gray-600 w-32 text-right">
-                          {formatCurrency(service.DonGia || 0)} VNĐ
-                        </span>
-                      </div>
-                    ))}
+                      ) : (
+                        <div
+                          className="w-30 h-30 border-2 border-dashed flex items-center justify-center cursor-pointer"
+                          onClick={() => inputRef.current.click()}
+                        >
+                          <Plus className="h-8 w-8 mx-auto mt-2" />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ) : hasRent && !isLoadingData ? (
-                <div className="mt-4 border-t pt-4">
-                  <h2 className="font-semibold text-lg mb-2">Dịch vụ phòng</h2>
-                  <div className="h-[200px] flex items-center justify-center">
-                    <p className="text-gray-500">
-                      Không có dịch vụ nào được thêm.
-                    </p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="tab2" className="pt-4">
+                {isLoadingData ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                    <span className="ml-2">Đang tải dữ liệu...</span>
                   </div>
-                </div>
-              ) : null}
-            </>
-          )}
-          <DialogFooter className="mt-2">
+                ) : hasRent &&
+                  Array.isArray(dataService?.DT) &&
+                  dataService.DT.length > 0 ? (
+                  <div className="w-full">
+                    <Label className="text-lg font-semibold">
+                      Dịch vụ phòng
+                    </Label>
+                    <Label className="font-normal mb-2 text-red-500 block">
+                      Lưu ý: chỉ có thể thay đổi dịch vụ trong 4 ngày đầu của
+                      tháng
+                    </Label>
+                    <div className="mt-2 grid grid-cols-1 gap-2">
+                      {dataService.DT.map((service, index) => (
+                        <div
+                          key={service.MaDV || index}
+                          className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 transition"
+                        >
+                          <div className="flex items-center space-x-3 flex-1">
+                            <Checkbox
+                              id={`service-${service.MaDV}`}
+                              className="h-5 w-5 rounded cursor-pointer"
+                              checked={selectedServices.includes(
+                                service.MaDV.toString()
+                              )}
+                              onCheckedChange={() =>
+                                handleServiceChange(service.MaDV.toString())
+                              }
+                              disabled={
+                                isDefaultService(service.MaDV.toString()) ||
+                                !isServiceChangeAllowed()
+                              }
+                            />
+                            <Label
+                              htmlFor={`service-${service.MaDV}`}
+                              className="cursor-pointer flex-1"
+                            >
+                              {service.TenDV}
+                            </Label>
+                          </div>
+                          <span className="text-sm text-gray-600 w-32 text-right">
+                            {formatCurrency(service.DonGia || 0)} VNĐ
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : hasRent ? (
+                  <div className="w-full">
+                    <Label className="text-lg font-semibold">
+                      Dịch vụ phòng
+                    </Label>
+                    <div className="h-[200px] flex items-center justify-center">
+                      <p className="text-gray-500">
+                        Không có dịch vụ nào được thêm.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full">
+                    <Label className="text-lg font-semibold">
+                      Dịch vụ phòng
+                    </Label>
+                    <div className="h-[200px] flex items-center justify-center">
+                      <p className="text-gray-500">
+                        Phòng chưa có hợp đồng thuê, không thể thêm dịch vụ.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="tab3" className="pt-4">
+                {isLoadingData ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                    <span className="ml-2">Đang tải dữ liệu...</span>
+                  </div>
+                ) : hasRent && members.length > 0 ? (
+                  <div className="w-full">
+                    <Label className="text-lg font-semibold">
+                      Danh sách thành viên
+                    </Label>
+                    <div className="mt-2 max-h-[50vh] overflow-y-auto scrollbar-hide">
+                      {members.map((member, index) => (
+                        <div key={index} className="mb-6">
+                          <Label className="text-md font-semibold">
+                            Thành viên {index + 1}
+                          </Label>
+                          <div className="grid grid-cols-2 gap-6 w-full mt-2">
+                            <div className="w-full">
+                              <Label htmlFor={`tenTV-${index}`}>
+                                Tên thành viên
+                              </Label>
+                              <Input
+                                id={`tenTV-${index}`}
+                                name="TenTV"
+                                value={member.TenTV}
+                                onChange={(e) => handleMemberChange(index, e)}
+                                className="w-full rounded mt-2 shadow-none"
+                              />
+                            </div>
+                            <div className="w-full">
+                              <Label htmlFor={`cccd-${index}`}>Số CCCD</Label>
+                              <Input
+                                id={`cccd-${index}`}
+                                name="CCCD"
+                                value={member.CCCD}
+                                onChange={(e) => handleMemberChange(index, e)}
+                                className="w-full rounded mt-2 shadow-none"
+                              />
+                            </div>
+                            <div className="w-full">
+                              <Label htmlFor={`ngaySinh-${index}`}>
+                                Ngày sinh
+                              </Label>
+                              <Input
+                                id={`ngaySinh-${index}`}
+                                name="NgaySinh"
+                                type="date"
+                                value={member.NgaySinh}
+                                onChange={(e) => handleMemberChange(index, e)}
+                                className="w-full rounded mt-2 shadow-none"
+                              />
+                            </div>
+                            <div className="w-full">
+                              <Label htmlFor={`dienThoai-${index}`}>
+                                Số điện thoại
+                              </Label>
+                              <Input
+                                id={`dienThoai-${index}`}
+                                name="DienThoai"
+                                value={member.DienThoai}
+                                onChange={(e) => handleMemberChange(index, e)}
+                                className="w-full rounded mt-2 shadow-none"
+                              />
+                            </div>
+                            <div className="w-full col-span-2">
+                              <Label htmlFor={`diaChi-${index}`}>Địa chỉ</Label>
+                              <Textarea
+                                id={`diaChi-${index}`}
+                                name="DiaChi"
+                                value={member.DiaChi}
+                                onChange={(e) => handleMemberChange(index, e)}
+                                className="w-full rounded mt-2 shadow-none"
+                                rows={3}
+                              />
+                            </div>
+                            <div className="w-full">
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`trangThai-${index}`}
+                                  checked={member.TrangThai}
+                                  onCheckedChange={(checked) =>
+                                    handleMemberStatusChange(index, checked)
+                                  }
+                                  className="h-5 w-5 rounded cursor-pointer"
+                                />
+                                <Label htmlFor={`trangThai-${index}`}>
+                                  Trạng thái (đang ở)
+                                </Label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : hasRent ? (
+                  <div className="w-full">
+                    <Label className="text-lg font-semibold">
+                      Danh sách thành viên
+                    </Label>
+                    <div className="h-[200px] flex items-center justify-center">
+                      <p className="text-gray-500">
+                        Phòng này chưa có thành viên nào.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full">
+                    <Label className="text-lg font-semibold">
+                      Danh sách thành viên
+                    </Label>
+                    <div className="h-[200px] flex items-center justify-center">
+                      <p className="text-gray-500">
+                        Phòng chưa có hợp đồng thuê, không thể hiển thị thành
+                        viên.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+            </div>
+          </Tabs>
+
+          <DialogFooter className="pt-4">
             <Button
               type="button"
               onClick={() => setOpen(false)}
-              className="mr-2 rounded cursor-pointer"
+              className="rounded cursor-pointer"
             >
               Đóng
             </Button>
@@ -544,15 +818,15 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
               {mutationUpdateRoom.isPending ? "Đang xử lý..." : "Cập nhật"}
             </Button>
           </DialogFooter>
-        </div>
+        </form>
         <style>
           {`
             .scrollbar-hide {
-              -ms-overflow-style: none; /* IE and Edge */
-              scrollbar-width: none; /* Firefox */
+              -ms-overflow-style: none;
+              scrollbar-width: none;
             }
             .scrollbar-hide::-webkit-scrollbar {
-              display: none; /* Chrome, Safari, Opera */
+              display: none;
             }
           `}
         </style>
