@@ -12,7 +12,7 @@ import { getAllHouseService } from "@/services/houseServices";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
-import { IoWaterSharp } from "react-icons/io5";
+import { MdWaterDrop } from "react-icons/md";
 import Pagination from "../Pagination/Pagination";
 import TableWater from "./TableWater/TableWater";
 import {
@@ -26,13 +26,15 @@ import {
 
 const AdminWater = () => {
   const currentDate = new Date();
-  const [month] = useState(
+  // eslint-disable-next-line no-unused-vars
+  const [month, setMonth] = useState(
     `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(
       2,
       "0"
     )}`
   );
   const [selectedHouse, setSelectedHouse] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [roomName, setRoomName] = useState("");
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,7 +47,7 @@ const AdminWater = () => {
     queryFn: getAllHouseService,
   });
 
-  const { data: roomsWithWaterData } = useQuery({
+  const { data: roomsWithWaterData, isLoading } = useQuery({
     queryKey: ["rooms-with-water", monthNum, yearNum],
     queryFn: () => getAllRoomsWithWaterService(monthNum, yearNum),
     enabled: !!monthNum && !!yearNum,
@@ -64,12 +66,17 @@ const AdminWater = () => {
             roomName.toLowerCase()
           ));
 
-      return matchesRoomName && matchesHouse;
+      const matchesStatus =
+        selectedStatus === "all" ||
+        (selectedStatus === "rented" && item.PhongTro?.TrangThai === 1) ||
+        (selectedStatus === "available" && item.PhongTro?.TrangThai === 0);
+
+      return matchesRoomName && matchesHouse && matchesStatus;
     }) || [];
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [roomName, selectedHouse]);
+  }, [roomName, selectedHouse, selectedStatus]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -87,7 +94,7 @@ const AdminWater = () => {
     <div className="mx-auto p-2">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <IoWaterSharp className="size-6" />
+          <MdWaterDrop className="size-6 " />
           <h1 className="text-2xl font-semibold ">Chỉ số nước</h1>
         </div>
         <Breadcrumb>
@@ -123,10 +130,10 @@ const AdminWater = () => {
 
           {isFilterExpanded && (
             <>
-              <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <label className="block text-md font-medium text-gray-600 mb-1 mr-5">
+                    <label className="block text-md font-medium mr-5 w-[6rem]">
                       Nhà
                     </label>
                     <Select
@@ -158,22 +165,54 @@ const AdminWater = () => {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <label className="block text-md font-medium mb-1 mr-5">
+                    <label className="block text-md font-medium mr-5 w-[6rem]">
                       Phòng
                     </label>
                     <Input
                       type="text"
-                      value={roomName}
+                      value={roomName || ""}
                       onChange={(e) => setRoomName(e.target.value)}
-                      className="w-full rounded shadow-none"
+                      className="rounded shadow-none"
                       placeholder="Nhập tên phòng"
                     />
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <label className="block text-md font-medium mr-5 w-[8rem]">
+                      Trạng thái
+                    </label>
+                    <Select
+                      value={selectedStatus}
+                      onValueChange={(value) => {
+                        setSelectedStatus(value);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-full rounded shadow-none cursor-pointer">
+                        <SelectValue placeholder="Tất cả" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded shadow-none cursor-pointer">
+                        <SelectItem className="cursor-pointer" value="all">
+                          Tất cả
+                        </SelectItem>
+                        <SelectItem className="cursor-pointer" value="rented">
+                          Đang thuê
+                        </SelectItem>
+                        <SelectItem
+                          className="cursor-pointer"
+                          value="available"
+                        >
+                          Còn trống
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
-              <div className="p-4">
-                <p className="text-sm  font-medium mb-1">Lưu ý:</p>
-                <ul className="text-sm  list-inside">
+              <div className="px-3 py-3">
+                <p className="text-sm font-medium mb-1">Lưu ý:</p>
+                <ul className="text-sm list-inside">
                   <li>
                     - Đối với lần đầu tiên sử dụng phần mềm bạn sẽ phải nhập chỉ
                     số cũ và mới cho tháng sử dụng đầu tiên, các tháng tiếp theo
@@ -201,18 +240,33 @@ const AdminWater = () => {
           </label>
         </div>
         <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-red-500">
+          <label
+            htmlFor="warning"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-red-500"
+          >
             Cảnh báo: chỉ số mới phải lớn hơn chỉ số cũ
           </label>
         </div>
       </div>
 
-      <div className="rounded overflow-hidden min-h-[305px]">
-        <TableWater waterData={currentItems} month={monthNum} year={yearNum} />
+      <div className="min-h-[305px] rounded">
+        <div className="rounded border overflow-hidden">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <span className="text-gray-600 text-sm">Đang tải dữ liệu...</span>
+            </div>
+          ) : (
+            <TableWater
+              waterData={currentItems}
+              month={monthNum}
+              year={yearNum}
+            />
+          )}
+        </div>
       </div>
 
       {filteredData.length > 0 && (
-        <div className="flex justify-center mt-1">
+        <div className="mt-1 flex justify-center">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

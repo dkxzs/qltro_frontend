@@ -91,7 +91,7 @@ const AdminRent = () => {
         </Breadcrumb>
       </div>
 
-      <Card className="mb-4 rounded-xs py-2 shadow-none">
+      <Card className="mb-4 rounded py-2 shadow-none">
         <CardContent className="p-0">
           <div
             className="flex items-center cursor-pointer border-b"

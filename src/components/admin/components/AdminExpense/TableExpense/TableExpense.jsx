@@ -58,7 +58,11 @@ const TableExpense = ({ expenseData, refetch }) => {
     const pastMonth = isPastMonth(expense.Thang, expense.Nam);
     const hasInvoice = expense.hasInvoice || false; // Từ API
     console.log(
-      `Expense MaCPPS: ${expense.MaCPPS}, isPastMonth: ${pastMonth}, hasInvoice: ${hasInvoice}, isLocked: ${pastMonth || hasInvoice}`
+      `Expense MaCPPS: ${
+        expense.MaCPPS
+      }, isPastMonth: ${pastMonth}, hasInvoice: ${hasInvoice}, isLocked: ${
+        pastMonth || hasInvoice
+      }`
     );
     return pastMonth || hasInvoice;
   };
@@ -67,7 +71,7 @@ const TableExpense = ({ expenseData, refetch }) => {
     <>
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-gray-50 border-b">
             <TableHead className="px-2 py-2">STT</TableHead>
             <TableHead className="px-2 py-2">Phòng</TableHead>
             <TableHead className="px-2 py-2">Thời gian</TableHead>

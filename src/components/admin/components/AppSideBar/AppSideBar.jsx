@@ -100,7 +100,7 @@ const data = {
       icon: LiaFileInvoiceDollarSolid,
       items: [
         {
-          title: "Danh sách",
+          title: "Quản lý hoá đơn",
           url: "/admin/invoices",
         },
       ],

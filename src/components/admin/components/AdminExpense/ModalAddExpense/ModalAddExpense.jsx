@@ -197,8 +197,6 @@ const ModalAddExpense = ({ refetch }) => {
         ApplyAllRooms: formData.ApplyAllRooms,
       };
 
-      console.log("Dữ liệu gửi lên backend:", data);
-
       const response = await createExpenseService(data);
 
       if (response.EC === 0) {

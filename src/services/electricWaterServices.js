@@ -81,3 +81,38 @@ export const getElectricWaterByRoomAndMonthService = async (
   });
   return res.data;
 };
+
+export const checkPreviousMonthHasReadingService = async (
+  MaPT,
+  MaDV,
+  Thang,
+  Nam
+) => {
+  let prevMonth = Thang - 1;
+  let prevYear = Nam;
+  if (prevMonth === 0) {
+    prevMonth = 12;
+    prevYear -= 1;
+  }
+
+  try {
+    const res = await axios.get(`/electric-water/history-by-month`, {
+      params: { MaPT, MaDV, Thang: prevMonth, Nam: prevYear },
+    });
+    const result = res.data;
+    if (result.EC === 0 && result.DT && result.DT.ChiSoMoi !== null) {
+      return true; // Có ChiSoMoi tháng trước
+    }
+    return false; // Không có hoặc ChiSoMoi là null
+  } catch (error) {
+    console.error("Error checking previous month reading:", error);
+    return false;
+  }
+};
+
+export const checkElectricWaterInvoiceStatusService = async (MaPT, Thang, Nam) => {
+  const res = await axios.get(`/electric-water/check-invoice-status`, {
+    params: { MaPT, Thang, Nam },
+  });
+  return res.data;
+};

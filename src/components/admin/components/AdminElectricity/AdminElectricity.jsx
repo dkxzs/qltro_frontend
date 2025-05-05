@@ -26,13 +26,15 @@ import {
 
 const AdminElectricity = () => {
   const currentDate = new Date();
-  const [month] = useState(
+  // eslint-disable-next-line no-unused-vars
+  const [month, setMonth] = useState(
     `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(
       2,
       "0"
     )}`
   );
   const [selectedHouse, setSelectedHouse] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [roomName, setRoomName] = useState("");
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,11 +47,12 @@ const AdminElectricity = () => {
     queryFn: getAllHouseService,
   });
 
-  const { data: roomsWithElectricData } = useQuery({
+  const { data: roomsWithElectricData, isLoading } = useQuery({
     queryKey: ["rooms-with-electric", monthNum, yearNum],
     queryFn: () => getAllRoomsWithElectricService(monthNum, yearNum),
     enabled: !!monthNum && !!yearNum,
   });
+
 
   const filteredData =
     roomsWithElectricData?.DT?.filter((item) => {
@@ -64,12 +67,17 @@ const AdminElectricity = () => {
             roomName.toLowerCase()
           ));
 
-      return matchesRoomName && matchesHouse;
+      const matchesStatus =
+        selectedStatus === "all" ||
+        (selectedStatus === "rented" && item.PhongTro?.TrangThai === 1) ||
+        (selectedStatus === "available" && item.PhongTro?.TrangThai === 0);
+
+      return matchesRoomName && matchesHouse && matchesStatus;
     }) || [];
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [roomName, selectedHouse]);
+  }, [roomName, selectedHouse, selectedStatus]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -123,10 +131,10 @@ const AdminElectricity = () => {
 
           {isFilterExpanded && (
             <>
-              <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <label className="block text-md font-medium  mb-1 mr-5">
+                    <label className="block text-md font-medium mr-5 w-[6rem]">
                       Nhà
                     </label>
                     <Select
@@ -158,20 +166,52 @@ const AdminElectricity = () => {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <label className="block text-md font-medium mb-1 mr-5">
+                    <label className="block text-md font-medium mr-5 w-[6rem]">
                       Phòng
                     </label>
                     <Input
                       type="text"
                       value={roomName || ""}
                       onChange={(e) => setRoomName(e.target.value)}
-                      className=" rounded shadow-none"
+                      className="rounded shadow-none"
                       placeholder="Nhập tên phòng"
                     />
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <label className="block text-md font-medium mr-5 w-[8rem]">
+                      Trạng thái
+                    </label>
+                    <Select
+                      value={selectedStatus}
+                      onValueChange={(value) => {
+                        setSelectedStatus(value);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-full rounded shadow-none cursor-pointer">
+                        <SelectValue placeholder="Tất cả" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded shadow-none cursor-pointer">
+                        <SelectItem className="cursor-pointer" value="all">
+                          Tất cả
+                        </SelectItem>
+                        <SelectItem className="cursor-pointer" value="rented">
+                          Đang thuê
+                        </SelectItem>
+                        <SelectItem
+                          className="cursor-pointer"
+                          value="available"
+                        >
+                          Còn trống
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
-              <div className="p-4">
+              <div className="px-3 py-3">
                 <p className="text-sm font-medium mb-1">Lưu ý:</p>
                 <ul className="text-sm list-inside">
                   <li>
@@ -211,11 +251,23 @@ const AdminElectricity = () => {
       </div>
 
       <div className="rounded overflow-hidden min-h-[305px]">
-        <TableElectricity
-          electricData={currentItems}
-          month={monthNum}
-          year={yearNum}
-        />
+        <div div className="rounded border overflow-hidden">
+          {isLoading ? (
+            <p className="text-center text-md font-medium">
+              Đang tải dữ liệu...
+            </p>
+          ) : filteredData.length === 0 ? (
+            <p className="text-center text-md font-medium">
+              Chưa có chỉ số điện cho tháng {displayMonth}
+            </p>
+          ) : (
+            <TableElectricity
+              electricData={currentItems}
+              month={monthNum}
+              year={yearNum}
+            />
+          )}
+        </div>
       </div>
 
       {filteredData.length > 0 && (

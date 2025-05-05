@@ -114,7 +114,7 @@ const ModalAddMember = ({ room }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <UserPlus className="size-5" />
+          <UserPlus className="size-4" />
         </Button>
       </DialogTrigger>
       <DialogContent

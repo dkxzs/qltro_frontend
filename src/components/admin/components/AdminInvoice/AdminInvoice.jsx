@@ -1,65 +1,170 @@
-import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { CreditCard, Eye, FileText } from "lucide-react";
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ChevronDown,
+  ChevronUp,
+  CreditCard,
+  Eye,
+  FileText,
+} from "lucide-react";
+import { useState } from "react";
+import { LiaFileInvoiceSolid } from "react-icons/lia";
+import ModalAddInvoice from "./ModalAddInvoice/ModalAddInvoice";
+import TableInvoice from "./TableInvoice/TableInvoice";
+import { useQuery } from "@tanstack/react-query";
+import { getAllInvoiceService } from "@/services/invoiceServices";
+import { toast } from "react-toastify";
+import { useEffect } from "react";
 
 const AdminInvoice = () => {
-  const invoices = [
-    {
-      id: 1,
-      room: "Phòng 0",
-      status: "Đã thanh toán",
-      amount: "1,142,500 vnd",
-      date: "03/07/2023 17:47:07",
-    },
-    // You can add more invoice data here if needed
-  ];
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: getAllInvoiceService,
+    enabled: true,
+  });
+
+  useEffect(() => {
+    // Chỉ hiển thị lỗi khi isError = true hoặc khi data đã được tải và EC khác 0
+    if (isError || (data && data.EC !== 0)) {
+      toast.error(data?.EM || "Có lỗi xảy ra khi tải danh sách hóa đơn");
+    }
+  }, [data, isError]);
+
+  const invoices = data?.DT || [];
+
+  // Lọc dữ liệu theo tên phòng và trạng thái
+  const filteredInvoices = invoices.filter((invoice) => {
+    const matchesRoom =
+      searchText === "" ||
+      invoice.ThuePhong?.PhongTro?.TenPhong?.toLowerCase().includes(
+        searchText.toLowerCase()
+      );
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "Chưa thanh toán" && invoice.TrangThai === 0) ||
+      (statusFilter === "Đã thanh toán" && invoice.TrangThai === 1);
+    return matchesRoom && matchesStatus;
+  });
 
   return (
-    <div className=" mx-auto px-2">
-      <h1 className="text-2xl font-semibold">Danh sách hóa đơn</h1>
+    <div className="mx-auto p-2">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1">
+          <LiaFileInvoiceSolid className="size-6" />
+          <h1 className="text-2xl font-semibold">Quản lý hoá đơn</h1>
+        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="text-md font-semibold">
+                Tổng quan
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-md font-semibold">
+                Quản lý hoá đơn
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      <Card className="mb-4 rounded py-2 shadow-none">
+        <CardContent className="p-0">
+          <div
+            className="flex items-center cursor-pointer border-b"
+            onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+          >
+            {isFilterExpanded ? (
+              <ChevronDown className="h-5 w-5 mr-2 mb-2 ml-3" />
+            ) : (
+              <ChevronUp className="h-5 w-5 mr-2 mb-2 ml-3" />
+            )}
+            <span className="font-medium mb-2">Bộ lọc tìm kiếm</span>
+          </div>
 
-      <div className="rounded border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px] py-4">STT</TableHead>
-              <TableHead className="w-[200px] py-4">Phòng</TableHead>
-              <TableHead className="w-[200px]">Trạng thái</TableHead>
-              <TableHead className="w-[200px]">Tổng tiền</TableHead>
-              <TableHead className="w-[250px]">Ngày tạo</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invoices.map((invoice) => (
-              <TableRow key={invoice.id}>
-                <TableCell className="font-medium">{invoice.id}</TableCell>
-                <TableCell className="font-medium">{invoice.room}</TableCell>
-                <TableCell className="font-medium">{invoice.status}</TableCell>
-                <TableCell>{invoice.amount}</TableCell>
-                <TableCell>{invoice.date}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="bg-sky-100 hover:bg-sky-200 text-sky-700 cursor-pointer"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+          {isFilterExpanded && (
+            <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <label className="w-27 text-sm">Tên phòng:</label>
+                  <Input
+                    placeholder="Nhập tên phòng"
+                    className="flex-1 rounded outline-none shadow-none"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <label className="w-25 text-sm">Trạng thái:</label>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={setStatusFilter}
+                    className="rounded outline-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
+                  >
+                    <SelectTrigger className="flex-1 rounded cursor-pointer focus-visible:border-0 focus:none shadow-none">
+                      <SelectValue placeholder="Tất cả" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded">
+                      <SelectItem
+                        className="hover:bg-transparent cursor-pointer"
+                        value="all"
+                      >
+                        Tất cả
+                      </SelectItem>
+                      <SelectItem
+                        className="hover:bg-transparent cursor-pointer"
+                        value="Chưa thanh toán"
+                      >
+                        Chưa thanh toán
+                      </SelectItem>
+                      <SelectItem
+                        className="hover:bg-transparent cursor-pointer"
+                        value="Đã thanh toán"
+                      >
+                        Đã thanh toán
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Danh sách hoá đơn</h1>
+        <div className="flex items-center gap-2">
+          <ModalAddInvoice />
+          <Button className="rounded cursor-pointer bg-yellow-500 hover:bg-yellow-600">
+            Xuất dữ liệu
+          </Button>
+        </div>
+      </div>
+      <div className="rounded">
+        <TableInvoice invoices={filteredInvoices} isLoading={isLoading} />
       </div>
     </div>
   );

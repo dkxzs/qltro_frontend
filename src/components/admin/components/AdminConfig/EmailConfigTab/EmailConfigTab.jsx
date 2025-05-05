@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setEmailConfig } from "@/redux/slices/inforSlice";
 import { toast } from "react-toastify";
+import CryptoJS from "crypto-js";
 
 const EmailConfigTab = () => {
   const dispatch = useDispatch();
@@ -12,12 +13,14 @@ const EmailConfigTab = () => {
 
   const [emailConfig, setEmailConfigLocal] = useState({
     systemEmail: "",
+    systemPassword: "",
     personalEmail: "",
   });
 
   useEffect(() => {
     setEmailConfigLocal({
       systemEmail: emailState?.systemEmail || "",
+      systemPassword: "",
       personalEmail: emailState?.personalEmail || "",
     });
   }, [emailState]);
@@ -31,7 +34,6 @@ const EmailConfigTab = () => {
   };
 
   const handleSaveChanges = () => {
-    // Kiểm tra email hợp lệ
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (emailConfig.systemEmail && !emailRegex.test(emailConfig.systemEmail)) {
       toast.error("Email hệ thống không hợp lệ");
@@ -46,8 +48,24 @@ const EmailConfigTab = () => {
       return;
     }
 
-    // Lưu vào Redux store
-    dispatch(setEmailConfig(emailConfig));
+    const secretKey = import.meta.env.VITE_ENCRYPTION_SECRET || "your-32-character-secret-key-here123456";
+    const encryptedPassword = emailConfig.systemPassword
+      ? CryptoJS.AES.encrypt(emailConfig.systemPassword, secretKey).toString()
+      : "";
+
+    dispatch(
+      setEmailConfig({
+        systemEmail: emailConfig.systemEmail,
+        systemPassword: encryptedPassword,
+        personalEmail: emailConfig.personalEmail,
+      })
+    );
+
+    setEmailConfigLocal((prev) => ({
+      ...prev,
+      systemPassword: "",
+    }));
+
     toast.success("Đã lưu cấu hình email thành công");
   };
 
@@ -66,6 +84,21 @@ const EmailConfigTab = () => {
           />
           <p className="text-xs text-gray-500">
             Email dùng để gửi thông báo từ hệ thống
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="systemPassword">Mật khẩu</Label>
+          <Input
+            id="systemPassword"
+            name="systemPassword"
+            type="password"
+            placeholder="Nhập mật khẩu email hệ thống"
+            value={emailConfig.systemPassword}
+            onChange={handleEmailChange}
+            className="rounded shadow-none"
+          />
+          <p className="text-xs text-gray-500">
+            Mật khẩu của email hệ thống (sẽ được mã hóa khi lưu)
           </p>
         </div>
         <div className="space-y-2">

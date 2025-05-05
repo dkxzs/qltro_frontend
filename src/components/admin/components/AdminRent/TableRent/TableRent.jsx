@@ -34,6 +34,7 @@ const TableRent = ({ filteredData }) => {
     queryFn: getAllRentService,
   });
 
+
   const handleViewRent = (rent) => {
     setSelectedRent(rent);
     setIsViewModalOpen(true);

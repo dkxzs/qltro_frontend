@@ -32,8 +32,6 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
   const template = useSelector((state) => state.contractConfig.template);
   const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
 
-  console.log("rentData", rentData);
-
   // Hàm trích xuất tỉnh/thành phố từ địa chỉ
   const extractProvince = (address) => {
     if (!address) return "Tp. Hà Nội";
@@ -173,7 +171,7 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
                 ],
                 spacing: { before: 400, after: 400 },
               }),
-              
+
               // Thêm thông tin hợp đồng
               new Paragraph({
                 alignment: AlignmentType.CENTER,
@@ -185,7 +183,7 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
                 ],
                 spacing: { after: 200 },
               }),
-              
+
               // Thêm căn cứ pháp lý
               ...safeTemplate.header.legalBasis.map(
                 (basis) =>
