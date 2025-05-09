@@ -127,7 +127,7 @@ const TableRoom = ({ roomData, refetch }) => {
                   </div>
                 </TableCell>
                 <TableCell className="py-2 px-2">
-                  <div className="flex justify-center space-x-2">
+                  <div className="flex justify-center gap-1">
                     {room.TrangThai === 1 && <ModalAddMember room={room} />}
                     <ModalUpdateRoom dataUpdate={room} refetch={refetch} />
                     <ModalDeleteRoom dataDelete={room} refetch={refetch} />

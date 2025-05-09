@@ -16,9 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calculator } from "lucide-react";
+import { Calculator, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllHouseService } from "@/services/houseServices";
 import { getAllRoomService, getRoomByIdService } from "@/services/roomServices";
 import { createInvoiceService } from "@/services/invoiceServices";
@@ -28,7 +28,7 @@ const ModalAddInvoice = () => {
   const [open, setOpen] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState("");
   const [formData, setFormData] = useState({
-    date: "", // Khởi tạo rỗng, không dùng định dạng cứng
+    date: "",
     house: "",
     room: "",
   });
@@ -50,6 +50,23 @@ const ModalAddInvoice = () => {
     enabled: !!selectedHouse,
   });
 
+  const createInvoiceMutation = useMutation({
+    mutationFn: (data) => createInvoiceService(data),
+    onSuccess: async (response) => {
+      if (response.EC === 0) {
+        toast.success(response.EM);
+        await queryClient.invalidateQueries(["invoices"]);
+        setOpen(false);
+      } else {
+        toast.error(response.EM);
+      }
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error("Có lỗi xảy ra khi tính hóa đơn!");
+    },
+  });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevFormData) => ({
@@ -67,7 +84,7 @@ const ModalAddInvoice = () => {
       setSelectedHouse(value);
       setFormData((prevFormData) => ({
         ...prevFormData,
-        room: "", // Reset room khi đổi nhà
+        room: "",
       }));
     }
   };
@@ -81,68 +98,72 @@ const ModalAddInvoice = () => {
     setSelectedHouse("");
   };
 
-  const handleCalculateInvoice = async () => {
-    try {
-      if (!formData.date || !formData.house) {
-        toast.error("Vui lòng chọn ngày và nhà!");
-        return;
-      }
-
-      const response = await createInvoiceService({
-        date: formData.date, // Định dạng YYYY-MM-DD
-        house: formData.house,
-        room: formData.room || "all",
-      });
-
-      if (response.EC === 0) {
-        toast.success(response.EM);
-        // Invalidate query để làm mới danh sách hóa đơn
-        await queryClient.invalidateQueries(["invoices"]);
-        setOpen(false);
-      } else {
-        toast.error(response.EM);
-      }
-    } catch (err) {
-      console.log(err);
-      toast.error("Có lỗi xảy ra khi tính hóa đơn!");
+  const handleCalculateInvoice = () => {
+    if (!formData.date) {
+      toast.error("Vui lòng chọn ngày tính hóa đơn!");
+      return;
     }
+    if (!formData.house) {
+      toast.error("Vui lòng chọn nhà!");
+      return;
+    }
+    if (formData.house !== "all" && !formData.room) {
+      toast.error("Vui lòng chọn phòng!");
+      return;
+    }
+
+    const invoiceData = {
+      date: formData.date,
+      house: formData.house,
+      room: formData.room || "all",
+    };
+
+    createInvoiceMutation.mutate(invoiceData);
   };
 
   return (
     <Dialog
       open={open}
-      onOpenChange={() => {
-        setOpen(!open);
-        resetForm();
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) resetForm();
       }}
     >
       <DialogTrigger asChild>
         <Button className="bg-green-600 hover:bg-green-700 rounded cursor-pointer">
-          <Calculator /> Tính tiền hoá đơn
+          <Calculator className="mr-2 h-4 w-4" /> Tính tiền hoá đơn
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-1/2 rounded" aria-describedby={undefined}>
+      <DialogContent
+        className="bg-white shadow-md rounded max-w-md"
+        aria-describedby="add-invoice-description"
+      >
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">TÍNH TIỀN</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <Label htmlFor="date" className="text-md w-[12rem]">
-              Từ ngày 1 đến ngày: <span className="text-red-500">*</span>
-            </Label>
-            <div className="flex-1">
-              <Input
-                type="date"
-                id="date"
-                name="date"
-                className="rounded mt-2 w-full shadow-none"
-                value={formData.date}
-                onChange={handleChange}
-              />
-            </div>
+          <DialogTitle className="text-lg font-semibold">
+            Tính tiền hóa đơn
+          </DialogTitle>
+          <div id="add-invoice-description" className="text-sm text-gray-500">
+            Vui lòng chọn ngày, nhà và phòng để tính hóa đơn.
           </div>
-          <div className="flex items-center gap-4">
-            <Label htmlFor="house" className="text-md w-[17.2rem]">
+        </DialogHeader>
+        <div className="space-y-6 bg-gray-50 p-4 rounded-md">
+          <div className="flex items-center gap-6">
+            <Label htmlFor="date" className="text-md w-32">
+              Ngày tính: <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              type="date"
+              id="date"
+              name="date"
+              className="flex-1 rounded mt-2 shadow-none"
+              value={formData.date}
+              onChange={handleChange}
+              placeholder="Chọn ngày tính hóa đơn"
+              aria-label="Ngày tính hóa đơn"
+            />
+          </div>
+          <div className="flex items-center gap-6">
+            <Label htmlFor="house" className="text-md w-32">
               Nhà: <span className="text-red-500">*</span>
             </Label>
             <Select
@@ -150,20 +171,21 @@ const ModalAddInvoice = () => {
               onValueChange={(value) => handleSelectChange("house", value)}
               className="flex-1"
             >
-              <SelectTrigger className="mt-2 rounded shadow-none w-full cursor-pointer">
+              <SelectTrigger
+                id="house"
+                className="mt-2 rounded shadow-none w-full cursor-pointer"
+                aria-label="Chọn nhà"
+              >
                 <SelectValue placeholder="Chọn nhà" />
               </SelectTrigger>
-              <SelectContent className="rounded cursor-pointer">
-                <SelectItem
-                  className="hover:bg-transparent cursor-pointer"
-                  value="all"
-                >
+              <SelectContent className="rounded">
+                <SelectItem className="cursor-pointer" value="all">
                   Tất cả
                 </SelectItem>
-                {dataHouse?.DT.map((house, index) => (
+                {dataHouse?.DT.map((house) => (
                   <SelectItem
-                    key={index}
-                    className="hover:bg-transparent cursor-pointer"
+                    key={house.MaNha}
+                    className="cursor-pointer"
                     value={house.MaNha}
                   >
                     {house.TenNha}
@@ -172,8 +194,8 @@ const ModalAddInvoice = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-4">
-            <Label htmlFor="room" className="text-md w-[17.2rem]">
+          <div className="flex items-center gap-6">
+            <Label htmlFor="room" className="text-md w-32">
               Phòng: <span className="text-red-500">*</span>
             </Label>
             <Select
@@ -182,20 +204,24 @@ const ModalAddInvoice = () => {
               className="flex-1"
               disabled={formData.house === "all"}
             >
-              <SelectTrigger className="mt-2 rounded shadow-none cursor-pointer w-full">
+              <SelectTrigger
+                id="room"
+                className="mt-2 rounded shadow-none cursor-pointer w-full"
+                aria-label="Chọn phòng"
+              >
                 <SelectValue placeholder="Chọn phòng" />
               </SelectTrigger>
-              <SelectContent className="rounded cursor-pointer">
+              <SelectContent className="rounded">
                 {roomData?.DT?.length >= 1 && (
                   <SelectItem className="cursor-pointer" value="all">
                     Tất cả
                   </SelectItem>
                 )}
                 {roomData?.DT.filter((room) => room.TrangThai === 1).map(
-                  (room, index) => (
+                  (room) => (
                     <SelectItem
-                      key={index}
-                      className="hover:bg-transparent cursor-pointer"
+                      key={room.MaPT}
+                      className="cursor-pointer"
                       value={room.MaPT}
                     >
                       {room.TenPhong}
@@ -206,18 +232,26 @@ const ModalAddInvoice = () => {
             </Select>
           </div>
         </div>
-        <DialogFooter className="mt-2">
+        <DialogFooter className="mt-4">
           <Button
-            className="rounded cursor-pointer"
-            onClick={() => setOpen(false)}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleCalculateInvoice}
+            disabled={createInvoiceMutation.isPending}
+            aria-label="Tính tiền hóa đơn"
           >
-            Đóng
+            {createInvoiceMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Tính tiền"
+            )}
           </Button>
           <Button
-            className="bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
-            onClick={handleCalculateInvoice}
+            className="text-white rounded cursor-pointer"
+            variant="destructive"
+            onClick={() => setOpen(false)}
+            aria-label="Đóng modal tính hóa đơn"
           >
-            Tính tiền
+            Đóng
           </Button>
         </DialogFooter>
       </DialogContent>

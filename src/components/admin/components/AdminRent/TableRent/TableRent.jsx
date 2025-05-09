@@ -34,7 +34,6 @@ const TableRent = ({ filteredData }) => {
     queryFn: getAllRentService,
   });
 
-
   const handleViewRent = (rent) => {
     setSelectedRent(rent);
     setIsViewModalOpen(true);
@@ -112,10 +111,10 @@ const TableRent = ({ filteredData }) => {
                     <TableCell className="text-right py-2">
                       <div className="flex justify-end">
                         <Button
-                          className="bg-blue-500 hover:bg-blue-600 cursor-pointer rounded"
+                          className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer"
                           onClick={() => handleViewRent(rent)}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="size-5 text-blue-600" />
                         </Button>
                       </div>
                     </TableCell>

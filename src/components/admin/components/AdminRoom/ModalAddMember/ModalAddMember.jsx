@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createMembersService } from "@/services/memberServices";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { UserPlus, X } from "lucide-react";
+import { UserPlus, X, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -62,10 +62,10 @@ const ModalAddMember = ({ room }) => {
   };
 
   const createMembersMutation = useMutation({
-    mutationFn: createMembersService, // Sử dụng service thay vì fetch
+    mutationFn: createMembersService,
     onSuccess: (data) => {
       toast.success(data.EM);
-      setOpen(false);
+      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
       setMembers([
         {
           TenTV: "",
@@ -79,20 +79,22 @@ const ModalAddMember = ({ room }) => {
       queryClient.invalidateQueries(["members"]);
     },
     onError: (error) => {
-      toast.error(error.message || "Có lỗi xảy ra khi thêm thành viên");
+      console.error("Add member error:", error);
+      const errorMessage = error.message.includes("foreign key constraint")
+        ? "Thêm thành viên thất bại: Phòng không hợp lệ hoặc có dữ liệu liên quan (hợp đồng, điện nước, v.v.). Vui lòng kiểm tra lại."
+        : error.message || "Có lỗi xảy ra khi thêm thành viên";
+      toast.error(errorMessage);
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Kiểm tra nếu phòng không có hợp đồng thuê còn hiệu lực
     if (!room.MaTP) {
       toast.error("Phòng này hiện không có hợp đồng thuê còn hiệu lực!");
       return;
     }
 
-    // Kiểm tra các trường bắt buộc
     for (const member of members) {
       if (!member.TenTV || !member.CCCD) {
         toast.error("Vui lòng nhập đầy đủ Tên và CCCD cho tất cả thành viên!");
@@ -100,25 +102,46 @@ const ModalAddMember = ({ room }) => {
       }
     }
 
-    // Thêm MaTP vào từng thành viên trước khi gửi API
     const membersWithMaTP = members.map((member) => ({
       MaTP: room.MaTP,
       ...member,
     }));
 
-    // Gọi API để thêm thành viên
     createMembersMutation.mutate(membersWithMaTP);
   };
+
+  const handleClose = () => {
+    const hasUnsavedChanges = members.some(
+      (member) =>
+        member.TenTV ||
+        member.CCCD ||
+        member.NgaySinh ||
+        member.DienThoai ||
+        member.DiaChi
+    );
+    if (
+      hasUnsavedChanges &&
+      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
+    ) {
+      return;
+    }
+    setOpen(false);
+  };
+
+  const isFormDisabled = createMembersMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <UserPlus className="size-4" />
+        <Button
+          className="flex items-center cursor-pointer  bg-transparent border-none rounded-none shadow-none outline-none text-white"
+          aria-label="Thêm thành viên mới"
+        >
+          <UserPlus className="size-5 text-green-600" />
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-4/5 max-w-4xl rounded max-h-[80vh] flex flex-col"
+        className="w-4/5 max-w-4xl rounded max-h-[80vh] flex flex-col transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -152,9 +175,13 @@ const ModalAddMember = ({ room }) => {
                     <Button
                       type="button"
                       onClick={() => handleRemoveMember(index)}
-                      className="p-1 bg-red-600 hover:bg-red-700 rounded"
+                      className="p-1 rounded cursor-pointer"
+                      disabled={isFormDisabled}
+                      aria-label={`Xóa thành viên ${index + 1}`}
+                      variant="primary"
+                      size="sm"
                     >
-                      <X className="size-5" />
+                      <X className="size-5 text-red-600" />
                     </Button>
                   )}
                 </div>
@@ -167,6 +194,7 @@ const ModalAddMember = ({ room }) => {
                       value={member.TenTV}
                       onChange={(e) => handleChange(index, e)}
                       className="w-full rounded mt-2 shadow-none"
+                      disabled={isFormDisabled}
                     />
                   </div>
                   <div className="w-full">
@@ -177,6 +205,7 @@ const ModalAddMember = ({ room }) => {
                       value={member.CCCD}
                       onChange={(e) => handleChange(index, e)}
                       className="w-full rounded mt-2 shadow-none"
+                      disabled={isFormDisabled}
                     />
                   </div>
                   <div className="w-full">
@@ -188,6 +217,7 @@ const ModalAddMember = ({ room }) => {
                       value={member.NgaySinh}
                       onChange={(e) => handleChange(index, e)}
                       className="w-full rounded mt-2 shadow-none"
+                      disabled={isFormDisabled}
                     />
                   </div>
                   <div className="w-full">
@@ -198,6 +228,7 @@ const ModalAddMember = ({ room }) => {
                       value={member.DienThoai}
                       onChange={(e) => handleChange(index, e)}
                       className="w-full rounded mt-2 shadow-none"
+                      disabled={isFormDisabled}
                     />
                   </div>
                   <div className="w-full col-span-2">
@@ -209,6 +240,7 @@ const ModalAddMember = ({ room }) => {
                       onChange={(e) => handleChange(index, e)}
                       className="w-full rounded mt-2 shadow-none"
                       rows={3}
+                      disabled={isFormDisabled}
                     />
                   </div>
                 </div>
@@ -216,29 +248,40 @@ const ModalAddMember = ({ room }) => {
             ))}
           </div>
 
-          <DialogFooter className="pt-4">
-            <Button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="rounded cursor-pointer"
-            >
-              Hủy
-            </Button>
+          <DialogFooter className="pt-2">
             <Button
               type="button"
               onClick={handleAddAnotherMember}
-              className="rounded cursor-pointer bg-blue-600 hover:bg-blue-700"
+              className="rounded cursor-pointer bg-blue-600"
+              disabled={isFormDisabled}
+              aria-label="Thêm thành viên khác"
             >
-              Thêm thành viên khác
+              Thêm mới
             </Button>
             <Button
               type="submit"
-              className="rounded cursor-pointer"
-              disabled={createMembersMutation.isPending}
+              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              disabled={isFormDisabled}
+              aria-label="Tạo thành viên mới"
             >
-              {createMembersMutation.isPending
-                ? "Đang xử lý..."
-                : "Tạo thành viên"}
+              {createMembersMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Lưu"
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleClose}
+              className="rounded cursor-pointer"
+              disabled={isFormDisabled}
+              variant="destructive"
+              aria-label="Hủy thêm thành viên"
+            >
+              Đóng
             </Button>
           </DialogFooter>
         </form>

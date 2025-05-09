@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { deleteRoomService } from "@/services/roomServices";
 import { useMutation } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -27,7 +27,7 @@ const ModalDeleteRoom = ({ dataDelete, refetch }) => {
     },
     onSuccess: (data) => {
       toast.success(data.EM || "Xóa phòng thành công");
-      setOpen(false);
+      setTimeout(() => setOpen(false), 300); // Slight delay for smoother UX
       if (refetch) refetch();
     },
     onError: (error) => {
@@ -39,36 +39,55 @@ const ModalDeleteRoom = ({ dataDelete, refetch }) => {
     mutationDeleteRoom.mutate({ id: dataDelete?.MaPT });
   };
 
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-red-500 hover:bg-red-600 rounded text-white">
-          <Trash2 className="h-4 w-4" />
+        <Button
+          className="flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
+          aria-label="Xóa phòng"
+        >
+          <Trash2 className="size-5 text-red-600" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded">
+      <DialogContent className="sm:max-w-[425px] rounded transition-all duration-300 ease-in-out">
         <DialogHeader>
           <DialogTitle>Xác nhận xóa phòng</DialogTitle>
-          <DialogDescription>
-            Bạn có chắc chắn muốn xóa phòng "{dataDelete?.TenPhong}" không? Hành
-            động này không thể hoàn tác.
+          <DialogDescription className="font-semibold">
+            Bạn có chắc chắn muốn xóa phòng{" "}
+            <span className="font-bold">"{dataDelete?.TenPhong}"</span> không?
+            Hành động này không thể hoàn tác.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-4">
-          <Button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="mr-2 rounded cursor-pointer"
-          >
-            Hủy
-          </Button>
+        <DialogFooter className="mt-2">
           <Button
             type="button"
             onClick={handleDelete}
             disabled={mutationDeleteRoom.isPending}
-            className="rounded cursor-pointer"
+            className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+            aria-label="Xác nhận xóa phòng"
           >
-            {mutationDeleteRoom.isPending ? "Đang xử lý..." : "Xóa"}
+            {mutationDeleteRoom.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Đang xóa...
+              </>
+            ) : (
+              "Xóa"
+            )}
+          </Button>
+          <Button
+            type="button"
+            onClick={handleClose}
+            className="rounded cursor-pointer"
+            disabled={mutationDeleteRoom.isPending}
+            variant="destructive"
+            aria-label="Hủy xóa phòng"
+          >
+            Đóng
           </Button>
         </DialogFooter>
       </DialogContent>

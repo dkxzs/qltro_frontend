@@ -20,15 +20,14 @@ import { createExpenseService } from "@/services/expenseServices";
 import { getAllHouseService } from "@/services/houseServices";
 import { getAllRoomService, getRoomByIdService } from "@/services/roomServices";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const ModalAddExpense = ({ refetch }) => {
   const [open, setOpen] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [selectedRoom, setSelectedRoom] = useState("");
   const [formData, setFormData] = useState({
@@ -58,6 +57,31 @@ const ModalAddExpense = ({ refetch }) => {
         ? getAllRoomService()
         : getRoomByIdService(selectedHouse),
     enabled: !!selectedHouse && formData.NguoiChiTra !== "",
+  });
+
+  const createExpenseMutation = useMutation({
+    mutationFn: (data) => createExpenseService(data),
+    onSuccess: (response) => {
+      if (response.EC === 0) {
+        toast.success("Thêm chi phí phát sinh thành công");
+        setOpen(false);
+        refetch();
+        resetForm();
+      } else {
+        toast.error(response.EM);
+        if (response.DT?.skippedRooms?.length > 0) {
+          toast.warn(
+            `Một số phòng không được thêm chi phí: ${response.DT.skippedRooms
+              .map((r) => `${r.TenPhong} (${r.reason})`)
+              .join(", ")}`
+          );
+        }
+      }
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi thêm chi phí phát sinh");
+    },
   });
 
   const handleChange = (e) => {
@@ -141,100 +165,79 @@ const ModalAddExpense = ({ refetch }) => {
     return true;
   });
 
-  useEffect(() => {
-    console.log("Room Data:", roomData?.DT);
-    console.log("Filtered Rooms:", filteredRooms);
-  }, [roomData, filteredRooms]);
+  const resetForm = () => {
+    setFormData({
+      MaNha: "",
+      MaPT: "",
+      ThangNam: "",
+      Thang: "",
+      Nam: "",
+      NguoiChiTra: "",
+      TongTien: "",
+      MoTa: "",
+      ApplyAllHouses: false,
+      ApplyAllRooms: false,
+    });
+    setDisplayTongTien("");
+    setSelectedHouse("");
+    setSelectedRoom("");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.Thang ||
-      !formData.Nam ||
-      !formData.NguoiChiTra ||
-      !formData.TongTien ||
-      !formData.MaNha
-    ) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+    if (!formData.NguoiChiTra) {
+      toast.error("Vui lòng chọn người chi trả!");
       return;
     }
-
+    if (!formData.MaNha) {
+      toast.error("Vui lòng chọn nhà!");
+      return;
+    }
     if (
       formData.NguoiChiTra === "Khách trọ" &&
       !formData.MaPT &&
       !formData.ApplyAllRooms
     ) {
       toast.error(
-        "Vui lòng chọn phòng hoặc tất cả phòng khi người chi trả là khách trọ"
+        "Vui lòng chọn phòng hoặc tất cả phòng khi người chi trả là khách trọ!"
       );
+      return;
+    }
+    if (!formData.Thang || !formData.Nam) {
+      toast.error("Vui lòng chọn tháng/năm!");
+      return;
+    }
+    if (!formData.TongTien) {
+      toast.error("Vui lòng nhập tổng tiền!");
       return;
     }
 
     const parsedTongTien = parseInt(formData.TongTien, 10);
     if (isNaN(parsedTongTien) || parsedTongTien <= 0) {
-      toast.error("Tổng tiền phải là số lớn hơn 0");
+      toast.error("Tổng tiền phải là số lớn hơn 0!");
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      const data = {
-        MaNha: formData.ApplyAllHouses
-          ? houseData?.DT?.map((house) => parseInt(house.MaNha, 10))
-          : [parseInt(formData.MaNha, 10)],
-        MaPT: formData.ApplyAllRooms
-          ? filteredRooms?.map((room) => parseInt(room.MaPT, 10))
-          : formData.MaPT
-          ? [parseInt(formData.MaPT, 10)]
-          : null,
-        Thang: formData.Thang,
-        Nam: formData.Nam,
-        NguoiChiTra: formData.NguoiChiTra,
-        TongTien: parsedTongTien,
-        MoTa: formData.MoTa,
-        ApplyAllHouses: formData.ApplyAllHouses,
-        ApplyAllRooms: formData.ApplyAllRooms,
-      };
+    const data = {
+      MaNha: formData.ApplyAllHouses
+        ? houseData?.DT?.map((house) => parseInt(house.MaNha, 10))
+        : [parseInt(formData.MaNha, 10)],
+      MaPT: formData.ApplyAllRooms
+        ? filteredRooms?.map((room) => parseInt(room.MaPT, 10))
+        : formData.MaPT
+        ? [parseInt(formData.MaPT, 10)]
+        : null,
+      Thang: formData.Thang,
+      Nam: formData.Nam,
+      NguoiChiTra: formData.NguoiChiTra,
+      TongTien: parsedTongTien,
+      MoTa: formData.MoTa,
+      ApplyAllHouses: formData.ApplyAllHouses,
+      ApplyAllRooms: formData.ApplyAllRooms,
+    };
 
-      const response = await createExpenseService(data);
-
-      if (response.EC === 0) {
-        toast.success("Thêm chi phí phát sinh thành công");
-        setOpen(false);
-        refetch();
-        setFormData({
-          MaNha: "",
-          MaPT: "",
-          ThangNam: "",
-          Thang: "",
-          Nam: "",
-          NguoiChiTra: "",
-          TongTien: "",
-          MoTa: "",
-          ApplyAllHouses: false,
-          ApplyAllRooms: false,
-        });
-        setDisplayTongTien("");
-        setSelectedHouse("");
-        setSelectedRoom("");
-      } else {
-        toast.error(response.EM);
-        if (response.DT?.skippedRooms?.length > 0) {
-          console.log("Phòng bị bỏ qua:", response.DT.skippedRooms);
-          toast.warn(
-            `Một số phòng không được thêm chi phí: ${response.DT.skippedRooms
-              .map((r) => `${r.TenPhong} (${r.reason})`)
-              .join(", ")}`
-          );
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi xảy ra khi thêm chi phí phát sinh");
-    } finally {
-      setIsSubmitting(false);
-    }
+    createExpenseMutation.mutate(data);
   };
 
   return (
@@ -242,24 +245,31 @@ const ModalAddExpense = ({ refetch }) => {
       <Button
         className="mr-2 flex items-center cursor-pointer bg-green-600 hover:bg-green-700 rounded"
         onClick={() => setOpen(true)}
+        aria-label="Mở modal thêm chi phí phát sinh"
       >
         <Plus className="h-4 w-4" />
         Thêm chi phí
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) resetForm();
+        }}
+      >
         <DialogContent
-          className="w-3/5 rounded"
-          onInteractOutside={(event) => {
-            event.preventDefault();
-          }}
-          aria-describedby={undefined}
+          className="bg-white shadow-md rounded w-2/5"
+          aria-describedby="add-expense-description"
         >
           <DialogHeader>
             <DialogTitle>Thêm chi phí phát sinh</DialogTitle>
+            <div id="add-expense-description" className="text-sm text-gray-500">
+              Vui lòng điền thông tin chi phí phát sinh.
+            </div>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-6 py-4 bg-gray-50 p-4 rounded-md">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="NguoiChiTra" className="text-right">
                   Người chi trả <span className="text-red-500">*</span>
@@ -272,14 +282,18 @@ const ModalAddExpense = ({ refetch }) => {
                     }
                     required
                   >
-                    <SelectTrigger className="w-full rounded cursor-pointer shadow-none">
+                    <SelectTrigger
+                      id="NguoiChiTra"
+                      className="w-full rounded cursor-pointer shadow-none"
+                      aria-label="Chọn người chi trả"
+                    >
                       <SelectValue placeholder="Chọn người chi trả" />
                     </SelectTrigger>
-                    <SelectContent className="rounded cursor-pointer">
-                      <SelectItem className="cursor-pointer" value="Chủ trọ">
+                    <SelectContent className="rounded">
+                      <SelectItem value="Chủ trọ" className="cursor-pointer">
                         Chủ trọ
                       </SelectItem>
-                      <SelectItem className="cursor-pointer" value="Khách trọ">
+                      <SelectItem value="Khách trọ" className="cursor-pointer">
                         Khách trọ
                       </SelectItem>
                     </SelectContent>
@@ -298,10 +312,14 @@ const ModalAddExpense = ({ refetch }) => {
                     required
                     disabled={!formData.NguoiChiTra}
                   >
-                    <SelectTrigger className="w-full cursor-pointer rounded shadow-none">
+                    <SelectTrigger
+                      id="MaNha"
+                      className="w-full cursor-pointer rounded shadow-none"
+                      aria-label="Chọn nhà"
+                    >
                       <SelectValue placeholder="Chọn nhà" />
                     </SelectTrigger>
-                    <SelectContent className="cursor-pointer rounded">
+                    <SelectContent className="rounded">
                       {formData.NguoiChiTra === "Chủ trọ" && (
                         <SelectItem value="all" className="cursor-pointer">
                           Tất cả
@@ -335,10 +353,14 @@ const ModalAddExpense = ({ refetch }) => {
                     onValueChange={(value) => handleSelectChange("MaPT", value)}
                     disabled={!selectedHouse || !formData.NguoiChiTra}
                   >
-                    <SelectTrigger className="w-full cursor-pointer rounded shadow-none">
+                    <SelectTrigger
+                      id="MaPT"
+                      className="w-full cursor-pointer rounded shadow-none"
+                      aria-label="Chọn phòng"
+                    >
                       <SelectValue placeholder="Chọn phòng" />
                     </SelectTrigger>
-                    <SelectContent className="cursor-pointer rounded">
+                    <SelectContent className="rounded">
                       {formData.NguoiChiTra === "Chủ trọ" && (
                         <SelectItem value="all" className="cursor-pointer">
                           Tất cả
@@ -372,6 +394,8 @@ const ModalAddExpense = ({ refetch }) => {
                     onChange={handleChange}
                     required
                     className="rounded shadow-none"
+                    placeholder="Chọn tháng/năm"
+                    aria-label="Chọn tháng/năm"
                   />
                 </div>
               </div>
@@ -389,7 +413,8 @@ const ModalAddExpense = ({ refetch }) => {
                     onChange={handleChange}
                     required
                     className="rounded shadow-none"
-                    placeholder="Nhập số tiền (VD: 1000000)"
+                    placeholder="Nhập số tiền (VD: 1,000,000)"
+                    aria-label="Nhập tổng tiền"
                   />
                 </div>
               </div>
@@ -406,25 +431,34 @@ const ModalAddExpense = ({ refetch }) => {
                     onChange={handleChange}
                     rows={3}
                     className="rounded shadow-none"
+                    placeholder="Nhập mô tả chi phí (nếu có)"
+                    aria-label="Nhập mô tả chi phí"
                   />
                 </div>
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="mt-4">
+              <Button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={createExpenseMutation.isPending}
+                aria-label="Thêm chi phí phát sinh"
+              >
+                {createExpenseMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Lưu"
+                )}
+              </Button>
               <Button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="cursor-pointer rounded"
+                className="text-white rounded cursor-pointer"
+                variant="destructive"
+                aria-label="Hủy thêm chi phí"
               >
-                Hủy
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="cursor-pointer rounded"
-              >
-                {isSubmitting ? "Đang xử lý..." : "Thêm"}
+                Đóng
               </Button>
             </DialogFooter>
           </form>

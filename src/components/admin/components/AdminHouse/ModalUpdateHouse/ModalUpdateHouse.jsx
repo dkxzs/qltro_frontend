@@ -13,34 +13,35 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { updateHouseService } from "@/services/houseServices";
 import { useMutation } from "@tanstack/react-query";
-
-import { Pencil } from "lucide-react";
+import { Pencil, Loader2, SquarePen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalUpdateHouse = (props) => {
-  const { dataUpdate, refetch } = props;
+const ModalUpdateHouse = ({ dataUpdate, refetch }) => {
   const [formData, setFormData] = useState({
     TenNha: "",
     DiaChi: "",
     MoTa: "",
   });
+  const [initialFormData, setInitialFormData] = useState(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (dataUpdate && open) {
-      setFormData({
+      const newFormData = {
         TenNha: dataUpdate.TenNha || "",
         DiaChi: dataUpdate.DiaChi || "",
         MoTa: dataUpdate.MoTa || "",
-      });
+      };
+      setFormData(newFormData);
+      setInitialFormData(newFormData);
     }
   }, [dataUpdate, open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
@@ -51,6 +52,7 @@ const ModalUpdateHouse = (props) => {
       DiaChi: "",
       MoTa: "",
     });
+    setInitialFormData(null);
   };
 
   const mutationUpdateHouse = useMutation({
@@ -64,11 +66,15 @@ const ModalUpdateHouse = (props) => {
     onSuccess: (data) => {
       toast.success(data.EM);
       resetForm();
-      setOpen(false);
+      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
       refetch();
     },
     onError: (error) => {
-      toast.error(error.message || "Đã có lỗi xảy ra");
+      console.error("Update house error:", error);
+      const errorMessage = error.message.includes("foreign key constraint")
+        ? "Cập nhật nhà thất bại: Nhà đang có phòng hoặc dữ liệu liên quan. Vui lòng kiểm tra lại."
+        : error.message || "Đã có lỗi xảy ra khi cập nhật nhà";
+      toast.error(errorMessage);
     },
   });
 
@@ -86,8 +92,21 @@ const ModalUpdateHouse = (props) => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const isFormDataChanged = () => {
+    if (!initialFormData) return true;
+    return (
+      formData.TenNha !== initialFormData.TenNha ||
+      formData.DiaChi !== initialFormData.DiaChi ||
+      formData.MoTa !== initialFormData.MoTa
+    );
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isFormDataChanged()) {
+      toast.info("Không có thay đổi để cập nhật");
+      return;
+    }
     if (validateForm()) {
       mutationUpdateHouse.mutate({
         id: dataUpdate.MaNha,
@@ -96,23 +115,31 @@ const ModalUpdateHouse = (props) => {
     }
   };
 
+  const handleClose = () => {
+    if (
+      isFormDataChanged() &&
+      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
+    ) {
+      return;
+    }
+    setOpen(false);
+    resetForm();
+  };
+
+  const isFormDisabled = mutationUpdateHouse.isPending;
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={() => {
-        setOpen(!open);
-        if (!open) {
-          resetForm();
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-blue-500 hover:bg-blue-600 rounded text-white">
-          <Pencil className="h-4 w-4" />
+        <Button
+          className=" flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
+          aria-label="Cập nhật thông tin nhà"
+        >
+          <SquarePen className="size-5 text-blue-700" />
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5 rounded"
+        className="w-3/5 max-w-2xl rounded transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -123,7 +150,7 @@ const ModalUpdateHouse = (props) => {
             Vui lòng cập nhật thông tin nhà.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="tennha">Tên nhà</Label>
@@ -132,9 +159,10 @@ const ModalUpdateHouse = (props) => {
                 id="tennha"
                 name="TenNha"
                 placeholder="Nhà A"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.TenNha}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -144,9 +172,10 @@ const ModalUpdateHouse = (props) => {
                 id="diachi"
                 name="DiaChi"
                 placeholder="123 Đường ABC, Quận XYZ"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.DiaChi}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div className="col-span-2">
@@ -155,31 +184,41 @@ const ModalUpdateHouse = (props) => {
                 id="mota"
                 name="MoTa"
                 placeholder="Mô tả chi tiết về nhà"
-                className="rounded mt-2 min-h-[100px]"
+                className="rounded mt-2 min-h-[100px] shadow-none"
                 value={formData.MoTa}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
           </div>
+          <DialogFooter>
+            <Button
+              type="submit"
+              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              disabled={isFormDisabled}
+              aria-label="Cập nhật thông tin nhà"
+            >
+              {mutationUpdateHouse.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Lưu"
+              )}
+            </Button>
+            <Button
+              type="button"
+              className="rounded cursor-pointer"
+              onClick={handleClose}
+              disabled={isFormDisabled}
+              variant="destructive"
+              aria-label="Hủy cập nhật nhà"
+            >
+              Đóng
+            </Button>
+          </DialogFooter>
         </form>
-        <DialogFooter>
-          <Button
-            type="button"
-            className="cursor-pointer rounded"
-            onClick={() => {
-              setOpen(!open);
-            }}
-          >
-            Đóng
-          </Button>
-          <Button
-            type="submit"
-            className="cursor-pointer rounded"
-            onClick={(e) => handleSubmit(e)}
-          >
-            Cập nhật
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Save, History } from "lucide-react";
+import { Save, History, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import ModalConfirmWater from "../ModalConfirmWater/ModalConfirmWater";
 import ModalHistoryWater from "../ModalHistoryWater/ModalHistoryWater";
@@ -28,7 +28,7 @@ const TableWater = ({ waterData, month, year }) => {
   const [inputValues, setInputValues] = useState([]);
   const [canEditChiSoCuList, setCanEditChiSoCuList] = useState([]);
   // eslint-disable-next-line no-unused-vars
-  const [isUnusedRoomList, setIsUnusedRoomList] = useState([]); // Thêm state để theo dõi phòng lâu không dùng
+  const [isUnusedRoomList, setIsUnusedRoomList] = useState([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [pendingSave, setPendingSave] = useState(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
@@ -104,8 +104,8 @@ const TableWater = ({ waterData, month, year }) => {
           HasInvoice: item?.HasInvoice || false,
         }))
       );
-      setCanEditChiSoCuList(waterData.map(() => true)); // Khởi tạo mặc định
-      setIsUnusedRoomList(waterData.map(() => false)); // Khởi tạo mặc định
+      setCanEditChiSoCuList(waterData.map(() => true));
+      setIsUnusedRoomList(waterData.map(() => false));
     } else {
       setInputValues([]);
       setCanEditChiSoCuList([]);
@@ -131,7 +131,7 @@ const TableWater = ({ waterData, month, year }) => {
           inputValues.map(async (item, index) => {
             const currentWaterItem = waterData[index];
             if (!currentWaterItem || !item) {
-              return true; // Cho phép chỉnh sửa nếu dữ liệu không hợp lệ
+              return true;
             }
 
             if (item.MaPT && item.MaDV && month && year) {
@@ -143,29 +143,27 @@ const TableWater = ({ waterData, month, year }) => {
                     month,
                     year
                   );
-                return !hasPrevReading; // Phòng lâu không dùng nếu không có bản ghi tháng trước
+                return !hasPrevReading;
               } catch (checkError) {
                 console.error(
                   `Error checking prev month for room ${item.MaPT}:`,
                   checkError
                 );
-                return true; // Cho phép chỉnh sửa nếu có lỗi
+                return true;
               }
             }
-            return true; // Cho phép chỉnh sửa nếu thiếu thông tin
+            return true;
           })
         );
 
-        // Cập nhật danh sách phòng lâu không dùng
         setIsUnusedRoomList(unusedStatuses);
 
-        // Cập nhật khả năng chỉnh sửa ChiSoCu
         const canEditStatuses = unusedStatuses.map((isUnused, index) => {
           const item = inputValues[index];
           if (item.HasInvoice) {
-            return false; // Khóa nếu có hóa đơn
+            return false;
           }
-          return isUnused; // Cho phép chỉnh sửa ChiSoCu nếu phòng lâu không dùng
+          return isUnused;
         });
 
         setCanEditChiSoCuList(canEditStatuses);
@@ -194,7 +192,7 @@ const TableWater = ({ waterData, month, year }) => {
       if (updatedValues[index]) {
         updatedValues[index] = {
           ...updatedValues[index],
-          [field]: numValue === "" ? "" : parseInt(numValue, 10),
+          [field]: numValue,
         };
       }
       return updatedValues;
@@ -203,7 +201,6 @@ const TableWater = ({ waterData, month, year }) => {
 
   const handleSave = (index) => {
     if (index < 0 || index >= inputValues.length || index >= waterData.length) {
-      console.error("Invalid index for saving:", index);
       toast.error("Chỉ mục dữ liệu không hợp lệ, không thể lưu.");
       return;
     }
@@ -262,7 +259,6 @@ const TableWater = ({ waterData, month, year }) => {
             data: pendingSave.data,
           });
         } else {
-          console.error("Missing MaDN for update operation", pendingSave);
           toast.error("Không tìm thấy mã để cập nhật.");
         }
       }
@@ -273,7 +269,7 @@ const TableWater = ({ waterData, month, year }) => {
 
   const handleViewHistory = (index) => {
     if (index < 0 || index >= waterData.length) {
-      console.error("Invalid index for viewing history:", index);
+      toast.warn("Chỉ mục dữ liệu không hợp lệ, không thể xem lịch sử.");
       return;
     }
     const originalData = waterData[index];
@@ -287,11 +283,6 @@ const TableWater = ({ waterData, month, year }) => {
       setSelectedRoom(roomData);
       setHistoryDialogOpen(true);
     } else {
-      console.warn(
-        "Missing data to view history at index:",
-        index,
-        originalData
-      );
       toast.warn("Thiếu thông tin để xem lịch sử.");
     }
   };
@@ -302,16 +293,64 @@ const TableWater = ({ waterData, month, year }) => {
     !Array.isArray(waterData) ||
     inputValues.length !== waterData.length
   ) {
-    if (waterData?.length === 0) {
-      return null;
-    }
-    return <p className="text-center p-4">Đang cập nhật bảng...</p>;
+    return (
+      <div className="flex justify-center items-center p-4">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+          <p className="text-gray-600 text-lg">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (waterData?.length === 0) {
+    return (
+      <div className="flex justify-center items-center p-4">
+        <div className="bg-white shadow-md rounded p-6 max-w-md w-full text-center">
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+            />
+          </svg>
+          <h3 className="mt-2 text-lg font-semibold text-gray-900">
+            Không có dữ liệu nước
+          </h3>
+          <p className="mt-1 text-gray-500">
+            Không có thông tin nước cho tháng {month}/{year}. Vui lòng kiểm tra
+            lại hoặc thêm dữ liệu mới.
+          </p>
+          <div className="mt-4">
+            <Button
+              onClick={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["rooms-with-water", month, year],
+                })
+              }
+              className="bg-blue-500 hover:bg-blue-600 text-white rounded cursor-pointer"
+              aria-label="Tải lại dữ liệu"
+            >
+              Tải lại
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full overflow-x-auto rounded">
-      <Table className="min-w-full rounded table-fixed">
-        <TableHeader className="/backdrop-filter backdrop-blur-sm bg-white/30">
+    <div className="w-full overflow-x-auto rounded shadow-md bg-white">
+      <Table className="min-w-full table-fixed border border-gray-200">
+        <TableHeader className="bg-gray-100">
           <TableRow>
             <TableHead className="w-[10%] text-center">Phòng</TableHead>
             <TableHead className="w-[15%] text-center">Nhà</TableHead>
@@ -347,7 +386,7 @@ const TableWater = ({ waterData, month, year }) => {
                 key={`${
                   itemState.MaPT || originalItem.PhongTro.MaPT
                 }-${month}-${year}-${index}`}
-                className={index % 2 === 0 ? "bg-blue-50" : ""}
+                className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
               >
                 <TableCell className="text-center truncate">
                   {originalItem.PhongTro.TenPhong}
@@ -364,11 +403,12 @@ const TableWater = ({ waterData, month, year }) => {
                       handleInputChange(index, "ChiSoCu", e.target.value)
                     }
                     disabled={!canEditChiSoCu}
-                    className={`w-full max-w-[150px] mx-auto text-right rounded ${
+                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none ${
                       !canEditChiSoCu
-                        ? "bg-gray-200 cursor-not-allowed"
+                        ? "bg-gray-100 cursor-not-allowed"
                         : "bg-white"
                     }`}
+                    aria-label="Chỉ số cũ"
                   />
                 </TableCell>
                 <TableCell>
@@ -380,26 +420,37 @@ const TableWater = ({ waterData, month, year }) => {
                       handleInputChange(index, "ChiSoMoi", e.target.value)
                     }
                     disabled={isDisabled}
-                    className={`w-full max-w-[200px] mx-auto text-right rounded ${
-                      isDisabled ? "bg-gray-200 cursor-not-allowed" : "bg-white"
+                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none ${
+                      isDisabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                     }`}
+                    aria-label="Chỉ số mới"
                   />
                 </TableCell>
                 <TableCell className="text-center">{consumption}</TableCell>
                 <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
+                  <div className="flex justify-center gap-1">
                     <Button
                       onClick={() => handleSave(index)}
-                      className="bg-green-600 hover:bg-green-700 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={isDisabled}
+                      className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={
+                        isDisabled ||
+                        createMutation.isPending ||
+                        updateMutation.isPending
+                      }
+                      aria-label="Lưu chỉ số nước"
                     >
-                      <Save className="size-4" />
+                      {createMutation.isPending || updateMutation.isPending ? (
+                        <Loader2 className="size-5 animate-spin" />
+                      ) : (
+                        <Save className="size-5 text-green-700" />
+                      )}
                     </Button>
                     <Button
                       onClick={() => handleViewHistory(index)}
-                      className="bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
+                      className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer"
+                      aria-label="Xem lịch sử nước"
                     >
-                      <History className="size-4" />
+                      <History className="size-5 text-blue-700" />
                     </Button>
                   </div>
                 </TableCell>

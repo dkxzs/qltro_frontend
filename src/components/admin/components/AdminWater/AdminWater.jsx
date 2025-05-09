@@ -94,8 +94,8 @@ const AdminWater = () => {
     <div className="mx-auto p-2">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <MdWaterDrop className="size-6 " />
-          <h1 className="text-2xl font-semibold ">Chỉ số nước</h1>
+          <MdWaterDrop className="size-6" />
+          <h1 className="text-2xl font-semibold">Chỉ số nước</h1>
         </div>
         <Breadcrumb>
           <BreadcrumbList>
@@ -214,15 +214,10 @@ const AdminWater = () => {
                 <p className="text-sm font-medium mb-1">Lưu ý:</p>
                 <ul className="text-sm list-inside">
                   <li>
-                    - Đối với lần đầu tiên sử dụng phần mềm bạn sẽ phải nhập chỉ
-                    số cũ và mới cho tháng sử dụng đầu tiên, các tháng tiếp theo
-                    phần mềm sẽ tự động lấy chỉ số mới tháng trước làm chỉ số cũ
-                    tháng sau.
+                    - Đối với lần đầu tiên sử dụng phần mềm bạn sẽ phải nhập chỉ số cũ và mới cho tháng sử dụng đầu tiên, các tháng tiếp theo phần mềm sẽ tự động lấy chỉ số mới tháng trước làm chỉ số cũ tháng sau.
                   </li>
                   <li>
-                    - Khi cập nhật chỉ số mới cho tháng hiện tại, hệ thống sẽ tự
-                    động tạo bản ghi cho tháng tiếp theo với chỉ số cũ = chỉ số
-                    mới của tháng hiện tại.
+                    - Khi cập nhật chỉ số mới cho tháng hiện tại, hệ thống sẽ tự động tạo bản ghi cho tháng tiếp theo với chỉ số cũ = chỉ số mới của tháng hiện tại.
                   </li>
                 </ul>
               </div>
@@ -249,12 +244,14 @@ const AdminWater = () => {
         </div>
       </div>
 
-      <div className="min-h-[305px] rounded">
+      <div className="rounded overflow-hidden min-h-[305px]">
         <div className="rounded border overflow-hidden">
           {isLoading ? (
-            <div className="flex justify-center items-center h-32">
-              <span className="text-gray-600 text-sm">Đang tải dữ liệu...</span>
-            </div>
+            <p className="text-center text-md font-medium">Đang tải dữ liệu...</p>
+          ) : filteredData.length === 0 ? (
+            <p className="text-center text-md font-medium py-3">
+              Chưa có chỉ số nước cho tháng {displayMonth}
+            </p>
           ) : (
             <TableWater
               waterData={currentItems}

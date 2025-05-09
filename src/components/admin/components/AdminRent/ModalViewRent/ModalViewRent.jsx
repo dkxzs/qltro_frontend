@@ -510,6 +510,7 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
           <Button
             onClick={() => onOpenChange(false)}
             className="text-white rounded cursor-pointer"
+            variant="destructive"
           >
             Đóng
           </Button>

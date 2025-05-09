@@ -33,7 +33,7 @@ import {
 } from "@/services/memberServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Pencil, Plus, Loader2 } from "lucide-react";
+import { Pencil, Plus, Loader2, SquarePen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,8 +42,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const formatDateForInput = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return ""; // Nếu không phải ngày hợp lệ
-  return date.toISOString().split("T")[0]; // Trả về YYYY-MM-DD
+  if (isNaN(date.getTime())) return "";
+  return date.toISOString().split("T")[0];
 };
 
 const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
@@ -340,14 +340,17 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     },
     onSuccess: (data) => {
       toast.success(data.EM);
-      setOpen(false);
       setInitialServices([...selectedServices]);
       setInitialMembers([...members]);
+      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
       if (refetch) refetch();
     },
     onError: (error) => {
       console.error("Update error:", error);
-      toast.error(error.message || "Cập nhật thất bại");
+      const errorMessage = error.message.includes("foreign key constraint")
+        ? "Cập nhật thất bại: Phòng đang có dữ liệu liên quan (điện nước, hợp đồng, v.v.). Vui lòng kiểm tra lại."
+        : error.message || "Cập nhật thất bại";
+      toast.error(errorMessage);
     },
   });
 
@@ -395,6 +398,10 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     });
   };
 
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   const isDefaultService = (serviceId) => {
     const defaultServiceIds = dataService?.DT?.filter((service) =>
       ["điện", "nước", "internet", "vệ sinh"].includes(
@@ -404,7 +411,8 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     return defaultServiceIds?.includes(serviceId);
   };
 
-  const isLoadingData =
+  const isFormDisabled =
+    mutationUpdateRoom.isPending ||
     isLoadingRoomType ||
     isLoadingService ||
     isLoadingRoomServices ||
@@ -414,12 +422,15 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-blue-500 hover:bg-blue-600 rounded text-white">
-          <Pencil className="h-4 w-4" />
+        <Button
+          className="flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
+          aria-label="Cập nhật phòng"
+        >
+          <SquarePen className="size-5 text-blue-600" />
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-4/5 max-w-4xl rounded max-h-[90vh] min-h-[90vh] flex flex-col"
+        className="w-4/5 max-w-4xl rounded max-h-[90vh] min-h-[90vh] flex flex-col transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -466,7 +477,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
               }}
             >
               <TabsContent value="tab1" className="pt-4">
-                {isLoadingData ? (
+                {isFormDisabled ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     <span className="ml-2">Đang tải dữ liệu...</span>
@@ -482,7 +493,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         onChange={handleChange}
                         placeholder="Nhập tên phòng"
                         className="w-full rounded mt-2 shadow-none"
-                        disabled={hasRent}
+                        disabled={hasRent || isFormDisabled}
                       />
                     </div>
                     <div className="w-full">
@@ -492,11 +503,11 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         onValueChange={(value) =>
                           handleSelectChange("maLoaiPhong", value)
                         }
+                        disabled={hasRent || isFormDisabled}
                       >
                         <SelectTrigger
                           id="maLoaiPhong"
                           className="w-full rounded mt-2 shadow-none cursor-pointer"
-                          disabled={hasRent}
                         >
                           <SelectValue placeholder="Chọn loại phòng" />
                         </SelectTrigger>
@@ -522,6 +533,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         onChange={handleChange}
                         placeholder="Nhập diện tích"
                         className="w-full rounded mt-2 shadow-none"
+                        disabled={isFormDisabled}
                       />
                     </div>
                     <div className="w-full">
@@ -531,11 +543,11 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         onValueChange={(value) =>
                           handleSelectChange("trangThai", value)
                         }
+                        disabled={hasRent || isFormDisabled}
                       >
                         <SelectTrigger
                           id="trangThai"
                           className="w-full rounded mt-2 shadow-none cursor-pointer"
-                          disabled={hasRent}
                         >
                           <SelectValue placeholder="Chọn trạng thái" />
                         </SelectTrigger>
@@ -562,6 +574,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         placeholder="Nhập mô tả phòng"
                         className="w-full rounded mt-2 shadow-none"
                         rows={3}
+                        disabled={isFormDisabled}
                       />
                     </div>
                     <div className="w-full col-span-2">
@@ -575,11 +588,14 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         onChange={handleChange}
                         className="w-full"
                         ref={inputRef}
+                        disabled={isFormDisabled}
                       />
                       {previewImage ? (
                         <div
                           className="border-2 w-30 h-30 border-dashed cursor-pointer"
-                          onClick={() => inputRef.current.click()}
+                          onClick={() =>
+                            !isFormDisabled && inputRef.current.click()
+                          }
                         >
                           <img
                             src={previewImage}
@@ -590,7 +606,9 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                       ) : (
                         <div
                           className="w-30 h-30 border-2 border-dashed flex items-center justify-center cursor-pointer"
-                          onClick={() => inputRef.current.click()}
+                          onClick={() =>
+                            !isFormDisabled && inputRef.current.click()
+                          }
                         >
                           <Plus className="h-8 w-8 mx-auto mt-2" />
                         </div>
@@ -601,7 +619,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
               </TabsContent>
 
               <TabsContent value="tab2" className="pt-4">
-                {isLoadingData ? (
+                {isFormDisabled ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     <span className="ml-2">Đang tải dữ liệu...</span>
@@ -635,7 +653,8 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                               }
                               disabled={
                                 isDefaultService(service.MaDV.toString()) ||
-                                !isServiceChangeAllowed()
+                                !isServiceChangeAllowed() ||
+                                isFormDisabled
                               }
                             />
                             <Label
@@ -678,7 +697,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
               </TabsContent>
 
               <TabsContent value="tab3" className="pt-4">
-                {isLoadingData ? (
+                {isFormDisabled ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     <span className="ml-2">Đang tải dữ liệu...</span>
@@ -705,6 +724,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                 value={member.TenTV}
                                 onChange={(e) => handleMemberChange(index, e)}
                                 className="w-full rounded mt-2 shadow-none"
+                                disabled={isFormDisabled}
                               />
                             </div>
                             <div className="w-full">
@@ -715,6 +735,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                 value={member.CCCD}
                                 onChange={(e) => handleMemberChange(index, e)}
                                 className="w-full rounded mt-2 shadow-none"
+                                disabled={isFormDisabled}
                               />
                             </div>
                             <div className="w-full">
@@ -728,6 +749,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                 value={member.NgaySinh}
                                 onChange={(e) => handleMemberChange(index, e)}
                                 className="w-full rounded mt-2 shadow-none"
+                                disabled={isFormDisabled}
                               />
                             </div>
                             <div className="w-full">
@@ -740,6 +762,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                 value={member.DienThoai}
                                 onChange={(e) => handleMemberChange(index, e)}
                                 className="w-full rounded mt-2 shadow-none"
+                                disabled={isFormDisabled}
                               />
                             </div>
                             <div className="w-full col-span-2">
@@ -751,6 +774,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                 onChange={(e) => handleMemberChange(index, e)}
                                 className="w-full rounded mt-2 shadow-none"
                                 rows={3}
+                                disabled={isFormDisabled}
                               />
                             </div>
                             <div className="w-full">
@@ -762,6 +786,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                     handleMemberStatusChange(index, checked)
                                   }
                                   className="h-5 w-5 rounded cursor-pointer"
+                                  disabled={isFormDisabled}
                                 />
                                 <Label htmlFor={`trangThai-${index}`}>
                                   Trạng thái (đang ở)
@@ -801,21 +826,31 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
             </div>
           </Tabs>
 
-          <DialogFooter className="pt-4">
-            <Button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="rounded cursor-pointer"
-            >
-              Đóng
-            </Button>
+          <DialogFooter className="pt-2">
             <Button
               type="submit"
-              onClick={handleSubmit}
-              disabled={mutationUpdateRoom.isPending || isLoadingData}
-              className="rounded cursor-pointer"
+              disabled={isFormDisabled}
+              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              aria-label="Cập nhật thông tin phòng"
             >
-              {mutationUpdateRoom.isPending ? "Đang xử lý..." : "Cập nhật"}
+              {mutationUpdateRoom.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang cập nhật...
+                </>
+              ) : (
+                "Cập nhật"
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleClose}
+              className="rounded cursor-pointer"
+              disabled={isFormDisabled}
+              variant="destructive"
+              aria-label="Đóng dialog cập nhật phòng"
+            >
+              Đóng
             </Button>
           </DialogFooter>
         </form>

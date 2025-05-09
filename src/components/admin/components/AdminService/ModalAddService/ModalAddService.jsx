@@ -11,15 +11,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createServiceService } from "@/services/serviceServices";
-import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation } from "@tanstack/react-query";
-
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalAddService = (props) => {
-  const { refetch } = props;
+const ModalAddService = ({ refetch }) => {
   const [formData, setFormData] = useState({
     TenDV: "",
     DonGia: "",
@@ -29,10 +26,19 @@ const ModalAddService = (props) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: name === "DonGia" ? formatCurrency(value) : value,
-    }));
+    if (name === "DonGia") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const resetForm = () => {
@@ -54,23 +60,28 @@ const ModalAddService = (props) => {
     onSuccess: (data) => {
       toast.success(data.EM);
       resetForm();
-      setOpen(false);
+      setTimeout(() => setOpen(false), 300);
       refetch();
     },
     onError: (error) => {
-      toast.error(error.message || "Đã có lỗi xảy ra");
+      console.error("Add service error:", error);
+      const errorMessage = error.message.includes("foreign key constraint")
+        ? "Thêm dịch vụ thất bại: Có dữ liệu liên quan không hợp lệ. Vui lòng kiểm tra lại."
+        : error.message.includes("duplicate")
+        ? "Tên dịch vụ đã tồn tại. Vui lòng chọn tên khác."
+        : error.message || "Đã có lỗi xảy ra khi thêm dịch vụ";
+      toast.error(errorMessage);
     },
   });
 
   const validateForm = () => {
-    const donGiaValue = formData.DonGia.replace(/\./g, "");
-
     if (!formData.TenDV.trim()) {
       toast.error("Tên dịch vụ không được để trống");
       return false;
     }
 
-    if (!formData.DonGia.trim()) {
+    const donGiaValue = formData.DonGia.replace(/\./g, "");
+    if (!donGiaValue) {
       toast.error("Đơn giá không được để trống");
       return false;
     }
@@ -88,7 +99,11 @@ const ModalAddService = (props) => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const hasUnsavedChanges = () => {
+    return formData.TenDV || formData.DonGia || formData.DonViTinh;
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
       const dataToSubmit = {
@@ -99,22 +114,32 @@ const ModalAddService = (props) => {
     }
   };
 
+  const handleClose = () => {
+    if (
+      hasUnsavedChanges() &&
+      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
+    ) {
+      return;
+    }
+    setOpen(false);
+    resetForm();
+  };
+
+  const isFormDisabled = mutationCreateService.isPending;
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={() => {
-        setOpen(!open);
-        resetForm();
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <Plus className="h-5 w-5 text-white" />
+        <Button
+          className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
+          aria-label="Thêm dịch vụ mới"
+        >
+          <Plus className="h-5 w-5" />
           Thêm dịch vụ
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5 rounded"
+        className="w-2/5 rounded transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -125,18 +150,20 @@ const ModalAddService = (props) => {
             Vui lòng nhập đầy đủ thông tin để thêm dịch vụ mới.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <Label htmlFor="tendichvu">Tên dịch vụ</Label>
               <Input
                 type="text"
                 id="tendichvu"
                 name="TenDV"
-                placeholder="Điện, Nước, Internet,..."
-                className="rounded mt-2"
+                placeholder="Điện, Nước, Internet, ..."
+                className="rounded mt-2 shadow-none"
                 value={formData.TenDV}
                 onChange={handleChange}
+                disabled={isFormDisabled}
+                aria-label="Tên dịch vụ"
               />
             </div>
             <div>
@@ -145,10 +172,12 @@ const ModalAddService = (props) => {
                 type="text"
                 id="dongia"
                 name="DonGia"
-                placeholder="3000"
-                className="rounded mt-2"
+                placeholder="3.000"
+                className="rounded mt-2 shadow-none"
                 value={formData.DonGia}
                 onChange={handleChange}
+                disabled={isFormDisabled}
+                aria-label="Đơn giá dịch vụ"
               />
             </div>
             <div>
@@ -157,32 +186,43 @@ const ModalAddService = (props) => {
                 type="text"
                 id="donvitinh"
                 name="DonViTinh"
-                placeholder="kW/h"
-                className="rounded mt-2"
+                placeholder="kWh, m³, tháng, ..."
+                className="rounded mt-2 shadow-none"
                 value={formData.DonViTinh}
                 onChange={handleChange}
+                disabled={isFormDisabled}
+                aria-label="Đơn vị tính"
               />
             </div>
           </div>
+          <DialogFooter>
+            <Button
+              type="submit"
+              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              disabled={isFormDisabled}
+              aria-label="Thêm dịch vụ mới"
+            >
+              {mutationCreateService.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Lưu"
+              )}
+            </Button>
+            <Button
+              type="button"
+              className="rounded cursor-pointer"
+              onClick={handleClose}
+              disabled={isFormDisabled}
+              variant="destructive"
+              aria-label="Hủy thêm dịch vụ"
+            >
+              Đóng
+            </Button>
+          </DialogFooter>
         </form>
-        <DialogFooter>
-          <Button
-            type="button"
-            className="cursor-pointer rounded"
-            onClick={() => {
-              setOpen(!open);
-            }}
-          >
-            Đóng
-          </Button>
-          <Button
-            type="submit"
-            className="cursor-pointer rounded"
-            onClick={(e) => handleSubmit(e)}
-          >
-            Thêm
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

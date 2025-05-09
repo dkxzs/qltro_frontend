@@ -24,7 +24,7 @@ import { getRoomByIdService } from "@/services/roomServices";
 import { createRentService } from "@/services/rentServices";
 import { getAllServiceService } from "@/services/serviceServices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { toast } from "react-toastify";
@@ -229,14 +229,12 @@ const ModalAddRent = () => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-4/5 max-w-4xl rounded max-h-[90vh] min-h-[90vh] flex flex-col"
-        onInteractOutside={(event) => {
-          event.preventDefault();
-        }}
+        className="bg-white shadow-md rounded max-w-4xl max-h-[90vh] min-h-[90vh] flex flex-col"
+        aria-describedby="add-rent-description"
       >
         <DialogHeader>
           <DialogTitle>Thêm hợp đồng</DialogTitle>
-          <DialogDescription className="-mt-1">
+          <DialogDescription id="add-rent-description">
             Vui lòng nhập đầy đủ thông tin vào hợp đồng mới.
           </DialogDescription>
         </DialogHeader>
@@ -254,34 +252,25 @@ const ModalAddRent = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="tab2"
-                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer "
+                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
               >
                 Dịch vụ
               </TabsTrigger>
             </TabsList>
 
-            {/* Nội dung tab với chiều cao cố định và cuộn */}
-            <div
-              className="scrollbar-hide flex-1"
-              style={{
-                height: "50vh", // Giảm chiều cao để dành không gian cho footer
-                overflowY: "auto",
-                borderRadius: "inherit",
-              }}
-            >
-              {/* Tab 1: Thông tin hợp đồng */}
+            <div className="flex-1 overflow-y-auto hide-scrollbar">
               <TabsContent value="tab1" className="pt-4">
-                <div className="grid grid-cols-2 gap-6 w-full">
+                <div className="grid grid-cols-2 gap-8 w-full">
                   <div className="w-full">
                     <Label htmlFor="khachTro">Khách trọ</Label>
                     <Select
                       value={selectedCustomer}
                       onValueChange={setSelectedCustomer}
-                      className=""
                     >
                       <SelectTrigger
                         id="khachTro"
                         className="w-full rounded mt-2 shadow-none cursor-pointer"
+                        aria-label="Chọn khách trọ"
                       >
                         <SelectValue placeholder="Chọn khách trọ" />
                       </SelectTrigger>
@@ -304,11 +293,11 @@ const ModalAddRent = () => {
                     <Select
                       value={selectedHouse}
                       onValueChange={setSelectedHouse}
-                      className=""
                     >
                       <SelectTrigger
                         id="nha"
                         className="w-full rounded mt-2 shadow-none cursor-pointer"
+                        aria-label="Chọn nhà"
                       >
                         <SelectValue placeholder="Chọn nhà" />
                       </SelectTrigger>
@@ -331,11 +320,11 @@ const ModalAddRent = () => {
                     <Select
                       value={selectedRoom}
                       onValueChange={setSelectedRoom}
-                      className=""
                     >
                       <SelectTrigger
                         id="phong"
                         className="w-full rounded mt-2 shadow-none cursor-pointer"
+                        aria-label="Chọn phòng"
                       >
                         <SelectValue placeholder="Chọn phòng" />
                       </SelectTrigger>
@@ -355,7 +344,7 @@ const ModalAddRent = () => {
                   </div>
 
                   <div className="w-full">
-                    <Label htmlFor="ngayBatDau">Ngày bắt đầu (ngày 1-5)</Label>
+                    <Label htmlFor="ngayBatDau">Ngày bắt đầu</Label>
                     <Input
                       id="ngayBatDau"
                       name="ngayBatDau"
@@ -363,6 +352,7 @@ const ModalAddRent = () => {
                       value={formData.ngayBatDau}
                       onChange={handleChange}
                       className="w-full rounded mt-2 shadow-none"
+                      aria-label="Ngày bắt đầu hợp đồng"
                     />
                   </div>
 
@@ -375,6 +365,7 @@ const ModalAddRent = () => {
                       value={formData.ngayKetThuc}
                       onChange={handleChange}
                       className="w-full rounded mt-2 shadow-none"
+                      aria-label="Ngày kết thúc hợp đồng"
                     />
                   </div>
 
@@ -386,6 +377,8 @@ const ModalAddRent = () => {
                       value={formatCurrency(formData.datCoc)}
                       onChange={handleChange}
                       className="w-full rounded mt-2 shadow-none"
+                      placeholder="Nhập tiền đặt cọc"
+                      aria-label="Tiền đặt cọc"
                     />
                   </div>
 
@@ -398,6 +391,7 @@ const ModalAddRent = () => {
                       onChange={handleChange}
                       className="w-full rounded mt-2 shadow-none"
                       disabled
+                      aria-label="Đơn giá thuê phòng"
                     />
                   </div>
 
@@ -410,12 +404,13 @@ const ModalAddRent = () => {
                       onChange={handleChange}
                       className="w-full rounded mt-2 shadow-none"
                       rows={3}
+                      placeholder="Nhập ghi chú (nếu có)"
+                      aria-label="Ghi chú hợp đồng"
                     />
                   </div>
                 </div>
               </TabsContent>
 
-              {/* Tab 2: Dịch vụ */}
               <TabsContent value="tab2" className="pt-4">
                 <div className="w-full">
                   <Label className="text-lg font-semibold">Dịch vụ</Label>
@@ -423,7 +418,7 @@ const ModalAddRent = () => {
                     {dataServices?.DT?.map((service) => (
                       <div
                         key={service.MaDV}
-                        className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 transition"
+                        className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 shadow-sm transition"
                       >
                         <div className="flex items-center space-x-3 flex-1">
                           <Checkbox
@@ -434,6 +429,7 @@ const ModalAddRent = () => {
                             }
                             disabled={isDefaultService(service)}
                             className="h-5 w-5"
+                            aria-label={`Chọn dịch vụ ${service.TenDV}`}
                           />
                           <Label
                             htmlFor={service.MaDV}
@@ -455,28 +451,28 @@ const ModalAddRent = () => {
 
           <DialogFooter className="pt-4">
             <Button
+              type="submit"
+              className="bg-blue-600 text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={createRentMutation.isPending}
+              aria-label="Tạo hợp đồng"
+            >
+              {createRentMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Tạo hợp đồng"
+              )}
+            </Button>
+            <Button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded cursor-pointer"
+              className="text-white rounded cursor-pointer"
+              variant="destructive"
+              aria-label="Hủy tạo hợp đồng"
             >
-              Hủy
-            </Button>
-            <Button type="submit" className="rounded cursor-pointer">
-              {createRentMutation.isPending ? "Đang xử lý..." : "Tạo hợp đồng"}
+              Đóng
             </Button>
           </DialogFooter>
         </form>
-        <style>
-          {`
-            .scrollbar-hide {
-              -ms-overflow-style: none; /* IE and Edge */
-              scrollbar-width: none; /* Firefox */
-            }
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none; /* Chrome, Safari, Opera */
-            }
-          `}
-        </style>
       </DialogContent>
     </Dialog>
   );

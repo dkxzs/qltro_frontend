@@ -12,13 +12,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { updateExpenseService } from "@/services/expenseServices";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { Pencil } from "lucide-react";
+import { Loader2, Pencil, SquarePen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useMutation } from "@tanstack/react-query";
 
 const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayTongTien, setDisplayTongTien] = useState("");
   const [formData, setFormData] = useState({
     maNha: "",
@@ -27,11 +27,26 @@ const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
     moTa: "",
   });
 
-  // Đồng bộ dữ liệu khi mở modal
+  const updateExpenseMutation = useMutation({
+    mutationFn: ({ maCPPS, data }) => updateExpenseService(maCPPS, data),
+    onSuccess: (response) => {
+      if (response.EC === 0) {
+        toast.success("Cập nhật chi phí phát sinh thành công");
+        setOpen(false);
+        refetch();
+      } else {
+        toast.error(response.EM);
+      }
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi cập nhật chi phí phát sinh");
+    },
+  });
+
   useEffect(() => {
     if (dataUpdate && open) {
       const tongTien = dataUpdate.TongTien?.toString() || "";
-
       setFormData({
         maNha: dataUpdate.MaNha?.toString() || "",
         maPT: dataUpdate.MaPT?.toString() || "",
@@ -42,7 +57,6 @@ const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
     }
   }, [dataUpdate, open]);
 
-  // Đồng bộ giá trị hiển thị tổng tiền
   useEffect(() => {
     setDisplayTongTien(
       formData.tongTien ? formatCurrency(formData.tongTien) : ""
@@ -51,16 +65,7 @@ const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === "thangNam" && value) {
-      const [nam, thang] = value.split("-");
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-        thang: parseInt(thang, 10),
-        nam: parseInt(nam, 10),
-      }));
-    } else if (name === "tongTien") {
+    if (name === "tongTien") {
       const numericValue = value.replace(/[^0-9]/g, "");
       const parsedValue = numericValue ? parseInt(numericValue, 10) : "";
       setFormData((prev) => ({
@@ -77,64 +82,66 @@ const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
     e.preventDefault();
 
     if (!formData.tongTien) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+      toast.error("Vui lòng nhập tổng tiền!");
       return;
     }
 
     const parsedTongTien = parseInt(formData.tongTien, 10);
     if (isNaN(parsedTongTien) || parsedTongTien <= 0) {
-      toast.error("Tổng tiền phải là số lớn hơn 0");
+      toast.error("Tổng tiền phải là số lớn hơn 0!");
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      const data = {
-        MaNha: formData.maNha ? parseInt(formData.maNha, 10) : null,
-        MaPT: formData.maPT ? parseInt(formData.maPT, 10) : null,
-        TongTien: parsedTongTien,
-        MoTa: formData.moTa,
-      };
+    const data = {
+      MaNha: formData.maNha ? parseInt(formData.maNha, 10) : null,
+      MaPT: formData.maPT ? parseInt(formData.maPT, 10) : null,
+      TongTien: parsedTongTien,
+      MoTa: formData.moTa,
+    };
 
-      const response = await updateExpenseService(dataUpdate.MaCPPS, data);
-
-      if (response.EC === 0) {
-        toast.success("Cập nhật chi phí phát sinh thành công");
-        setOpen(false);
-        refetch();
-      } else {
-        toast.error(response.EM);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi xảy ra khi cập nhật chi phí phát sinh");
-    } finally {
-      setIsSubmitting(false);
-    }
+    updateExpenseMutation.mutate({ maCPPS: dataUpdate.MaCPPS, data });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+          setFormData({
+            maNha: "",
+            maPT: "",
+            tongTien: "",
+            moTa: "",
+          });
+          setDisplayTongTien("");
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button
-          className="mr-2 flex items-center cursor-pointer bg-blue-500 hover:bg-blue-600 rounded text-white"
+          className="flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
           disabled={disabled}
+          aria-label="Mở modal cập nhật chi phí phát sinh"
         >
-          <Pencil className="h-4 w-4" />
+          <SquarePen className="size-5 text-blue-700" />
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-2/5 rounded"
-        onInteractOutside={(event) => {
-          event.preventDefault();
-        }}
-        aria-describedby={undefined}
+        className="bg-white shadow-md rounded w-2/5"
+        aria-describedby="update-expense-description"
       >
         <DialogHeader>
           <DialogTitle>Cập nhật chi phí phát sinh</DialogTitle>
+          <div
+            id="update-expense-description"
+            className="text-sm text-gray-500"
+          >
+            Vui lòng cập nhật thông tin chi phí phát sinh.
+          </div>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4 bg-gray-50 p-4 rounded-md">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="tongTien" className="text-right">
                 Tổng tiền <span className="text-red-500">*</span>
@@ -148,7 +155,8 @@ const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
                   onChange={handleChange}
                   required
                   className="rounded shadow-none"
-                  placeholder="Nhập số tiền (VD: 1000000)"
+                  placeholder="Nhập số tiền (VD: 1,000,000)"
+                  aria-label="Nhập tổng tiền"
                 />
               </div>
             </div>
@@ -165,25 +173,34 @@ const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
                   onChange={handleChange}
                   rows={3}
                   className="rounded shadow-none"
+                  placeholder="Nhập mô tả chi phí (nếu có)"
+                  aria-label="Nhập mô tả chi phí"
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="mt-4">
+            <Button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={updateExpenseMutation.isPending}
+              aria-label="Cập nhật chi phí phát sinh"
+            >
+              {updateExpenseMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Lưu"
+              )}
+            </Button>
             <Button
               type="button"
               onClick={() => setOpen(false)}
-              className="cursor-pointer rounded"
+              className="text-white rounded cursor-pointer"
+              variant="destructive"
+              aria-label="Hủy cập nhật chi phí"
             >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="cursor-pointer rounded"
-            >
-              {isSubmitting ? "Đang xử lý..." : "Cập nhật"}
+              Đóng
             </Button>
           </DialogFooter>
         </form>

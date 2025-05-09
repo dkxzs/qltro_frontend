@@ -13,14 +13,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { createCustomerService } from "@/services/customerServices";
 import { useMutation } from "@tanstack/react-query";
-
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalAddUser = (props) => {
-  const { refetch } = props;
-  const date = new Date();
+const ModalAddUser = ({ refetch }) => {
+  const date = new Date().toISOString().split("T")[0]; // Ngày hiện tại dạng YYYY-MM-DD
   const [formData, setFormData] = useState({
     name: "",
     cardId: "",
@@ -47,8 +45,8 @@ const ModalAddUser = (props) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
@@ -56,13 +54,17 @@ const ModalAddUser = (props) => {
   const handleChangeImage = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Vui lòng chọn tệp ảnh (JPG, PNG, v.v.)");
+        return;
+      }
       if (previewImage) {
         URL.revokeObjectURL(previewImage);
       }
       const objectURL = URL.createObjectURL(file);
       setPreviewImage(objectURL);
-      setFormData((prevFormData) => ({
-        ...prevFormData,
+      setFormData((prev) => ({
+        ...prev,
         avatar: file,
       }));
     }
@@ -82,8 +84,8 @@ const ModalAddUser = (props) => {
       email: "",
       address: "",
       avatar: "",
-      dateOfIssue: "", // Thêm ngày cấp
-      placeOfIssue: "", // Thêm nơi cấp
+      dateOfIssue: "",
+      placeOfIssue: "",
     });
     setPreviewImage(null);
   };
@@ -91,17 +93,23 @@ const ModalAddUser = (props) => {
   const mutationCreateCustomer = useMutation({
     mutationFn: async (data) => {
       const res = await createCustomerService(data);
+      if (res.EC !== 0) {
+        throw new Error(res.EM || "Có lỗi xảy ra khi thêm khách trọ");
+      }
       return res;
     },
     onSuccess: (data) => {
-      if (+data.EC === 0) {
-        toast.success(data.EM);
-        resetForm();
-        setOpen(false);
-        refetch();
-      } else {
-        toast.error(data.EM);
-      }
+      toast.success(data.EM);
+      resetForm();
+      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
+      refetch();
+    },
+    onError: (error) => {
+      console.error("Add customer error:", error);
+      const errorMessage = error.message.includes("foreign key constraint")
+        ? "Thêm khách trọ thất bại: Có dữ liệu liên quan không hợp lệ. Vui lòng kiểm tra lại."
+        : error.message || "Đã có lỗi xảy ra khi thêm khách trọ";
+      toast.error(errorMessage);
     },
   });
 
@@ -172,6 +180,11 @@ const ModalAddUser = (props) => {
       return false;
     }
 
+    if (formData.dateOfIssue > date) {
+      toast.error("Ngày cấp không được lớn hơn ngày hiện tại");
+      return false;
+    }
+
     if (!formData.placeOfIssue.trim()) {
       toast.error("Nơi cấp không được để trống");
       return false;
@@ -180,29 +193,54 @@ const ModalAddUser = (props) => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const hasUnsavedChanges = () => {
+    return (
+      formData.name ||
+      formData.cardId ||
+      formData.phoneNumber ||
+      formData.email ||
+      formData.address ||
+      formData.avatar ||
+      formData.birthday ||
+      formData.dateOfIssue ||
+      formData.placeOfIssue ||
+      formData.gender !== "Nam"
+    );
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
       mutationCreateCustomer.mutate(formData);
     }
   };
 
+  const handleClose = () => {
+    if (
+      hasUnsavedChanges() &&
+      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
+    ) {
+      return;
+    }
+    setOpen(false);
+    resetForm();
+  };
+
+  const isFormDisabled = mutationCreateCustomer.isPending;
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={() => {
-        setOpen(!open);
-        resetForm();
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <Plus className="h-5 w-5  text-white" />
+        <Button
+          className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
+          aria-label="Thêm khách trọ mới"
+        >
+          <Plus className="h-5 w-5" />
           Thêm khách trọ
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5 rounded"
+        className="w-3/5  rounded transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -213,7 +251,7 @@ const ModalAddUser = (props) => {
             Vui lòng nhập đầy đủ thông tin để thêm khách trọ.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="name">Họ Tên</Label>
@@ -225,6 +263,7 @@ const ModalAddUser = (props) => {
                 className="rounded mt-2 shadow-none"
                 value={formData.name}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -234,15 +273,25 @@ const ModalAddUser = (props) => {
                 onValueChange={(value) =>
                   setFormData({ ...formData, gender: value })
                 }
+                disabled={isFormDisabled}
+                className="mt-3"
               >
-                <div className="flex mt-3 gap-2 items-center">
+                <div className="flex gap-4 items-center">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem
                       value="Nam"
                       id="r1"
                       className="cursor-pointer border-black"
+                      disabled={isFormDisabled}
                     />
-                    <Label htmlFor="r1" className="font-normal cursor-pointer">
+                    <Label
+                      htmlFor="r1"
+                      className={`font-normal ${
+                        isFormDisabled
+                          ? "cursor-not-allowed opacity-50"
+                          : "cursor-pointer"
+                      }`}
+                    >
                       Nam
                     </Label>
                   </div>
@@ -251,8 +300,16 @@ const ModalAddUser = (props) => {
                       value="Nu"
                       id="r2"
                       className="cursor-pointer border-slate-500"
+                      disabled={isFormDisabled}
                     />
-                    <Label htmlFor="r2" className="font-normal cursor-pointer ">
+                    <Label
+                      htmlFor="r2"
+                      className={`font-normal ${
+                        isFormDisabled
+                          ? "cursor-not-allowed opacity-50"
+                          : "cursor-pointer"
+                      }`}
+                    >
                       Nữ
                     </Label>
                   </div>
@@ -262,38 +319,45 @@ const ModalAddUser = (props) => {
             <div>
               <Label htmlFor="cardId">Số căn cước công dân</Label>
               <Input
-                type="number"
+                type="text" // Sử dụng text để kiểm soát nhập số
                 id="cardId"
                 name="cardId"
-                placeholder="123456789"
+                placeholder="123456789012"
                 className="rounded mt-2 shadow-none"
                 value={formData.cardId}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value
+                    .replace(/[^0-9]/g, "")
+                    .slice(0, 12);
+                  setFormData((prev) => ({ ...prev, cardId: value }));
+                }}
+                disabled={isFormDisabled}
               />
             </div>
-
             <div>
-              <Label>Ngày cấp:</Label>
+              <Label htmlFor="dateOfIssue">Ngày cấp</Label>
               <Input
                 type="date"
                 id="dateOfIssue"
                 name="dateOfIssue"
+                max={date}
                 className="rounded mt-2 shadow-none"
                 value={formData.dateOfIssue}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
-
             <div>
-              <Label>Nơi cấp:</Label>
+              <Label htmlFor="placeOfIssue">Nơi cấp</Label>
               <Input
                 type="text"
                 id="placeOfIssue"
                 name="placeOfIssue"
+                placeholder="Công an TP. Hà Nội"
                 className="rounded mt-2 shadow-none"
                 value={formData.placeOfIssue}
                 onChange={handleChange}
-                placeholder="Nơi cấp"
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -302,9 +366,11 @@ const ModalAddUser = (props) => {
                 type="date"
                 id="birthday"
                 name="birthday"
+                max={date}
                 className="rounded mt-2 shadow-none"
                 value={formData.birthday}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -316,7 +382,13 @@ const ModalAddUser = (props) => {
                 placeholder="0123456789"
                 className="rounded mt-2 shadow-none"
                 value={formData.phoneNumber}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value
+                    .replace(/[^0-9]/g, "")
+                    .slice(0, 10);
+                  setFormData((prev) => ({ ...prev, phoneNumber: value }));
+                }}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -329,6 +401,7 @@ const ModalAddUser = (props) => {
                 className="rounded mt-2 shadow-none"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -337,10 +410,11 @@ const ModalAddUser = (props) => {
                 type="text"
                 id="address"
                 name="address"
-                placeholder="Địa chỉ"
+                placeholder="123 Đường ABC, Quận XYZ"
                 className="rounded mt-2 shadow-none"
                 value={formData.address}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -349,28 +423,32 @@ const ModalAddUser = (props) => {
                 type="file"
                 id="avatar"
                 name="avatar"
-                className="rounded mt-2"
-                hidden
+                className="hidden"
                 accept="image/*"
-                onChange={(e) => handleChangeImage(e)}
+                onChange={handleChangeImage}
                 ref={inputRef}
+                disabled={isFormDisabled}
               />
               <div
-                className="mt-2 w-40 h-40 border-2 border-dashed rounded p-4 flex items-center justify-center cursor-pointer"
-                onClick={handleClickImage}
+                className={`mt-2 w-40 h-40 border-2 border-dashed rounded p-4 flex items-center justify-center ${
+                  isFormDisabled
+                    ? "cursor-not-allowed opacity-50"
+                    : "cursor-pointer"
+                }`}
+                onClick={isFormDisabled ? null : handleClickImage}
               >
                 {formData.avatar ? (
                   <>
                     {previewImage && (
                       <img
                         src={previewImage}
-                        alt="Avatar"
-                        className="w-30 h-30 object-contain rounded-full border"
+                        alt="Avatar preview"
+                        className="w-32 h-32 object-contain rounded-full border"
                       />
                     )}
                   </>
                 ) : (
-                  <div className="flex items-center justify-center cursor-pointer gap-1 text-lg font-mono">
+                  <div className="flex items-center justify-center gap-1 text-lg font-mono">
                     <Plus className="size-7 text-black" />
                     Chọn ảnh
                   </div>
@@ -378,25 +456,34 @@ const ModalAddUser = (props) => {
               </div>
             </div>
           </div>
+          <DialogFooter>
+            <Button
+              type="submit"
+              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              disabled={isFormDisabled}
+              aria-label="Thêm khách trọ mới"
+            >
+              {mutationCreateCustomer.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Lưu"
+              )}
+            </Button>
+            <Button
+              type="button"
+              className="rounded cursor-pointer"
+              onClick={handleClose}
+              disabled={isFormDisabled}
+              variant="destructive"
+              aria-label="Hủy thêm khách trọ"
+            >
+              Đóng
+            </Button>
+          </DialogFooter>
         </form>
-        <DialogFooter>
-          <Button
-            type="submit"
-            className="cursor-pointer rounded"
-            onClick={() => {
-              setOpen(!open);
-            }}
-          >
-            Đóng
-          </Button>
-          <Button
-            type="submit"
-            className="cursor-pointer rounded"
-            onClick={(e) => handleSubmit(e)}
-          >
-            Thêm
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -14,36 +14,45 @@ import { Textarea } from "@/components/ui/textarea";
 import { updateRoomTypeService } from "@/services/roomTypeServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation } from "@tanstack/react-query";
-
-import { Pencil } from "lucide-react";
+import { Pencil, Loader2, SquarePen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalUpdateRoomType = (props) => {
-  const { dataUpdate, refetch } = props;
+const ModalUpdateRoomType = ({ dataUpdate, refetch }) => {
   const [formData, setFormData] = useState({
     TenLoaiPhong: "",
     DonGia: "",
     MoTa: "",
   });
+  const [initialFormData, setInitialFormData] = useState(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (dataUpdate && open) {
-      setFormData({
+      const newFormData = {
         TenLoaiPhong: dataUpdate.TenLoaiPhong || "",
-        DonGia: dataUpdate.DonGia ? dataUpdate.DonGia.toLocaleString() : "",
+        DonGia: dataUpdate.DonGia ? formatCurrency(dataUpdate.DonGia) : "",
         MoTa: dataUpdate.MoTa || "",
-      });
+      };
+      setFormData(newFormData);
+      setInitialFormData(newFormData);
     }
   }, [dataUpdate, open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: name === "DonGia" ? formatCurrency(value) : value,
-    }));
+    if (name === "DonGia") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numericValue ? formatCurrency(numericValue) : "",
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const resetForm = () => {
@@ -52,6 +61,7 @@ const ModalUpdateRoomType = (props) => {
       DonGia: "",
       MoTa: "",
     });
+    setInitialFormData(null);
   };
 
   const mutationUpdateRoomType = useMutation({
@@ -63,14 +73,19 @@ const ModalUpdateRoomType = (props) => {
       if (+data.EC === 0) {
         toast.success(data.EM);
         resetForm();
-        setOpen(false);
+        setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
         refetch();
       } else {
         toast.error(data.EM);
       }
     },
     onError: (error) => {
-      toast.error(error.response?.data?.EM || "Đã có lỗi xảy ra");
+      console.error("Update room type error:", error);
+      const errorMessage = error.message.includes("foreign key constraint")
+        ? "Cập nhật loại phòng thất bại: Loại phòng đang được sử dụng hoặc có dữ liệu liên quan. Vui lòng kiểm tra lại."
+        : error.response?.data?.EM ||
+          "Đã có lỗi xảy ra khi cập nhật loại phòng";
+      toast.error(errorMessage);
     },
   });
 
@@ -94,8 +109,21 @@ const ModalUpdateRoomType = (props) => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const isFormDataChanged = () => {
+    if (!initialFormData) return true;
+    return (
+      formData.TenLoaiPhong !== initialFormData.TenLoaiPhong ||
+      formData.DonGia !== initialFormData.DonGia ||
+      formData.MoTa !== initialFormData.MoTa
+    );
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isFormDataChanged()) {
+      toast.info("Không có thay đổi để cập nhật");
+      return;
+    }
     if (validateForm()) {
       const dataToSubmit = {
         ...formData,
@@ -108,23 +136,31 @@ const ModalUpdateRoomType = (props) => {
     }
   };
 
+  const handleClose = () => {
+    if (
+      isFormDataChanged() &&
+      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
+    ) {
+      return;
+    }
+    setOpen(false);
+    resetForm();
+  };
+
+  const isFormDisabled = mutationUpdateRoomType.isPending;
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={() => {
-        setOpen(!open);
-        if (!open) {
-          resetForm();
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-blue-500 hover:bg-blue-600 rounded text-white">
-          <Pencil className="h-4 w-4" />
+        <Button
+          className="flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
+          aria-label="Cập nhật loại phòng"
+        >
+          <SquarePen className="size-5 text-blue-700" />
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5 rounded"
+        className="w-3/5 max-w-2xl rounded transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -135,7 +171,7 @@ const ModalUpdateRoomType = (props) => {
             Vui lòng cập nhật thông tin loại phòng.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="tenloaiphong">Tên loại phòng</Label>
@@ -144,9 +180,10 @@ const ModalUpdateRoomType = (props) => {
                 id="tenloaiphong"
                 name="TenLoaiPhong"
                 placeholder="Phòng VIP"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.TenLoaiPhong}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -155,44 +192,54 @@ const ModalUpdateRoomType = (props) => {
                 type="text"
                 id="dongia"
                 name="DonGia"
-                placeholder="2000000"
-                className="rounded mt-2"
+                placeholder="2.000.000"
+                className="rounded mt-2 shadow-none"
                 value={formData.DonGia}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div className="col-span-2">
               <Label htmlFor="mota">Mô tả</Label>
               <Textarea
-                type="area"
                 id="mota"
                 name="MoTa"
                 placeholder="Mô tả chi tiết về loại phòng"
-                className="rounded mt-2 min-h-[100px]"
+                className="rounded mt-2 min-h-[100px] shadow-none"
                 value={formData.MoTa}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
           </div>
+          <DialogFooter>
+            <Button
+              type="submit"
+              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              disabled={isFormDisabled}
+              aria-label="Cập nhật loại phòng"
+            >
+              {mutationUpdateRoomType.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Lưu"
+              )}
+            </Button>
+            <Button
+              type="button"
+              className="rounded cursor-pointer"
+              onClick={handleClose}
+              disabled={isFormDisabled}
+              variant="destructive"
+              aria-label="Hủy cập nhật loại phòng"
+            >
+              Đóng
+            </Button>
+          </DialogFooter>
         </form>
-        <DialogFooter>
-          <Button
-            type="button"
-            className="cursor-pointer rounded"
-            onClick={() => {
-              setOpen(!open);
-            }}
-          >
-            Đóng
-          </Button>
-          <Button
-            type="submit"
-            className="cursor-pointer rounded"
-            onClick={(e) => handleSubmit(e)}
-          >
-            Cập nhật
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

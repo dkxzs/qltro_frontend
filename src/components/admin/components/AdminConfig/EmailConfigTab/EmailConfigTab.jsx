@@ -48,7 +48,9 @@ const EmailConfigTab = () => {
       return;
     }
 
-    const secretKey = import.meta.env.VITE_ENCRYPTION_SECRET || "your-32-character-secret-key-here123456";
+    const secretKey =
+      import.meta.env.VITE_ENCRYPTION_SECRET ||
+      "your-32-character-secret-key-here123456";
     const encryptedPassword = emailConfig.systemPassword
       ? CryptoJS.AES.encrypt(emailConfig.systemPassword, secretKey).toString()
       : "";
@@ -117,7 +119,10 @@ const EmailConfigTab = () => {
         </div>
       </div>
       <div className="flex justify-end">
-        <Button className="rounded cursor-pointer" onClick={handleSaveChanges}>
+        <Button
+          className="rounded cursor-pointer bg-blue-600"
+          onClick={handleSaveChanges}
+        >
           Lưu thay đổi
         </Button>
       </div>

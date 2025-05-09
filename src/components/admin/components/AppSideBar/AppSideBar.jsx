@@ -41,16 +41,16 @@ const data = {
       isActive: false,
       items: [
         {
+          title: "Nhà Trọ",
+          url: "/admin/houses",
+        },
+        {
           title: "Quản lý phòng trọ",
           url: "/admin/rooms",
         },
         {
           title: "Loại phòng",
           url: "/admin/room-types",
-        },
-        {
-          title: "Nhà",
-          url: "/admin/houses",
         },
       ],
     },

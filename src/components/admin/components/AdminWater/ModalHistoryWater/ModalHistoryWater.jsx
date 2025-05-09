@@ -73,7 +73,7 @@ const ModalHistoryWater = ({
               type="month"
               value={selectedMonthYear}
               onChange={handleMonthYearChange}
-              className="w-3/12"
+              className="w-3/12 rounded shadow-none"
             />
           </div>
           <Table>
@@ -117,6 +117,7 @@ const ModalHistoryWater = ({
           <Button
             className="cursor-pointer rounded"
             onClick={() => onOpenChange(false)}
+            variant="destructive"
           >
             Đóng
           </Button>

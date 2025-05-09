@@ -81,7 +81,7 @@ const ModalHistoryElectricity = ({
             type="month"
             value={selectedMonthYear}
             onChange={handleMonthYearChange}
-            className="rounded w-4/12"
+            className="rounded w-4/12 shadow-none"
           />
         </div>
         <div className="mt-4">
@@ -126,6 +126,7 @@ const ModalHistoryElectricity = ({
           <Button
             className="cursor-pointer rounded"
             onClick={() => onOpenChange(false)}
+            variant="destructive"
           >
             Đóng
           </Button>

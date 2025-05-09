@@ -257,7 +257,7 @@ const AdminElectricity = () => {
               Đang tải dữ liệu...
             </p>
           ) : filteredData.length === 0 ? (
-            <p className="text-center text-md font-medium">
+            <p className="text-center text-md font-medium py-3">
               Chưa có chỉ số điện cho tháng {displayMonth}
             </p>
           ) : (

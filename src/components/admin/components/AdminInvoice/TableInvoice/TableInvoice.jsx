@@ -9,6 +9,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import ModalViewInvoice from "../ModalViewInvoice/ModalViewInvoice";
+import ModalPayment from "../ModalPayment/ModalPayment";
 
 const TableInvoice = ({ invoices, isLoading }) => {
   if (isLoading) {
@@ -31,6 +32,8 @@ const TableInvoice = ({ invoices, isLoading }) => {
               <TableHead>Tên phòng</TableHead>
               <TableHead>Ngày lập</TableHead>
               <TableHead>Tổng tiền</TableHead>
+              <TableHead>Tiền đã đóng</TableHead>
+              <TableHead>Số tiền còn lại</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Hành động</TableHead>
             </TableRow>
@@ -56,20 +59,32 @@ const TableInvoice = ({ invoices, isLoading }) => {
                     {invoice.TongTien?.toLocaleString("vi-VN") || 0} VNĐ
                   </TableCell>
                   <TableCell>
+                    {invoice.totalPaid?.toLocaleString("vi-VN") || 0} VNĐ
+                  </TableCell>
+                  <TableCell>
+                    {invoice.remaining?.toLocaleString("vi-VN") || 0} VNĐ
+                  </TableCell>
+                  <TableCell>
                     {invoice.TrangThai === 0
                       ? "Chưa thanh toán"
                       : "Đã thanh toán"}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
+                  <TableCell className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <ModalViewInvoice invoiceId={invoice.MaHD} />
+                    </div>
+                    <div>
+                      <ModalPayment
+                        invoiceId={invoice.MaHD}
+                        invoiceData={invoice}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center">
+                <TableCell colSpan={10} className="text-center">
                   Không có hóa đơn nào
                 </TableCell>
               </TableRow>

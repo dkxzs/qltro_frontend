@@ -154,7 +154,10 @@ const PersonalInfoTab = () => {
         </div>
       </div>
       <div className="flex justify-end">
-        <Button className="rounded cursor-pointer" onClick={handleSaveChanges}>
+        <Button
+          className="rounded cursor-pointer bg-blue-600"
+          onClick={handleSaveChanges}
+        >
           Lưu thay đổi
         </Button>
       </div>

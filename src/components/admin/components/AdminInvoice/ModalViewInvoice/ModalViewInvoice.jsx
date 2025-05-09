@@ -12,19 +12,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { sendInvoiceService } from "@/services/emailServices";
 import { generateImageService } from "@/services/imageServices";
 import { getInvoiceByIdService } from "@/services/invoiceServices";
-import { sendInvoiceService } from "@/services/emailServices";
 import { formatCurrency, numberToText } from "@/utils/formatCurrency";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
-import { Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, Send } from "lucide-react";
 import { useRef, useState } from "react";
+import { IoIosArrowDown } from "react-icons/io";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 const ModalViewInvoice = ({ invoiceId }) => {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const invoiceRef = useRef(null);
 
   const { data, isLoading } = useQuery({
@@ -122,7 +127,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
 
   const exportAsImage = async () => {
     if (!invoiceRef.current) {
-      alert(
+      toast.warning(
         "Nội dung hóa đơn chưa sẵn sàng để xuất. Vui lòng đợi dữ liệu tải xong."
       );
       return;
@@ -226,14 +231,16 @@ const ModalViewInvoice = ({ invoiceId }) => {
     `;
 
     try {
+      setImageLoading(true);
       const blob = await generateImageService(htmlContent);
       const link = document.createElement("a");
       link.download = `hoa_don_${invoiceId}.png`;
       link.href = URL.createObjectURL(blob);
       link.click();
+      setImageLoading(false);
     } catch (error) {
       console.error("Lỗi khi xuất ảnh:", error);
-      alert(
+      toast.error(
         "Có lỗi xảy ra khi xuất ảnh. Vui lòng kiểm tra console để biết thêm chi tiết."
       );
     }
@@ -241,7 +248,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
 
   const exportAsPDF = async () => {
     if (!invoiceRef.current) {
-      alert(
+      toast.warning(
         "Nội dung hóa đơn chưa sẵn sàng để xuất. Vui lòng đợi dữ liệu tải xong."
       );
       return;
@@ -345,6 +352,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
     `;
 
     try {
+      setPdfLoading(true);
       const imageBlob = await generateImageService(htmlContent);
       const reader = new FileReader();
       reader.readAsDataURL(imageBlob);
@@ -364,9 +372,10 @@ const ModalViewInvoice = ({ invoiceId }) => {
         pdf.addImage(base64String, "PNG", 0, 0, pdfWidth, pdfHeight);
         pdf.save(`hoa_don_${invoiceId}.pdf`);
       };
+      setPdfLoading(false);
     } catch (error) {
       console.error("Lỗi khi xuất PDF:", error);
-      alert(
+      toast.error(
         "Có lỗi xảy ra khi xuất PDF. Vui lòng kiểm tra console để biết thêm chi tiết."
       );
     }
@@ -374,15 +383,15 @@ const ModalViewInvoice = ({ invoiceId }) => {
 
   const sendInvoice = async () => {
     if (!invoiceRef.current) {
-      alert("Nội dung hóa đơn chưa sẵn sàng để gửi.");
+      toast.warning("Nội dung hóa đơn chưa sẵn sàng để gửi.");
       return;
     }
 
-    const fromEmail = emailConfig?.systemEmail || "hadkxz@gmail.com";
+    const fromEmail = emailConfig?.systemEmail;
     const encryptedPassword = emailConfig?.systemPassword;
 
     if (!fromEmail || !encryptedPassword) {
-      alert("Thiếu thông tin email gửi. Vui lòng kiểm tra cấu hình.");
+      toast.warning("Thiếu thông tin email gửi. Vui lòng kiểm tra cấu hình.");
       return;
     }
 
@@ -521,16 +530,18 @@ const ModalViewInvoice = ({ invoiceId }) => {
     `;
 
     try {
+      setLoading(true);
       await sendInvoiceService({
         invoiceId,
         htmlContent,
         fromEmail,
         encryptedPassword,
       });
-      alert("Hóa đơn đã được gửi thành công!");
+      setLoading(false);
+      toast.success("Hóa đơn đã được gửi thành công!");
     } catch (error) {
       console.error("Lỗi khi gửi email:", error);
-      alert("Có lỗi xảy ra khi gửi email. Vui lòng kiểm tra console.");
+      toast.error("Có lỗi xảy ra khi gửi email. Vui lòng kiểm tra console.");
     }
   };
 
@@ -538,10 +549,9 @@ const ModalViewInvoice = ({ invoiceId }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
-        size="icon"
+        className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer"
       >
-        <Eye className="h-4 w-4" />
+        <Eye className="size-5 text-blue-600" />
       </Button>
 
       <DialogContent
@@ -594,7 +604,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
             <div className="text-center mb-4">
               <p className="font-medium">Tháng {monthYear}</p>
               <p className="text-sm">
-                (từ ngày ${firstDay} đến ngày ${lastDay})
+                (từ ngày {firstDay} đến ngày {lastDay})
               </p>
             </div>
 
@@ -668,25 +678,39 @@ const ModalViewInvoice = ({ invoiceId }) => {
           <div className="flex justify-end gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="rounded cursor-pointer">
-                <Button variant="outline">Xuất file</Button>
+                <Button className="bg-blue-500  text-white flex items-center">
+                  Xuất file
+                  <IoIosArrowDown className="h-4 w-4" />
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className="rounded">
                 <DropdownMenuItem
-                  className="cursor-pointer"
+                  className={` rounded-xs ${
+                    imageLoading ? "cursor-no-drop" : "cursor-pointer"
+                  }`}
                   onClick={exportAsImage}
                 >
-                  Xuất ảnh
+                  {imageLoading ? "Đang xuất ảnh ..." : "Xuất ảnh"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="cursor-pointer"
+                  className={`rounded-xs ${
+                    pdfLoading ? "cursor-no-drop" : "cursor-pointer"
+                  }`}
                   onClick={exportAsPDF}
                 >
-                  Xuất PDF
+                  {pdfLoading ? "Đang xuất PDF..." : "Xuất PDF"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={sendInvoice} className="cursor-pointer rounded">
-              Gửi hóa đơn
+            <Button
+              onClick={sendInvoice}
+              className={` rounded flex items-center bg-blue-500 ${
+                loading ? "cursor-no-drop" : "cursor-pointer"
+              }`}
+              disable={loading}
+            >
+              {loading ? "Đang gửi ..." : "Gửi hóa đơn"}
+              <Send className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => setOpen(false)}

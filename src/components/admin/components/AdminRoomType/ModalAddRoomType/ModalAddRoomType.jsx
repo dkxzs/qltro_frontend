@@ -14,13 +14,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { createRoomTypeService } from "@/services/roomTypeServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation } from "@tanstack/react-query";
-
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalAddRoomType = (props) => {
-  const { refetch } = props;
+const ModalAddRoomType = ({ refetch }) => {
   const [formData, setFormData] = useState({
     TenLoaiPhong: "",
     DonGia: "",
@@ -30,10 +28,18 @@ const ModalAddRoomType = (props) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: name === "DonGia" ? formatCurrency(value) : value,
-    }));
+    if (name === "DonGia") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numericValue ? formatCurrency(numericValue) : "",
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const resetForm = () => {
@@ -53,14 +59,18 @@ const ModalAddRoomType = (props) => {
       if (+data.EC === 0) {
         toast.success(data.EM);
         resetForm();
-        setOpen(false);
+        setTimeout(() => setOpen(false), 300);
         refetch();
       } else {
         toast.error(data.EM);
       }
     },
     onError: (error) => {
-      toast.error(error.response?.data?.EM || "Đã có lỗi xảy ra");
+      console.error("Add room type error:", error);
+      const errorMessage = error.message.includes("foreign key constraint")
+        ? "Thêm loại phòng thất bại: Có dữ liệu liên quan không hợp lệ. Vui lòng kiểm tra lại."
+        : error.response?.data?.EM || "Đã có lỗi xảy ra khi thêm loại phòng";
+      toast.error(errorMessage);
     },
   });
 
@@ -84,7 +94,7 @@ const ModalAddRoomType = (props) => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
       const dataToSubmit = {
@@ -95,22 +105,34 @@ const ModalAddRoomType = (props) => {
     }
   };
 
+  const handleClose = () => {
+    const hasUnsavedChanges =
+      formData.TenLoaiPhong || formData.DonGia || formData.MoTa;
+    if (
+      hasUnsavedChanges &&
+      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
+    ) {
+      return;
+    }
+    setOpen(false);
+    resetForm();
+  };
+
+  const isFormDisabled = mutationCreateRoomType.isPending;
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={() => {
-        setOpen(!open);
-        resetForm();
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <Plus className="h-5 w-5 text-white" />
+        <Button
+          className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
+          aria-label="Thêm loại phòng mới"
+        >
+          <Plus className="h-5 w-5" />
           Thêm loại phòng
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5 rounded"
+        className="w-3/5 max-w-2xl rounded transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -121,7 +143,7 @@ const ModalAddRoomType = (props) => {
             Vui lòng nhập đầy đủ thông tin để thêm loại phòng mới.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="tenloaiphong">Tên loại phòng</Label>
@@ -130,9 +152,10 @@ const ModalAddRoomType = (props) => {
                 id="tenloaiphong"
                 name="TenLoaiPhong"
                 placeholder="Phòng VIP"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.TenLoaiPhong}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -141,44 +164,54 @@ const ModalAddRoomType = (props) => {
                 type="text"
                 id="dongia"
                 name="DonGia"
-                placeholder="2000000"
-                className="rounded mt-2"
+                placeholder="2.000.000"
+                className="rounded mt-2 shadow-none"
                 value={formData.DonGia}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div className="col-span-2">
               <Label htmlFor="mota">Mô tả</Label>
               <Textarea
-                type="area"
                 id="mota"
                 name="MoTa"
                 placeholder="Mô tả chi tiết về loại phòng"
-                className="rounded mt-2 min-h-[100px]"
+                className="rounded mt-2 min-h-[100px] shadow-none"
                 value={formData.MoTa}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
           </div>
+          <DialogFooter>
+            <Button
+              type="submit"
+              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              disabled={isFormDisabled}
+              aria-label="Thêm loại phòng mới"
+            >
+              {mutationCreateRoomType.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Thêm"
+              )}
+            </Button>
+            <Button
+              type="button"
+              className="rounded cursor-pointer"
+              onClick={handleClose}
+              disabled={isFormDisabled}
+              variant="destructive"
+              aria-label="Hủy thêm loại phòng"
+            >
+              Đóng
+            </Button>
+          </DialogFooter>
         </form>
-        <DialogFooter>
-          <Button
-            type="button"
-            className="cursor-pointer rounded"
-            onClick={() => {
-              setOpen(!open);
-            }}
-          >
-            Đóng
-          </Button>
-          <Button
-            type="submit"
-            className="cursor-pointer rounded"
-            onClick={(e) => handleSubmit(e)}
-          >
-            Thêm
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Save, History } from "lucide-react";
+import { Save, History, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import ModalConfirmElectricity from "../ModalConfirmElectricity/ModalConfirmElectricity";
 import ModalHistoryElectricity from "../ModalHistoryElectricity/ModalHistoryElectricity";
@@ -24,11 +24,10 @@ import ModalHistoryElectricity from "../ModalHistoryElectricity/ModalHistoryElec
 const TableElectricity = ({ electricData, month, year }) => {
   const queryClient = useQueryClient();
 
-  // --- State Hooks ---
   const [inputValues, setInputValues] = useState([]);
   const [canEditChiSoCuList, setCanEditChiSoCuList] = useState([]);
   // eslint-disable-next-line no-unused-vars
-  const [isUnusedRoomList, setIsUnusedRoomList] = useState([]); // Thêm state để theo dõi phòng lâu không dùng
+  const [isUnusedRoomList, setIsUnusedRoomList] = useState([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [pendingSave, setPendingSave] = useState(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
@@ -104,8 +103,8 @@ const TableElectricity = ({ electricData, month, year }) => {
           HasInvoice: item?.HasInvoice || false,
         }))
       );
-      setCanEditChiSoCuList(electricData.map(() => true)); // Khởi tạo mặc định
-      setIsUnusedRoomList(electricData.map(() => false)); // Khởi tạo mặc định
+      setCanEditChiSoCuList(electricData.map(() => true));
+      setIsUnusedRoomList(electricData.map(() => false));
     } else {
       setInputValues([]);
       setCanEditChiSoCuList([]);
@@ -131,7 +130,7 @@ const TableElectricity = ({ electricData, month, year }) => {
           inputValues.map(async (item, index) => {
             const currentElectricItem = electricData[index];
             if (!currentElectricItem || !item) {
-              return true; // Cho phép chỉnh sửa nếu dữ liệu không hợp lệ
+              return true;
             }
 
             if (item.MaPT && item.MaDV && month && year) {
@@ -143,29 +142,27 @@ const TableElectricity = ({ electricData, month, year }) => {
                     month,
                     year
                   );
-                return !hasPrevReading; // Phòng lâu không dùng nếu không có bản ghi tháng trước
+                return !hasPrevReading;
               } catch (checkError) {
                 console.error(
                   `Error checking prev month for room ${item.MaPT}:`,
                   checkError
                 );
-                return true; // Cho phép chỉnh sửa nếu có lỗi
+                return true;
               }
             }
-            return true; // Cho phép chỉnh sửa nếu thiếu thông tin
+            return true;
           })
         );
 
-        // Cập nhật danh sách phòng lâu không dùng
         setIsUnusedRoomList(unusedStatuses);
 
-        // Cập nhật khả năng chỉnh sửa ChiSoCu
         const canEditStatuses = unusedStatuses.map((isUnused, index) => {
           const item = inputValues[index];
           if (item.HasInvoice) {
-            return false; // Khóa nếu có hóa đơn
+            return false;
           }
-          return isUnused; // Cho phép chỉnh sửa ChiSoCu nếu phòng lâu không dùng
+          return isUnused;
         });
 
         setCanEditChiSoCuList(canEditStatuses);
@@ -194,7 +191,7 @@ const TableElectricity = ({ electricData, month, year }) => {
       if (updatedValues[index]) {
         updatedValues[index] = {
           ...updatedValues[index],
-          [field]: numValue === "" ? "" : parseInt(numValue, 10),
+          [field]: numValue,
         };
       }
       return updatedValues;
@@ -207,7 +204,6 @@ const TableElectricity = ({ electricData, month, year }) => {
       index >= inputValues.length ||
       index >= electricData.length
     ) {
-      console.error("Invalid index for saving:", index);
       toast.error("Chỉ mục dữ liệu không hợp lệ, không thể lưu.");
       return;
     }
@@ -266,7 +262,6 @@ const TableElectricity = ({ electricData, month, year }) => {
             data: pendingSave.data,
           });
         } else {
-          console.error("Missing MaDN for update operation", pendingSave);
           toast.error("Không tìm thấy mã để cập nhật.");
         }
       }
@@ -277,7 +272,7 @@ const TableElectricity = ({ electricData, month, year }) => {
 
   const handleViewHistory = (index) => {
     if (index < 0 || index >= electricData.length) {
-      console.error("Invalid index for viewing history:", index);
+      toast.warn("Chỉ mục dữ liệu không hợp lệ, không thể xem lịch sử.");
       return;
     }
     const originalData = electricData[index];
@@ -291,11 +286,6 @@ const TableElectricity = ({ electricData, month, year }) => {
       setSelectedRoom(roomData);
       setHistoryDialogOpen(true);
     } else {
-      console.warn(
-        "Missing data to view history at index:",
-        index,
-        originalData
-      );
       toast.warn("Thiếu thông tin để xem lịch sử.");
     }
   };
@@ -306,17 +296,64 @@ const TableElectricity = ({ electricData, month, year }) => {
     !Array.isArray(electricData) ||
     inputValues.length !== electricData.length
   ) {
-    if (electricData?.length === 0) {
-      return null;
-    }
-    return <p className="text-center p-4">Đang cập nhật bảng...</p>;
+    return (
+      <div className="flex justify-center items-center p-4">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+          <p className="text-gray-600 text-lg">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
   }
 
+  if (electricData?.length === 0) {
+    return (
+      <div className="flex justify-center items-center p-4">
+        <div className="bg-white shadow-md rounded-lg p-6 max-w-md w-full text-center">
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <h3 className="mt-2 text-lg font-semibold text-gray-900">
+            Không có dữ liệu điện nước
+          </h3>
+          <p className="mt-1 text-gray-500">
+            Không có thông tin điện nước cho tháng {month}/{year}. Vui lòng kiểm
+            tra lại hoặc thêm dữ liệu mới.
+          </p>
+          <div className="mt-4">
+            <Button
+              onClick={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["rooms-with-electric", month, year],
+                })
+              }
+              className="bg-blue-500 hover:bg-blue-600 text-white rounded cursor-pointer"
+              aria-label="Tải lại dữ liệu"
+            >
+              Tải lại
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full overflow-x-auto rounded">
-      <Table className="min-w-full rounded table-fixed">
-        <TableHeader className="/backdrop-filter backdrop-blur-sm bg-white/30">
+    <div className="w-full overflow-x-auto rounded shadow-md bg-white">
+      <Table className="min-w-full table-fixed border border-gray-200">
+        <TableHeader className="bg-gray-100">
           <TableRow>
             <TableHead className="w-[10%] text-center">Phòng</TableHead>
             <TableHead className="w-[15%] text-center">Nhà</TableHead>
@@ -352,7 +389,7 @@ const TableElectricity = ({ electricData, month, year }) => {
                 key={`${
                   itemState.MaPT || originalItem.PhongTro.MaPT
                 }-${month}-${year}-${index}`}
-                className={index % 2 === 0 ? "bg-blue-50" : ""}
+                className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
               >
                 <TableCell className="text-center truncate">
                   {originalItem.PhongTro.TenPhong}
@@ -369,11 +406,12 @@ const TableElectricity = ({ electricData, month, year }) => {
                       handleInputChange(index, "ChiSoCu", e.target.value)
                     }
                     disabled={!canEditChiSoCu}
-                    className={`w-full max-w-[150px] mx-auto text-right rounded ${
+                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none ${
                       !canEditChiSoCu
-                        ? "bg-gray-200 cursor-not-allowed"
+                        ? "bg-gray-100 cursor-not-allowed"
                         : "bg-white"
                     }`}
+                    aria-label="Chỉ số cũ"
                   />
                 </TableCell>
                 <TableCell>
@@ -385,26 +423,37 @@ const TableElectricity = ({ electricData, month, year }) => {
                       handleInputChange(index, "ChiSoMoi", e.target.value)
                     }
                     disabled={isDisabled}
-                    className={`w-full max-w-[200px] mx-auto text-right rounded ${
-                      isDisabled ? "bg-gray-200 cursor-not-allowed" : "bg-white"
+                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none ${
+                      isDisabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                     }`}
+                    aria-label="Chỉ số mới"
                   />
                 </TableCell>
                 <TableCell className="text-center">{consumption}</TableCell>
                 <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
+                  <div className="flex justify-center gap-1">
                     <Button
                       onClick={() => handleSave(index)}
-                      className="bg-green-600 hover:bg-green-700 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={isDisabled}
+                      className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={
+                        isDisabled ||
+                        createMutation.isPending ||
+                        updateMutation.isPending
+                      }
+                      aria-label="Lưu chỉ số điện nước"
                     >
-                      <Save className="size-4" />
+                      {createMutation.isPending || updateMutation.isPending ? (
+                        <Loader2 className="size-5 animate-spin" />
+                      ) : (
+                        <Save className="size-5 text-green-700" />
+                      )}
                     </Button>
                     <Button
                       onClick={() => handleViewHistory(index)}
-                      className="bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
+                      className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer"
+                      aria-label="Xem lịch sử điện nước"
                     >
-                      <History className="size-4" />
+                      <History className="size-5 text-blue-700" />
                     </Button>
                   </div>
                 </TableCell>

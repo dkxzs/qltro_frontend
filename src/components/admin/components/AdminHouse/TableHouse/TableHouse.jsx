@@ -57,7 +57,7 @@ const TableHouse = (props) => {
                 {house.MoTa}
               </TableCell>
               <TableCell className="py-2 px-4 text-center shrink-0 w-32">
-                <div className="flex space-x-2 justify-center">
+                <div className="flex justify-center">
                   <ModalUpdateHouse dataUpdate={house} refetch={refetch} />
                   <ModalDeleteHouse dataDelete={house} refetch={refetch} />
                 </div>

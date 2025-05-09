@@ -98,7 +98,7 @@ const TableExpense = ({ expenseData, refetch }) => {
                   {expense.MoTa}
                 </TableCell>
                 <TableCell className="">
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end gap-1">
                     <ModalUpdateExpense
                       dataUpdate={expense}
                       refetch={refetch}

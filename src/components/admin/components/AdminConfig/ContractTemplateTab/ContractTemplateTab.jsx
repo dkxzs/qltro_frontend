@@ -18,7 +18,7 @@ const ContractTemplateTab = () => {
             contractInfo: "Số: HD[SoHD]  Ngày Ký: [NgayKy]",
             legalBasis: [
               "- Căn cứ Bộ luật dân sự của nước Cộng hoà xã hội chủ nghĩa Việt nam có hiệu lực từ ngày 01/01/2006;",
-              "- Căn cứ nhu cầu và khả năng của hai bên,", 
+              "- Căn cứ nhu cầu và khả năng của hai bên,",
               "- Hôm nay, ngày [ngay] tháng [thang] năm [nam] tại địa chỉ [DiaChi], chúng tôi gồm có",
             ],
             preamble: [
@@ -151,7 +151,7 @@ const ContractTemplateTab = () => {
         <h2 className="text-xl font-bold">Mẫu hợp đồng</h2>
         <Button
           onClick={editMode ? handleCancelEdit : () => setEditMode(true)}
-          className="cursor-pointer rounded"
+          className="cursor-pointer rounded bg-blue-600"
         >
           {editMode ? "Hủy chỉnh sửa" : "Chỉnh sửa mẫu"}
         </Button>
@@ -202,16 +202,16 @@ const ContractTemplateTab = () => {
               ))}
               <Button
                 onClick={() => handleAddItem(dieuIndex)}
-                className="rounded cursor-pointer"
+                className="rounded cursor-pointer bg-green-600"
               >
-                Thêm mục mới
+                Thêm
               </Button>
             </div>
           ))}
           <div className="flex justify-end gap-2">
             <Button
               onClick={handleAddDieuKhoan}
-              className="cursor-pointer rounded"
+              className="cursor-pointer rounded bg-green-600"
             >
               Thêm điều khoản mới
             </Button>

@@ -13,13 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createHouseService } from "@/services/houseServices";
 import { useMutation } from "@tanstack/react-query";
-
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalAddHouse = (props) => {
-  const { refetch } = props;
+const ModalAddHouse = ({ refetch }) => {
   const [formData, setFormData] = useState({
     TenNha: "",
     DiaChi: "",
@@ -29,8 +27,8 @@ const ModalAddHouse = (props) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
@@ -54,11 +52,15 @@ const ModalAddHouse = (props) => {
     onSuccess: (data) => {
       toast.success(data.EM);
       resetForm();
-      setOpen(false);
+      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
       refetch();
     },
     onError: (error) => {
-      toast.error(error.message || "Đã có lỗi xảy ra");
+      console.error("Add house error:", error);
+      const errorMessage = error.message.includes("foreign key constraint")
+        ? "Thêm nhà thất bại: Có dữ liệu liên quan không hợp lệ. Vui lòng kiểm tra lại."
+        : error.message || "Đã có lỗi xảy ra khi thêm nhà";
+      toast.error(errorMessage);
     },
   });
 
@@ -76,29 +78,41 @@ const ModalAddHouse = (props) => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
       mutationCreateHouse.mutate({ data: formData });
     }
   };
 
+  const handleClose = () => {
+    const hasUnsavedChanges =
+      formData.TenNha || formData.DiaChi || formData.MoTa;
+    if (
+      hasUnsavedChanges &&
+      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
+    ) {
+      return;
+    }
+    setOpen(false);
+    resetForm();
+  };
+
+  const isFormDisabled = mutationCreateHouse.isPending;
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={() => {
-        setOpen(!open);
-        resetForm();
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <Plus className="h-5 w-5 text-white" />
+        <Button
+          className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
+          aria-label="Thêm nhà mới"
+        >
+          <Plus className="h-5 w-5" />
           Thêm nhà
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5 rounded"
+        className="w-3/5 max-w-2xl rounded transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -109,7 +123,7 @@ const ModalAddHouse = (props) => {
             Vui lòng nhập đầy đủ thông tin để thêm nhà mới.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="tennha">Tên nhà</Label>
@@ -118,9 +132,10 @@ const ModalAddHouse = (props) => {
                 id="tennha"
                 name="TenNha"
                 placeholder="Nhà A"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.TenNha}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div>
@@ -130,9 +145,10 @@ const ModalAddHouse = (props) => {
                 id="diachi"
                 name="DiaChi"
                 placeholder="123 Đường ABC, Quận XYZ"
-                className="rounded mt-2"
+                className="rounded mt-2 shadow-none"
                 value={formData.DiaChi}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
             <div className="col-span-2">
@@ -141,31 +157,41 @@ const ModalAddHouse = (props) => {
                 id="mota"
                 name="MoTa"
                 placeholder="Mô tả chi tiết về nhà"
-                className="rounded mt-2 min-h-[100px]"
+                className="rounded mt-2 min-h-[100px] shadow-none"
                 value={formData.MoTa}
                 onChange={handleChange}
+                disabled={isFormDisabled}
               />
             </div>
           </div>
+          <DialogFooter>
+            <Button
+              type="submit"
+              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              disabled={isFormDisabled}
+              aria-label="Thêm nhà mới"
+            >
+              {mutationCreateHouse.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Lưu"
+              )}
+            </Button>
+            <Button
+              type="button"
+              className="rounded cursor-pointer"
+              onClick={handleClose}
+              disabled={isFormDisabled}
+              variant="destructive"
+              aria-label="Hủy thêm nhà"
+            >
+              Đóng
+            </Button>
+          </DialogFooter>
         </form>
-        <DialogFooter>
-          <Button
-            type="button"
-            className="cursor-pointer rounded"
-            onClick={() => {
-              setOpen(!open);
-            }}
-          >
-            Đóng
-          </Button>
-          <Button
-            type="submit"
-            className="cursor-pointer rounded"
-            onClick={(e) => handleSubmit(e)}
-          >
-            Thêm
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

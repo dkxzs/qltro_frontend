@@ -44,7 +44,6 @@ const AdminInvoice = () => {
   });
 
   useEffect(() => {
-    // Chỉ hiển thị lỗi khi isError = true hoặc khi data đã được tải và EC khác 0
     if (isError || (data && data.EC !== 0)) {
       toast.error(data?.EM || "Có lỗi xảy ra khi tải danh sách hóa đơn");
     }
@@ -52,8 +51,22 @@ const AdminInvoice = () => {
 
   const invoices = data?.DT || [];
 
+  // Tính totalPaid và remaining cho mỗi hóa đơn
+  const enhancedInvoices = invoices.map((invoice) => {
+    const totalPaid =
+      invoice.ThanhToans?.reduce((sum, p) => sum + p.SoTien, 0) || 0;
+    const totalInvoice = invoice.TongTien || 0;
+    const remaining = totalInvoice - totalPaid;
+
+    return {
+      ...invoice,
+      totalPaid,
+      remaining,
+    };
+  });
+
   // Lọc dữ liệu theo tên phòng và trạng thái
-  const filteredInvoices = invoices.filter((invoice) => {
+  const filteredInvoices = enhancedInvoices.filter((invoice) => {
     const matchesRoom =
       searchText === "" ||
       invoice.ThuePhong?.PhongTro?.TenPhong?.toLowerCase().includes(

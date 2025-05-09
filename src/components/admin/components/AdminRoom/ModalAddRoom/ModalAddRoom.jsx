@@ -21,36 +21,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { getAllHouseService } from "@/services/houseServices";
 import { createRoomService } from "@/services/roomServices";
 import { getAllRoomTypeService } from "@/services/roomTypeServices";
+import { ROOM_STATUS_VALUE } from "@/utils/roomStatusUtils";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { ROOM_STATUS, ROOM_STATUS_VALUE } from "@/utils/roomStatusUtils";
 
 const ModalAddRoom = ({ refetch }) => {
   const [open, setOpen] = useState(false);
   const inputRef = useRef(null);
-  // Trong phần khởi tạo form
   const [formData, setFormData] = useState({
     tenPhong: "",
     maNha: "",
     maLoaiPhong: "",
     dienTich: "",
     moTa: "",
-    trangThai: ROOM_STATUS_VALUE["Còn trống"], // Mặc định là "Còn trống" (0)
+    trangThai: ROOM_STATUS_VALUE["Còn trống"],
     anh: null,
     chiSoDien: "",
     chiSoNuoc: "",
   });
   const [previewImage, setPreviewImage] = useState(null);
 
-  const { data: roomTypeData } = useQuery({
+  const { data: roomTypeData, isLoading: isRoomTypeLoading } = useQuery({
     queryKey: ["roomTypes"],
     queryFn: getAllRoomTypeService,
     enabled: open,
   });
 
-  const { data: houseData } = useQuery({
+  const { data: houseData, isLoading: isHouseLoading } = useQuery({
     queryKey: ["houses"],
     queryFn: getAllHouseService,
     enabled: open,
@@ -103,8 +102,10 @@ const ModalAddRoom = ({ refetch }) => {
       maLoaiPhong: "",
       dienTich: "",
       moTa: "",
-      trangThai: 0,
+      trangThai: ROOM_STATUS_VALUE["Còn trống"],
       anh: null,
+      chiSoDien: "",
+      chiSoNuoc: "",
     });
     setPreviewImage(null);
   };
@@ -117,7 +118,7 @@ const ModalAddRoom = ({ refetch }) => {
     onSuccess: (data) => {
       toast.success(data.EM || "Thêm phòng thành công");
       resetForm();
-      setOpen(false);
+      setTimeout(() => setOpen(false), 300); // Slight delay for smoother UX
       if (refetch) refetch();
     },
     onError: (error) => {
@@ -160,6 +161,9 @@ const ModalAddRoom = ({ refetch }) => {
     mutationCreateRoom.mutate({ data: formData });
   };
 
+  const isFormDisabled =
+    mutationCreateRoom.isPending || isRoomTypeLoading || isHouseLoading;
+
   return (
     <Dialog
       open={open}
@@ -175,7 +179,7 @@ const ModalAddRoom = ({ refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-1/2 rounded max-h-[95vh] overflow-hidden"
+        className="w-1/2 rounded max-h-[95vh] overflow-hidden transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -206,6 +210,7 @@ const ModalAddRoom = ({ refetch }) => {
                     onChange={handleChange}
                     className="rounded shadow-none"
                     placeholder="Nhập tên phòng"
+                    disabled={isFormDisabled}
                   />
                 </div>
                 <div className="space-y-2">
@@ -218,12 +223,18 @@ const ModalAddRoom = ({ refetch }) => {
                       onValueChange={(value) =>
                         setFormData({ ...formData, maNha: value })
                       }
+                      disabled={isFormDisabled}
                     >
                       <SelectTrigger className="w-full rounded cursor-pointer shadow-none">
                         <SelectValue placeholder="Chọn nhà" />
                       </SelectTrigger>
                       <SelectContent className="rounded w-full">
-                        {houseData?.DT &&
+                        {isHouseLoading ? (
+                          <SelectItem disabled value="loading">
+                            Đang tải...
+                          </SelectItem>
+                        ) : (
+                          houseData?.DT &&
                           houseData.DT.length > 0 &&
                           houseData.DT.map((house) => (
                             <SelectItem
@@ -233,7 +244,8 @@ const ModalAddRoom = ({ refetch }) => {
                             >
                               {house.TenNha}
                             </SelectItem>
-                          ))}
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -250,12 +262,18 @@ const ModalAddRoom = ({ refetch }) => {
                       onValueChange={(value) =>
                         setFormData({ ...formData, maLoaiPhong: value })
                       }
+                      disabled={isFormDisabled}
                     >
                       <SelectTrigger className="w-full rounded cursor-pointer shadow-none">
                         <SelectValue placeholder="Chọn loại phòng" />
                       </SelectTrigger>
                       <SelectContent className="rounded">
-                        {roomTypeData?.DT &&
+                        {isRoomTypeLoading ? (
+                          <SelectItem disabled value="loading">
+                            Đang tải...
+                          </SelectItem>
+                        ) : (
+                          roomTypeData?.DT &&
                           roomTypeData.DT.length > 0 &&
                           roomTypeData.DT.map((type) => (
                             <SelectItem
@@ -266,7 +284,8 @@ const ModalAddRoom = ({ refetch }) => {
                               {type.TenLoaiPhong} -{" "}
                               {type.DonGia.toLocaleString()}đ
                             </SelectItem>
-                          ))}
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -282,6 +301,7 @@ const ModalAddRoom = ({ refetch }) => {
                     onChange={handleChange}
                     className="rounded shadow-none"
                     placeholder="Nhập diện tích phòng"
+                    disabled={isFormDisabled}
                   />
                 </div>
               </div>
@@ -296,8 +316,9 @@ const ModalAddRoom = ({ refetch }) => {
                       name="chiSoDien"
                       value={formData.chiSoDien}
                       onChange={handleChange}
-                      className=" rounded shadow-none"
+                      className="rounded shadow-none"
                       placeholder="Nhập chỉ số điện ban đầu"
+                      disabled={isFormDisabled}
                     />
                   </div>
                 </div>
@@ -313,6 +334,7 @@ const ModalAddRoom = ({ refetch }) => {
                       onChange={handleChange}
                       className="rounded shadow-none"
                       placeholder="Nhập chỉ số nước ban đầu"
+                      disabled={isFormDisabled}
                     />
                   </div>
                 </div>
@@ -329,6 +351,7 @@ const ModalAddRoom = ({ refetch }) => {
                   className="shadow-none"
                   placeholder="Nhập mô tả phòng"
                   rows={4}
+                  disabled={isFormDisabled}
                 />
               </div>
               <div className="grid items-start gap-2">
@@ -343,31 +366,32 @@ const ModalAddRoom = ({ refetch }) => {
                     accept="image/*"
                     onChange={(e) => handleChangeImage(e)}
                     hidden
-                    className=" rounded cursor-pointer"
+                    className="rounded cursor-pointer"
                     ref={inputRef}
+                    disabled={isFormDisabled}
                   />
                   {previewImage ? (
-                    <>
-                      <div
-                        className="w-35 rounded border-dashed border-2 cursor-pointer"
-                        onClick={() => inputRef.current.click()}
-                      >
-                        <img
-                          src={previewImage}
-                          alt="Preview"
-                          className="w-35 h-35 rounded p-1"
-                        />
-                      </div>
-                    </>
+                    <div
+                      className="w-35 rounded border-dashed border-2 cursor-pointer"
+                      onClick={() =>
+                        !isFormDisabled && inputRef.current.click()
+                      }
+                    >
+                      <img
+                        src={previewImage}
+                        alt="Preview"
+                        className="w-35 h-35 rounded p-1"
+                      />
+                    </div>
                   ) : (
-                    <>
-                      <div
-                        className="w-35 h-35 cursor-pointer rounded border-dashed border-2 flex items-center justify-center"
-                        onClick={() => inputRef.current.click()}
-                      >
-                        Chọn ảnh
-                      </div>
-                    </>
+                    <div
+                      className="w-35 h-35 cursor-pointer rounded border-dashed border-2 flex items-center justify-center"
+                      onClick={() =>
+                        !isFormDisabled && inputRef.current.click()
+                      }
+                    >
+                      Chọn ảnh
+                    </div>
                   )}
                 </div>
               </div>
@@ -376,20 +400,29 @@ const ModalAddRoom = ({ refetch }) => {
               * Lưu ý: Chỉ số điện và nước sẽ không thể chỉnh sửa sau khi lưu.
               Vui lòng nhập chính xác.
             </p>
-            <DialogFooter>
+            <DialogFooter className="mb-1">
+              <Button
+                type="submit"
+                disabled={isFormDisabled}
+                className="cursor-pointer rounded bg-blue-600 flex items-center gap-2"
+              >
+                {mutationCreateRoom.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Đang thêm...
+                  </>
+                ) : (
+                  "Lưu"
+                )}
+              </Button>
               <Button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="mr-2 cursor-pointer rounded"
+                className=" cursor-pointer rounded"
+                disabled={isFormDisabled}
+                variant="destructive"
               >
                 Đóng
-              </Button>
-              <Button
-                type="submit"
-                disabled={mutationCreateRoom.isPending}
-                className="cursor-pointer rounded"
-              >
-                {mutationCreateRoom.isPending ? "Đang xử lý..." : "Thêm"}
               </Button>
             </DialogFooter>
           </form>
@@ -397,11 +430,11 @@ const ModalAddRoom = ({ refetch }) => {
         <style>
           {`
             .scrollbar-hide {
-              -ms-overflow-style: none; /* IE and Edge */
-              scrollbar-width: none; /* Firefox */
+              -ms-overflow-style: none; 
+              scrollbar-width: none; 
             }
             .scrollbar-hide::-webkit-scrollbar {
-              display: none; /* Chrome, Safari, Opera */
+              display: none;
             }
           `}
         </style>
