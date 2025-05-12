@@ -7,17 +7,12 @@ import {
 } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { House, Users } from "lucide-react";
-import { FaMoneyCheckDollar } from "react-icons/fa6";
 import { GiMoneyStack } from "react-icons/gi";
-import {
-  MdBedroomChild,
-  MdBedroomParent,
-  MdOutlineBedroomChild,
-} from "react-icons/md";
+import { MdBedroomChild, MdBedroomParent } from "react-icons/md";
 
 const SectionCards = () => {
   return (
-    <div className="*:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4 grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card">
+    <div className="*:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-5 grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card">
       <Card className="@container/card py-2 justify-center gap-3 rounded-md shadow-none">
         <CardHeader className="relative">
           <CardDescription>
@@ -82,7 +77,7 @@ const SectionCards = () => {
             <GiMoneyStack className="size-7 text-green-600" />
           </CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {formatCurrency(1200000000)} đ
+            {formatCurrency(12000000)} đ
           </CardTitle>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1 text-sm">

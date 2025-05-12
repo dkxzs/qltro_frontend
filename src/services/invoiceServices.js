@@ -14,3 +14,10 @@ export const getInvoiceByIdService = async (id) => {
   const res = await axios.get(`/invoice/get-invoice/${id}`);
   return res.data;
 };
+
+export const invoiceByMonthYearService = async (month, year) => {
+  const res = await axios.get(
+    `/invoice/get-invoice-by-month-year/${month}/${year}`
+  );
+  return res.data;
+};

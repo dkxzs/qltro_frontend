@@ -71,7 +71,7 @@ const AdminRent = () => {
     <div className="p-2">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1">
-          <FaFileContract className="size-5" />
+          <FaFileContract className="size-4" />
           <h1 className="text-2xl font-semibold ">Quản lý thuê phòng</h1>
         </div>
         <Breadcrumb>

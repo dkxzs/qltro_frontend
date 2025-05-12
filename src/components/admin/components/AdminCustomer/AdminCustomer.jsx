@@ -1,3 +1,11 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,20 +13,14 @@ import { getAllCustomerService } from "@/services/customerServices";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useState } from "react";
+import { FaUserFriends } from "react-icons/fa";
 import Pagination from "../Pagination/Pagination";
 import ModalAddUser from "./ModalAddCustomer/ModalAddCustomer";
-import TableUser from "./TableUser/TableUser";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { FaUserFriends } from "react-icons/fa";
+import TableUser from "./TableCustomer/TableCustomer";
+import { exportToExcel } from "@/utils/exportToExcel";
+import { toast } from "react-toastify";
 
-const AdminUser = () => {
+const AdminCustomer = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,10 +46,49 @@ const AdminUser = () => {
     setCurrentPage(pageNumber);
   };
 
+  const handleExportExcel = () => {
+    if (!filteredUserData || filteredUserData.length === 0) {
+      toast.warning("Không có dữ liệu để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "MaKH", label: "Mã khách hàng" },
+      { key: "HoTen", label: "Họ và tên" },
+      { key: "DienThoai", label: "Số điện thoại" },
+      { key: "CCCD", label: "Căn cước công dân" },
+      { key: "Email", label: "Email" },
+      { key: "DiaChi", label: "Địa chỉ" },
+      { key: "NgaySinh", label: "Ngày sinh" },
+      { key: "GioiTinh", label: "Giới tính" },
+      {
+        key: "TrangThai",
+        label: "Trạng thái",
+        format: (value) => (value ? "Đang thuê" : "Đã trả"),
+      },
+    ];
+
+    const success = exportToExcel(
+      filteredUserData,
+      headers,
+      `Danh_sach_khach_tro_${new Date().toISOString().split("T")[0]}`,
+      "Danh sách khách trọ",
+      { title: "DANH SÁCH KHÁCH TRỌ" }
+    );
+
+    if (success) {
+      toast.success("Xuất dữ liệu thành công");
+    } else {
+      toast.error(
+        "Xuất dữ liệu thất bại. Vui lòng kiểm tra console để biết thêm chi tiết."
+      );
+    }
+  };
+
   return (
     <div className="p-2">
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <FaUserFriends className="size-6" />
           <h1 className="text-2xl font-semibold">Quản lý khách trọ</h1>
         </div>
@@ -104,7 +145,10 @@ const AdminUser = () => {
           <h2 className="text-xl font-semibold">Danh sách khách trọ</h2>
           <div className="flex items-center">
             <ModalAddUser refetch={refetch} />
-            <Button className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded">
+            <Button
+              className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded"
+              onClick={handleExportExcel}
+            >
               <Download className="h-4 w-4" />
               Xuất dữ liệu
             </Button>
@@ -112,8 +156,8 @@ const AdminUser = () => {
         </div>
       </div>
 
-      <div className="min-h-[380px] rounded">
-        <div className="rounded border overflow-hidden">
+      <div className="min-h-[380px] rounded w-full">
+        <div className="rounded border">
           <TableUser userData={paginatedData} refetch={refetch} />
         </div>
       </div>
@@ -131,4 +175,4 @@ const AdminUser = () => {
   );
 };
 
-export default AdminUser;
+export default AdminCustomer;

@@ -8,7 +8,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { logout } from "@/redux/slices/userSlice";
-import { LayoutDashboard, UserCog } from "lucide-react";
+import { LayoutDashboard, LogOut, UserCog } from "lucide-react";
 import { BsHouseGear } from "react-icons/bs";
 import { FiLogOut } from "react-icons/fi";
 import { GiExpense } from "react-icons/gi";
@@ -89,21 +89,16 @@ const data = {
       items: [],
     },
     {
-      title: "Thuê phòng",
+      title: "Hợp đồng",
       url: "/admin/rents",
       icon: MdOutlineBedroomParent,
       items: [],
     },
     {
       title: "Hoá đơn",
-      url: "",
+      url: "/admin/invoices",
       icon: LiaFileInvoiceDollarSolid,
-      items: [
-        {
-          title: "Quản lý hoá đơn",
-          url: "/admin/invoices",
-        },
-      ],
+      items: [],
     },
     {
       title: "Thống kê báo cáo",
@@ -134,6 +129,7 @@ export function AppSidebar({ ...props }) {
     dispatch(logout());
     navigate("/admin/login");
   };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="border-b">
@@ -145,10 +141,10 @@ export function AppSidebar({ ...props }) {
       <SidebarFooter className="border-t">
         <div className="flex items-center justify-center hover:bg-accent rounded">
           <SidebarMenuButton
-            className="flex justify-center items-center cursor-pointer"
+            className="flex justify-center items-center cursor-pointer "
             onClick={handleLogout}
           >
-            <FiLogOut className="size-4" />
+            <LogOut  className="size-4" />
             <span className="text-md">Đăng xuất</span>
           </SidebarMenuButton>
         </div>

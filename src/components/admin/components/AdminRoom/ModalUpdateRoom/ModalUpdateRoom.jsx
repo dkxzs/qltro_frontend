@@ -426,7 +426,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
           className="flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
           aria-label="Cập nhật phòng"
         >
-          <SquarePen className="size-5 text-blue-600" />
+          <SquarePen className="size-4 text-blue-600" />
         </Button>
       </DialogTrigger>
       <DialogContent

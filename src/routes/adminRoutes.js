@@ -7,7 +7,7 @@ import AdminReport from "@/components/admin/components/AdminReport/AdminReport";
 import AdminRoom from "@/components/admin/components/AdminRoom/AdminRoom";
 import AdminRoomType from "@/components/admin/components/AdminRoomType/AdminRoomType";
 import AdminService from "@/components/admin/components/AdminService/AdminService";
-import AdminUser from "@/components/admin/components/AdminCustomer/AdminUser";
+import AdminUser from "@/components/admin/components/AdminCustomer/AdminCustomer";
 import AdminWater from "@/components/admin/components/AdminWater/AdminWater";
 import AdminExpense from "@/components/admin/components/AdminExpense/AdminExpense";
 import AdminConfig from "@/components/admin/components/AdminConfig/AdminConfig";

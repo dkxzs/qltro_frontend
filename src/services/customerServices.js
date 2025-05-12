@@ -18,8 +18,8 @@ const createCustomerService = async (data) => {
   formData.append("Email", data.email);
   formData.append("DiaChi", data.address);
   formData.append("Anh", data.avatar);
-  formData.append("NgayCap", data.dateOfIssue); // Thêm ngày cấp
-  formData.append("NoiCap", data.placeOfIssue); // Thêm nơi cấp
+  formData.append("NgayCap", data.dateOfIssue);
+  formData.append("NoiCap", data.placeOfIssue);
   const res = await axios.post("/customer/create-customer", formData);
   return res.data;
 };
@@ -33,8 +33,8 @@ const updateCustomerService = async (id, data) => {
   formData.append("DienThoai", data.phoneNumber);
   formData.append("Email", data.email);
   formData.append("DiaChi", data.address);
-  formData.append("NgayCap", data.dateOfIssue); // Thêm ngày cấp
-  formData.append("NoiCap", data.placeOfIssue); // Thêm nơi cấp
+  formData.append("NgayCap", data.dateOfIssue);
+  formData.append("NoiCap", data.placeOfIssue);
   if (data.avatar instanceof File) {
     formData.append("Anh", data.avatar);
   }
@@ -52,10 +52,22 @@ const checkCustomerHasRentService = async (id) => {
   return res.data;
 };
 
+const historyCustomerRentService = async (id) => {
+  const res = await axios.get(`/customer/history-rent/${id}`);
+  return res.data;
+};
+
+const paymentHistoryService = async (id) => {
+  const res = await axios.get(`/customer/payment-history/${id}`);
+  return res.data;
+};
+
 export {
   createCustomerService,
   getAllCustomerService,
   updateCustomerService,
   deleteCustomerService,
   checkCustomerHasRentService,
+  historyCustomerRentService,
+  paymentHistoryService,
 };

@@ -1,6 +1,5 @@
-import { Label } from "@radix-ui/react-dropdown-menu";
-import SectionCards from "./Section-card";
 import { LayoutDashboard } from "lucide-react";
+import SectionCards from "./SectionCard";
 
 const AdminDashBoard = () => {
   return (

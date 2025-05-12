@@ -224,7 +224,7 @@ const ModalAddRent = () => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-          <Plus className="size-5" />
+          <Plus className="size-4" />
           Tạo hợp đồng
         </Button>
       </DialogTrigger>

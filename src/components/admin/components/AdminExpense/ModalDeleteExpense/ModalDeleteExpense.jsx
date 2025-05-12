@@ -53,7 +53,7 @@ const ModalDeleteExpense = ({ dataDelete, refetch, disabled }) => {
           disabled={disabled}
           aria-label="Mở modal xóa chi phí phát sinh"
         >
-          <Trash2 className="size-5 text-red-600" />
+          <Trash2 className="size-4 text-red-600" />
         </Button>
       </DialogTrigger>
       <DialogContent

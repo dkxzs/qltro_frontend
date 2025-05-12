@@ -124,7 +124,7 @@ const ModalUpdateExpense = ({ dataUpdate, refetch, disabled }) => {
           disabled={disabled}
           aria-label="Mở modal cập nhật chi phí phát sinh"
         >
-          <SquarePen className="size-5 text-blue-700" />
+          <SquarePen className="size-4 text-blue-700" />
         </Button>
       </DialogTrigger>
       <DialogContent

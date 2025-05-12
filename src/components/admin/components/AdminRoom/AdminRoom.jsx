@@ -266,7 +266,7 @@ const AdminRoom = () => {
               <ModalAddRoom houseId={currentTab} refetch={refetch} />
               <Button
                 variant="outline"
-                className="bg-yellow-500 hover:bg-yellow-500 text-white rounded cursor-pointer hover:text-white"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
                 onClick={handleExportExcel}
               >
                 <Download className="h-4 w-4" />

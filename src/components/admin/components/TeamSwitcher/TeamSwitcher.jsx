@@ -17,7 +17,7 @@ const TeamSwitcher = () => {
               className="flex gap-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-sidebar"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <SiGooglecampaignmanager360 className="size-5" />
+                <SiGooglecampaignmanager360 className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold text-2xl fontFamily tracking-widest">

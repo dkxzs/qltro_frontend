@@ -57,7 +57,7 @@ const ModalDeleteRoomType = ({ dataDelete, refetch }) => {
           className=" flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
           aria-label="Xóa loại phòng"
         >
-          <Trash2 className="size-5 text-red-600" />
+          <Trash2 className="size-4 text-red-600" />
         </Button>
       </DialogTrigger>
       <DialogContent

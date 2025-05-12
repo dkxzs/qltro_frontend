@@ -131,7 +131,7 @@ const ModalAddInvoice = () => {
     >
       <DialogTrigger asChild>
         <Button className="bg-green-600 hover:bg-green-700 rounded cursor-pointer">
-          <Calculator className="mr-2 h-4 w-4" /> Tính tiền hoá đơn
+          <Calculator className="h-4 w-4" /> Tính tiền hoá đơn
         </Button>
       </DialogTrigger>
       <DialogContent

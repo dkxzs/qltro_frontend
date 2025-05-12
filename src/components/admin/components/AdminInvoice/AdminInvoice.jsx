@@ -17,29 +17,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  ChevronDown,
-  ChevronUp,
-  CreditCard,
-  Eye,
-  FileText,
-} from "lucide-react";
-import { useState } from "react";
+  getAllInvoiceService,
+  invoiceByMonthYearService,
+} from "@/services/invoiceServices";
+import { exportToExcel } from "@/utils/exportToExcel"; // Thêm import
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import { useEffect, useState } from "react";
 import { LiaFileInvoiceSolid } from "react-icons/lia";
+import { toast } from "react-toastify";
 import ModalAddInvoice from "./ModalAddInvoice/ModalAddInvoice";
 import TableInvoice from "./TableInvoice/TableInvoice";
-import { useQuery } from "@tanstack/react-query";
-import { getAllInvoiceService } from "@/services/invoiceServices";
-import { toast } from "react-toastify";
-import { useEffect } from "react";
 
 const AdminInvoice = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedMonthYear, setSelectedMonthYear] = useState("");
+
+  // Xác định queryFn dựa trên selectedMonthYear
+  const queryFn = selectedMonthYear
+    ? async () => {
+        const [year, month] = selectedMonthYear.split("-");
+        return await invoiceByMonthYearService(month, year);
+      }
+    : getAllInvoiceService;
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: getAllInvoiceService,
+    queryKey: ["invoices", selectedMonthYear],
+    queryFn: queryFn,
     enabled: true,
   });
 
@@ -54,7 +60,7 @@ const AdminInvoice = () => {
   // Tính totalPaid và remaining cho mỗi hóa đơn
   const enhancedInvoices = invoices.map((invoice) => {
     const totalPaid =
-      invoice.ThanhToans?.reduce((sum, p) => sum + p.SoTien, 0) || 0;
+      invoice.ThanhToan?.reduce((sum, p) => sum + p.SoTien, 0) || 0;
     const totalInvoice = invoice.TongTien || 0;
     const remaining = totalInvoice - totalPaid;
 
@@ -78,6 +84,67 @@ const AdminInvoice = () => {
       (statusFilter === "Đã thanh toán" && invoice.TrangThai === 1);
     return matchesRoom && matchesStatus;
   });
+
+  // Hàm xử lý xuất Excel
+  const handleExportExcel = async () => {
+    if (!filteredInvoices || filteredInvoices.length === 0) {
+      toast.warning("Không có dữ liệu để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "MaHD", label: "Mã hóa đơn" },
+      {
+        key: "NgayLap",
+        label: "Ngày lập",
+      },
+      {
+        path: "ThuePhong.PhongTro.Nha.TenNha",
+        label: "Tên nhà",
+      },
+      {
+        path: "ThuePhong.PhongTro.TenPhong",
+        label: "Tên phòng",
+        format: (value) => value || "N/A",
+      },
+      {
+        key: "TongTien",
+        label: "Tổng tiền (VNĐ)",
+      },
+      {
+        key: "totalPaid",
+        label: "Đã thanh toán (VNĐ)",
+      },
+      {
+        key: "remaining",
+        label: "Còn lại (VNĐ)",
+      },
+      {
+        key: "TrangThai",
+        label: "Trạng thái",
+        format: (value) => (value === 0 ? "Chưa thanh toán" : "Đã thanh toán"),
+      },
+    ];
+
+    try {
+      const success = await exportToExcel(
+        filteredInvoices,
+        headers,
+        `Danh_sach_hoa_don_${new Date().toISOString().split("T")[0]}`,
+        "Danh sách hóa đơn",
+        { title: "DANH SÁCH HÓA ĐƠN" }
+      );
+
+      if (success) {
+        toast.success("Xuất dữ liệu thành công");
+      } else {
+        toast.error("Xuất dữ liệu thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Xuất dữ liệu thất bại");
+    }
+  };
 
   return (
     <div className="mx-auto p-2">
@@ -117,10 +184,10 @@ const AdminInvoice = () => {
           </div>
 
           {isFilterExpanded && (
-            <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-2 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <label className="w-27 text-sm">Tên phòng:</label>
+                  <label className="w-24 text-sm">Tên phòng:</label>
                   <Input
                     placeholder="Nhập tên phòng"
                     className="flex-1 rounded outline-none shadow-none"
@@ -131,7 +198,18 @@ const AdminInvoice = () => {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <label className="w-25 text-sm">Trạng thái:</label>
+                  <label className="w-24 text-sm">Tháng/Năm:</label>
+                  <Input
+                    type="month"
+                    className="flex-1 rounded outline-none shadow-none"
+                    value={selectedMonthYear}
+                    onChange={(e) => setSelectedMonthYear(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <label className="w-24 text-sm">Trạng thái:</label>
                   <Select
                     value={statusFilter}
                     onValueChange={setStatusFilter}
@@ -168,11 +246,14 @@ const AdminInvoice = () => {
         </CardContent>
       </Card>
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Danh sách hoá đơn</h1>
+        <h1 className="text-sm md:text-lg font-semibold">Danh sách hoá đơn</h1>
         <div className="flex items-center gap-2">
           <ModalAddInvoice />
-          <Button className="rounded cursor-pointer bg-yellow-500 hover:bg-yellow-600">
-            Xuất dữ liệu
+          <Button
+            className="rounded cursor-pointer bg-yellow-500 hover:bg-yellow-600"
+            onClick={handleExportExcel}
+          >
+            <Download className="h-4 w-4" /> Xuất dữ liệu
           </Button>
         </div>
       </div>

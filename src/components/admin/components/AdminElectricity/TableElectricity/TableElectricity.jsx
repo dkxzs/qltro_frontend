@@ -443,9 +443,9 @@ const TableElectricity = ({ electricData, month, year }) => {
                       aria-label="Lưu chỉ số điện nước"
                     >
                       {createMutation.isPending || updateMutation.isPending ? (
-                        <Loader2 className="size-5 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
-                        <Save className="size-5 text-green-700" />
+                        <Save className="size-4 text-green-700" />
                       )}
                     </Button>
                     <Button
@@ -453,7 +453,7 @@ const TableElectricity = ({ electricData, month, year }) => {
                       className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer"
                       aria-label="Xem lịch sử điện nước"
                     >
-                      <History className="size-5 text-blue-700" />
+                      <History className="size-4 text-blue-700" />
                     </Button>
                   </div>
                 </TableCell>

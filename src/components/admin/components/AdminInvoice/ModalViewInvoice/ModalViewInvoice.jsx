@@ -551,7 +551,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
         onClick={() => setOpen(true)}
         className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer"
       >
-        <Eye className="size-5 text-blue-600" />
+        <Eye className="size-4 text-blue-600" />
       </Button>
 
       <DialogContent

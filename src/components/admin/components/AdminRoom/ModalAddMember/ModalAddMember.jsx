@@ -137,7 +137,7 @@ const ModalAddMember = ({ room }) => {
           className="flex items-center cursor-pointer  bg-transparent border-none rounded-none shadow-none outline-none text-white"
           aria-label="Thêm thành viên mới"
         >
-          <UserPlus className="size-5 text-green-600" />
+          <UserPlus className="size-4 text-green-600" />
         </Button>
       </DialogTrigger>
       <DialogContent
@@ -181,7 +181,7 @@ const ModalAddMember = ({ room }) => {
                       variant="primary"
                       size="sm"
                     >
-                      <X className="size-5 text-red-600" />
+                      <X className="size-4 text-red-600" />
                     </Button>
                   )}
                 </div>

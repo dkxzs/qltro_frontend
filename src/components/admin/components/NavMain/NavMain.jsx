@@ -17,6 +17,35 @@ import {
 import { Link } from "react-router-dom";
 
 const NavMain = ({ items }) => {
+  const getIconColor = (title) => {
+    switch (title) {
+      case "Tổng quan":
+        return "text-blue-500";
+      case "Phòng trọ":
+        return "text-yellow-500";
+      case "Khách trọ":
+        return "text-green-500";
+      case "Dịch vụ":
+        return "text-purple-500";
+      case "Chỉ số điện":
+        return "text-orange-500";
+      case "Chỉ số nước":
+        return "text-blue-700";
+      case "Hợp đồng":
+        return "text-indigo-500";
+      case "Hoá đơn":
+        return "text-teal-500";
+      case "Thống kê báo cáo":
+        return "text-red-500";
+      case "Chi phí phát sinh":
+        return "text-pink-500";
+      case "Cấu hình":
+        return "text-gray-500";
+      default:
+        return "text-gray-400"; // Màu mặc định
+    }
+  };
+
   return (
     <SidebarGroup>
       <SidebarMenu>
@@ -25,7 +54,11 @@ const NavMain = ({ items }) => {
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild tooltip={item.title}>
                 <Link to={item.url}>
-                  {item.icon && <item.icon />}
+                  {item.icon && (
+                    <item.icon
+                      className={`${getIconColor(item.title)} size-4 mr-2`}
+                    />
+                  )}
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
@@ -43,7 +76,11 @@ const NavMain = ({ items }) => {
                     tooltip={item.title}
                     className="cursor-pointer"
                   >
-                    {item.icon && <item.icon />}
+                    {item.icon && (
+                      <item.icon
+                        className={`${getIconColor(item.title)} size-4 mr-2`}
+                      />
+                    )}
                     <span>{item.title}</span>
                     {item.items.length > 0 && (
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />

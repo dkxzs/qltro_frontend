@@ -4,7 +4,7 @@ import { saveAs } from "file-saver";
 /**
  * Xuất dữ liệu ra file Excel
  * @param {Array} data - Mảng dữ liệu cần xuất
- * @param {Array} headers - Mảng chứa thông tin header (tên cột)
+ * @param {Array} headers - Mảng chứa thông tin header (tên cột, key, và đường dẫn nếu có)
  * @param {string} filename - Tên file xuất ra (không cần đuôi .xlsx)
  * @param {string} sheetName - Tên sheet trong file Excel
  * @param {Object} options - Tùy chọn bổ sung (title)
@@ -28,7 +28,6 @@ export const exportToExcel = async (
     const worksheet = workbook.addWorksheet(sheetName);
 
     // Thêm tiêu đề nếu có
-    let rowIndex = 1;
     if (options.title) {
       // Thêm dòng tiêu đề
       const titleRow = worksheet.addRow([options.title]);
@@ -56,7 +55,6 @@ export const exportToExcel = async (
 
       // Thêm dòng trống sau tiêu đề
       worksheet.addRow([]);
-      rowIndex = 3;
     }
 
     // Thêm header
@@ -67,7 +65,7 @@ export const exportToExcel = async (
     headerRow.height = 20;
 
     // Định dạng header
-    headerRow.eachCell((cell, colNumber) => {
+    headerRow.eachCell((cell) => {
       cell.fill = {
         type: "pattern",
         pattern: "solid",
@@ -88,20 +86,31 @@ export const exportToExcel = async (
     // Thêm dữ liệu
     data.forEach((item) => {
       const rowData = headers.map((header) => {
-        const value = item[header.key];
+        let value = item;
+
+        // Xử lý đường dẫn lồng nhau nếu có
+        if (header.path) {
+          const pathParts = header.path.split(".");
+          for (const part of pathParts) {
+            value = value?.[part];
+            if (value === undefined || value === null) break;
+          }
+        } else {
+          value = item[header.key];
+        }
 
         // Xử lý định dạng nếu có
         if (header.format && typeof header.format === "function") {
-          return header.format(value);
+          return header.format(value, item); // Truyền cả item để format có thể truy cập dữ liệu gốc
         }
 
-        return value;
+        return value !== undefined && value !== null ? value : "";
       });
 
       const row = worksheet.addRow(rowData);
 
       // Định dạng dòng dữ liệu
-      row.eachCell((cell, colNumber) => {
+      row.eachCell((cell) => {
         cell.border = {
           top: { style: "thin" },
           left: { style: "thin" },

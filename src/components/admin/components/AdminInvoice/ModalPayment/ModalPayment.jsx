@@ -106,7 +106,7 @@ const ModalPayment = ({ invoiceId, invoiceData }) => {
       <DialogTrigger asChild>
         <Button className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer">
           <Tooltip>
-            <BsCash className="size-5 text-green-600" />
+            <BsCash className="size-4 text-green-600" />
           </Tooltip>
         </Button>
       </DialogTrigger>

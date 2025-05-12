@@ -102,7 +102,7 @@ const AdminExpense = () => {
     <div className="p-2">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-1">
-          <GiExpense className="size-5" />
+          <GiExpense className="size-4" />
           <h1 className="text-2xl font-semibold ">Quản lý chi phí phát sinh</h1>
         </div>
         <Breadcrumb>
@@ -139,7 +139,7 @@ const AdminExpense = () => {
             <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <label className="w-28 text-sm">Nhà:</label>
+                  <label className="w-21 text-sm">Nhà:</label>
                   <Select
                     value={selectedHouse}
                     onValueChange={handleHouseChange}
@@ -163,7 +163,7 @@ const AdminExpense = () => {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <label className="w-28 text-sm">Phòng:</label>
+                  <label className="w-23 text-sm">Phòng:</label>
                   <Select
                     value={selectedRoom}
                     onValueChange={handleRoomChange}

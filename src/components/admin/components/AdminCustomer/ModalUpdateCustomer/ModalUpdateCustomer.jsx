@@ -288,7 +288,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
           className="flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
           aria-label="Cập nhật thông tin khách trọ"
         >
-          <SquarePen className="size-5 text-blue-700" />
+          <SquarePen className="size-4 text-blue-700" />
         </Button>
       </DialogTrigger>
       <DialogContent
