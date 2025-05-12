@@ -144,7 +144,7 @@ export function AppSidebar({ ...props }) {
             className="flex justify-center items-center cursor-pointer "
             onClick={handleLogout}
           >
-            <LogOut  className="size-4" />
+            <LogOut className="size-4" />
             <span className="text-md">Đăng xuất</span>
           </SidebarMenuButton>
         </div>

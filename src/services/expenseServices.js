@@ -51,3 +51,10 @@ export const deleteExpenseService = async (id) => {
   const res = await axios.delete(`/expense/delete-expense/${id}`);
   return res.data;
 };
+
+export const getExpenseByMonthYearService = async (month, year) => {
+  const res = await axios.get(
+    `/expense/get-expenses-by-month-year/${month}/${year}`
+  );
+  return res.data;
+};

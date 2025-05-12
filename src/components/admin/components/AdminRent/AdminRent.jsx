@@ -24,6 +24,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { exportToExcel } from "@/utils/exportToExcel"; // Thêm import
+import { toast } from "react-toastify"; // Thêm import để hiển thị thông báo
 
 const AdminRent = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -67,12 +69,80 @@ const AdminRent = () => {
     }
   }, [rentData, selectedHouse, roomName]);
 
+  // Hàm xử lý xuất Excel
+  const handleExportExcel = async () => {
+    if (!filteredRentData || filteredRentData.length === 0) {
+      toast.warning("Không có dữ liệu để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "MaTP", label: "Mã hợp đồng" },
+      {
+        path: "KhachHang.HoTen",
+        label: "Tên khách hàng",
+        format: (value) => value || "N/A",
+      },
+      {
+        path: "PhongTro.Nha.TenNha",
+        label: "Tên nhà",
+        format: (value) => value || "N/A",
+      },
+      {
+        path: "PhongTro.TenPhong",
+        label: "Tên phòng",
+        format: (value) => value || "N/A",
+      },
+      {
+        key: "NgayBatDau",
+        label: "Ngày bắt đầu",
+        format: (value) =>
+          value ? new Date(value).toLocaleDateString("vi-VN") : "N/A",
+      },
+      {
+        key: "NgayKetThuc",
+        label: "Ngày kết thúc",
+        format: (value) =>
+          value ? new Date(value).toLocaleDateString("vi-VN") : "N/A",
+      },
+      {
+        key: "DonGia",
+        label: "Đơn giá (VNĐ)",
+        format: (value) => (value ? value.toLocaleString("vi-VN") : "0"),
+      },
+      {
+        key: "DatCoc",
+        label: "Đặt cọc (VNĐ)",
+        format: (value) => (value ? value.toLocaleString("vi-VN") : "0"),
+      },
+    ];
+
+    try {
+      const success = await exportToExcel(
+        filteredRentData,
+        headers,
+        `Danh_sach_hop_dong_${new Date().toISOString().split("T")[0]}`,
+        "Danh sách hợp đồng",
+        { title: "DANH SÁCH HỢP ĐỒNG" }
+      );
+
+      if (success) {
+        toast.success("Xuất dữ liệu thành công");
+      } else {
+        toast.error("Xuất dữ liệu thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Xuất dữ liệu thất bại");
+    }
+  };
+
   return (
     <div className="p-2">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1">
-          <FaFileContract className="size-4" />
-          <h1 className="text-2xl font-semibold ">Quản lý thuê phòng</h1>
+          <FaFileContract className="size-5" />
+          <h1 className="text-2xl font-semibold ">Quản lý hợp đồng</h1>
         </div>
         <Breadcrumb>
           <BreadcrumbList>
@@ -161,8 +231,11 @@ const AdminRent = () => {
         <h3 className="text-lg font-medium">Danh sách hợp đồng</h3>
         <div className="flex gap-2">
           <ModalAddRent />
-          <Button className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white">
-            <Download className="h-4 w-4" />
+          <Button
+            className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
+            onClick={handleExportExcel} // Gắn hàm xuất Excel vào nút
+          >
+            <Download className="h-4 w-4 mr-2" />
             Xuất dữ liệu
           </Button>
         </div>

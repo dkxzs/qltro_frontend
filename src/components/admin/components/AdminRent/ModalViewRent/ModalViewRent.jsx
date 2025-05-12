@@ -5,6 +5,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { formatCurrency, numberToText } from "@/utils/formatCurrency";
 import { format } from "date-fns";
@@ -22,12 +23,12 @@ import {
   WidthType,
 } from "docx";
 import { saveAs } from "file-saver";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { useRef } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
-const ModalViewRent = ({ open, onOpenChange, rentData }) => {
+const ModalViewRent = ({ open, setOpen, rentData }) => {
   const contractRef = useRef(null);
   const template = useSelector((state) => state.contractConfig.template);
   const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
@@ -381,7 +382,15 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
   const province = extractProvince(rentData.PhongTro?.Nha?.DiaChi);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          className="bg-transparent outline-none border-none shadow-none rounded-none cursor-pointer hover:text-white"
+          onClick={() => setOpen(true)}
+        >
+          <Eye className="size-5 text-blue-600" />
+        </Button>
+      </DialogTrigger>
       <DialogContent
         className="max-w-4xl max-h-[95vh] rounded overflow-hidden"
         aria-describedby={undefined}
@@ -503,12 +512,12 @@ const ModalViewRent = ({ open, onOpenChange, rentData }) => {
               onClick={handleDownloadWord}
               className="bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer"
             >
-              <Download className="h-4 w-4" />
+              <Download className="size-4" />
               Tải xuống
             </Button>
           </div>
           <Button
-            onClick={() => onOpenChange(false)}
+            onClick={() => setOpen(false)}
             className="text-white rounded cursor-pointer"
             variant="destructive"
           >
