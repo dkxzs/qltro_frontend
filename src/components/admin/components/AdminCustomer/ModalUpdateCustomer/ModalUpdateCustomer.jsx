@@ -22,13 +22,16 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 const ModalUpdateUser = ({ dataUpdate, refetch }) => {
-  const date = new Date().toISOString().split("T")[0]; // Ngày hiện tại dạng YYYY-MM-DD
+  const date = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     name: "",
     cardId: "",
     gender: "Nam",
     birthday: "",
-    phoneNumber: "",
+    phoneNumberMain: "",
+    phoneNumberSub: "",
+    vehicleNumber: "",
+    occupation: "",
     email: "",
     address: "",
     avatar: "",
@@ -48,7 +51,10 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
         cardId: dataUpdate?.CCCD || "",
         gender: dataUpdate?.GioiTinh || "Nam",
         birthday: formatDateForInput(dataUpdate?.NgaySinh) || "",
-        phoneNumber: dataUpdate?.DienThoai || "",
+        phoneNumberMain: dataUpdate?.DienThoai || "",
+        phoneNumberSub: dataUpdate?.DienThoaiPhu || "",
+        vehicleNumber: dataUpdate?.SoXe || "",
+        occupation: dataUpdate?.NgheNghiep || "",
         email: dataUpdate?.Email || "",
         address: dataUpdate?.DiaChi || "",
         dateOfIssue: formatDateForInput(dataUpdate?.NgayCap) || "",
@@ -123,7 +129,10 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
       cardId: "",
       gender: "Nam",
       birthday: "",
-      phoneNumber: "",
+      phoneNumberMain: "",
+      phoneNumberSub: "",
+      vehicleNumber: "",
+      occupation: "",
       email: "",
       address: "",
       avatar: "",
@@ -145,7 +154,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
     onSuccess: (data) => {
       toast.success(data.EM);
       resetForm();
-      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
+      setTimeout(() => setOpen(false), 300);
       refetch();
     },
     onError: (error) => {
@@ -177,8 +186,13 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
     }
 
     const phoneRegex = /^\d{10}$/;
-    if (!phoneRegex.test(formData.phoneNumber)) {
-      toast.error("Số điện thoại phải là 10 chữ số");
+    if (!phoneRegex.test(formData.phoneNumberMain)) {
+      toast.error("Số điện thoại chính phải là 10 chữ số");
+      return false;
+    }
+
+    if (formData.phoneNumberSub && !phoneRegex.test(formData.phoneNumberSub)) {
+      toast.error("Số điện thoại phụ phải là 10 chữ số");
       return false;
     }
 
@@ -244,7 +258,10 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
       formData.cardId !== initialFormData.cardId ||
       formData.gender !== initialFormData.gender ||
       formData.birthday !== initialFormData.birthday ||
-      formData.phoneNumber !== initialFormData.phoneNumber ||
+      formData.phoneNumberMain !== initialFormData.phoneNumberMain ||
+      formData.phoneNumberSub !== initialFormData.phoneNumberSub ||
+      formData.vehicleNumber !== initialFormData.vehicleNumber ||
+      formData.occupation !== initialFormData.occupation ||
       formData.email !== initialFormData.email ||
       formData.address !== initialFormData.address ||
       formData.dateOfIssue !== initialFormData.dateOfIssue ||
@@ -261,7 +278,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
     }
     if (validateForm()) {
       mutationUpdateCustomer.mutate({
-        id: dataUpdate?.MaKHINVITE_ONLY,
+        id: dataUpdate?.MaKH,
         data: formData,
       });
     }
@@ -278,8 +295,8 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
     resetForm();
   };
 
-  const isFormLocked = hasRent; // Các trường bị khóa khi hasRent
-  const isFormProcessing = mutationUpdateCustomer.isPending; // Form đang xử lý mutation
+  const isFormLocked = hasRent;
+  const isFormProcessing = mutationUpdateCustomer.isPending;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -292,7 +309,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5 rounded transition-all duration-300 ease-in-out"
+        className="w-3/5 max-h-[90vh] rounded transition-all duration-300 ease-in-out overflow-auto"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -384,7 +401,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
                     .slice(0, 12);
                   setFormData((prev) => ({ ...prev, cardId: value }));
                 }}
-                disabled={true} // Giữ disabled theo code gốc
+                disabled={true}
               />
             </div>
             <div>
@@ -427,21 +444,65 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
               />
             </div>
             <div>
-              <Label htmlFor="phoneNumber">Số điện thoại</Label>
+              <Label htmlFor="phoneNumberMain">Số điện thoại 1</Label>
               <Input
                 type="tel"
-                id="phoneNumber"
-                name="phoneNumber"
+                id="phoneNumberMain"
+                name="phoneNumberMain"
                 placeholder="0123456789"
                 className="rounded mt-2 shadow-none"
-                value={formData.phoneNumber}
+                value={formData.phoneNumberMain}
                 onChange={(e) => {
                   const value = e.target.value
                     .replace(/[^0-9]/g, "")
                     .slice(0, 10);
-                  setFormData((prev) => ({ ...prev, phoneNumber: value }));
+                  setFormData((prev) => ({ ...prev, phoneNumberMain: value }));
                 }}
                 disabled={isFormLocked || isFormProcessing}
+              />
+            </div>
+            <div>
+              <Label htmlFor="phoneNumberSub">Số điện thoại 2</Label>
+              <Input
+                type="tel"
+                id="phoneNumberSub"
+                name="phoneNumberSub"
+                placeholder="0123456789"
+                className="rounded mt-2 shadow-none"
+                value={formData.phoneNumberSub}
+                onChange={(e) => {
+                  const value = e.target.value
+                    .replace(/[^0-9]/g, "")
+                    .slice(0, 10);
+                  setFormData((prev) => ({ ...prev, phoneNumberSub: value }));
+                }}
+                disabled={isFormProcessing}
+              />
+            </div>
+            <div>
+              <Label htmlFor="vehicleNumber">Số xe</Label>
+              <Input
+                type="text"
+                id="vehicleNumber"
+                name="vehicleNumber"
+                placeholder="Nhập số xe"
+                className="rounded mt-2 shadow-none"
+                value={formData.vehicleNumber}
+                onChange={handleChange}
+                disabled={isFormProcessing}
+              />
+            </div>
+            <div>
+              <Label htmlFor="occupation">Nghề nghiệp</Label>
+              <Input
+                type="text"
+                id="occupation"
+                name="occupation"
+                placeholder="Nhập nghề nghiệp"
+                className="rounded mt-2 shadow-none"
+                value={formData.occupation}
+                onChange={handleChange}
+                disabled={isFormProcessing}
               />
             </div>
             <div>
@@ -454,7 +515,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
                 className="rounded mt-2 shadow-none"
                 value={formData.email}
                 onChange={handleChange}
-                disabled={isFormProcessing} // Luôn cho phép chỉnh sửa khi không xử lý
+                disabled={isFormProcessing}
               />
             </div>
             <div>
@@ -467,7 +528,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
                 className="rounded mt-2 shadow-none"
                 value={formData.address}
                 onChange={handleChange}
-                disabled={isFormProcessing} // Luôn cho phép chỉnh sửa khi không xử lý
+                disabled={isFormProcessing}
               />
             </div>
             <div>
@@ -480,7 +541,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
                 accept="image/*"
                 onChange={handleChangeImage}
                 ref={inputRef}
-                disabled={isFormProcessing} // Luôn cho phép chỉnh sửa khi không xử lý
+                disabled={isFormProcessing}
               />
               <div
                 className={`mt-2 w-40 h-40 border-2 border-dashed rounded p-4 flex items-center justify-center ${

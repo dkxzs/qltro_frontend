@@ -124,7 +124,7 @@ const ModalAddRoomType = ({ refetch }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
+          className="flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
           aria-label="Thêm loại phòng mới"
         >
           <Plus className="h-5 w-5" />

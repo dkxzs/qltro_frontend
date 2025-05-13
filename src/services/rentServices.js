@@ -6,7 +6,43 @@ export const getAllRentService = async () => {
 };
 
 export const createRentService = async (data) => {
-  const res = await axios.post("/rent/create-rent", data);
+  const formData = new FormData();
+
+  formData.append("maKH", data.maKH);
+  if (data.newCustomer) {
+    formData.append("HoTen", data.newCustomer.HoTen);
+    formData.append("CCCD", data.newCustomer.CCCD);
+    formData.append("GioiTinh", data.newCustomer.GioiTinh);
+    formData.append("NgaySinh", data.newCustomer.NgaySinh);
+    formData.append("DienThoaiChinh", data.newCustomer.DienThoaiChinh);
+    formData.append("Email", data.newCustomer.Email);
+    formData.append("DiaChi", data.newCustomer.DiaChi);
+    formData.append("NgayCap", data.newCustomer.NgayCap);
+    formData.append("NoiCap", data.newCustomer.NoiCap);
+    formData.append("NgheNghiep", data.newCustomer.NgheNghiep);
+    formData.append("SoXe", data.newCustomer.SoXe);
+    formData.append("DienThoaiPhu", data.newCustomer.DienThoaiPhu);
+    if (data.newCustomer.Anh) {
+      formData.append("Anh", data.newCustomer.Anh);
+    }
+  }
+  formData.append("maPT", data.maPT);
+  formData.append("ngayBatDau", data.ngayBatDau);
+  formData.append("ngayKetThuc", data.ngayKetThuc || "");
+  formData.append("ghiChu", data.ghiChu || "");
+  formData.append("donGia", data.donGia);
+  formData.append("datCoc", data.datCoc);
+  if (data.dichVu && Array.isArray(data.dichVu)) {
+    data.dichVu.forEach((service, index) => {
+      formData.append(`dichVu[${index}]`, service);
+    });
+  }
+
+  const res = await axios.post("/rent/create-rent", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return res.data;
 };
 

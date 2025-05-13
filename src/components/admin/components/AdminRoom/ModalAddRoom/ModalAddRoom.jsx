@@ -36,6 +36,7 @@ const ModalAddRoom = ({ refetch }) => {
     maLoaiPhong: "",
     dienTich: "",
     moTa: "",
+    soLuongNguoiToiDa: "",
     trangThai: ROOM_STATUS_VALUE["Còn trống"],
     anh: null,
     chiSoDien: "",
@@ -102,6 +103,7 @@ const ModalAddRoom = ({ refetch }) => {
       maLoaiPhong: "",
       dienTich: "",
       moTa: "",
+      soLuongNguoiToiDa: "",
       trangThai: ROOM_STATUS_VALUE["Còn trống"],
       anh: null,
       chiSoDien: "",
@@ -118,7 +120,7 @@ const ModalAddRoom = ({ refetch }) => {
     onSuccess: (data) => {
       toast.success(data.EM || "Thêm phòng thành công");
       resetForm();
-      setTimeout(() => setOpen(false), 300); // Slight delay for smoother UX
+      setTimeout(() => setOpen(false), 300);
       if (refetch) refetch();
     },
     onError: (error) => {
@@ -143,6 +145,10 @@ const ModalAddRoom = ({ refetch }) => {
     }
     if (!formData.dienTich) {
       toast.error("Vui lòng nhập diện tích phòng");
+      return;
+    }
+    if (!formData.soLuongNguoiToiDa) {
+      toast.error("Vui lòng nhập số lượng người tối đa");
       return;
     }
     if (!formData.chiSoDien) {
@@ -337,6 +343,22 @@ const ModalAddRoom = ({ refetch }) => {
                       disabled={isFormDisabled}
                     />
                   </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="soLuongNguoiToiDa" className="text-right">
+                    Số lượng người tối đa
+                  </Label>
+                  <Input
+                    id="soLuongNguoiToiDa"
+                    name="soLuongNguoiToiDa"
+                    value={formData.soLuongNguoiToiDa}
+                    onChange={handleChange}
+                    className="rounded shadow-none"
+                    placeholder="Nhập số lượng người tối đa"
+                    disabled={isFormDisabled}
+                  />
                 </div>
               </div>
               <div className="grid items-start gap-2">

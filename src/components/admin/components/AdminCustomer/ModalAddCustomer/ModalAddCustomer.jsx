@@ -18,13 +18,16 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 const ModalAddUser = ({ refetch }) => {
-  const date = new Date().toISOString().split("T")[0]; // Ngày hiện tại dạng YYYY-MM-DD
+  const date = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     name: "",
     cardId: "",
     gender: "Nam",
     birthday: "",
-    phoneNumber: "",
+    phoneNumberMain: "",
+    phoneNumberSub: "",
+    vehicleNumber: "",
+    occupation: "",
     email: "",
     address: "",
     avatar: "",
@@ -80,7 +83,10 @@ const ModalAddUser = ({ refetch }) => {
       cardId: "",
       gender: "Nam",
       birthday: "",
-      phoneNumber: "",
+      phoneNumberMain: "",
+      phoneNumberSub: "",
+      vehicleNumber: "",
+      occupation: "",
       email: "",
       address: "",
       avatar: "",
@@ -101,7 +107,7 @@ const ModalAddUser = ({ refetch }) => {
     onSuccess: (data) => {
       toast.success(data.EM);
       resetForm();
-      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
+      setTimeout(() => setOpen(false), 300);
       refetch();
     },
     onError: (error) => {
@@ -133,8 +139,8 @@ const ModalAddUser = ({ refetch }) => {
     }
 
     const phoneRegex = /^\d{10}$/;
-    if (!phoneRegex.test(formData.phoneNumber)) {
-      toast.error("Số điện thoại phải là 10 chữ số");
+    if (!phoneRegex.test(formData.phoneNumberMain)) {
+      toast.error("Số điện thoại chính phải là 10 chữ số");
       return false;
     }
 
@@ -197,7 +203,10 @@ const ModalAddUser = ({ refetch }) => {
     return (
       formData.name ||
       formData.cardId ||
-      formData.phoneNumber ||
+      formData.phoneNumberMain ||
+      formData.phoneNumberSub ||
+      formData.vehicleNumber ||
+      formData.occupation ||
       formData.email ||
       formData.address ||
       formData.avatar ||
@@ -232,7 +241,7 @@ const ModalAddUser = ({ refetch }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
+          className="flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
           aria-label="Thêm khách trọ mới"
         >
           <Plus className="h-5 w-5" />
@@ -240,7 +249,7 @@ const ModalAddUser = ({ refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5  rounded transition-all duration-300 ease-in-out"
+        className="w-3/5 max-h-[90vh] rounded transition-all duration-300 ease-in-out overflow-auto"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -374,20 +383,64 @@ const ModalAddUser = ({ refetch }) => {
               />
             </div>
             <div>
-              <Label htmlFor="phoneNumber">Số điện thoại</Label>
+              <Label htmlFor="phoneNumberMain">Số điện thoại 1</Label>
               <Input
                 type="tel"
-                id="phoneNumber"
-                name="phoneNumber"
+                id="phoneNumberMain"
+                name="phoneNumberMain"
                 placeholder="0123456789"
                 className="rounded mt-2 shadow-none"
-                value={formData.phoneNumber}
+                value={formData.phoneNumberMain}
                 onChange={(e) => {
                   const value = e.target.value
                     .replace(/[^0-9]/g, "")
                     .slice(0, 10);
-                  setFormData((prev) => ({ ...prev, phoneNumber: value }));
+                  setFormData((prev) => ({ ...prev, phoneNumberMain: value }));
                 }}
+                disabled={isFormDisabled}
+              />
+            </div>
+            <div>
+              <Label htmlFor="phoneNumberSub">Số điện thoại 2</Label>
+              <Input
+                type="tel"
+                id="phoneNumberSub"
+                name="phoneNumberSub"
+                placeholder="0123456789"
+                className="rounded mt-2 shadow-none"
+                value={formData.phoneNumberSub}
+                onChange={(e) => {
+                  const value = e.target.value
+                    .replace(/[^0-9]/g, "")
+                    .slice(0, 10);
+                  setFormData((prev) => ({ ...prev, phoneNumberSub: value }));
+                }}
+                disabled={isFormDisabled}
+              />
+            </div>
+            <div>
+              <Label htmlFor="vehicleNumber">Số xe</Label>
+              <Input
+                type="text"
+                id="vehicleNumber"
+                name="vehicleNumber"
+                placeholder="Ví dụ: 30A-123.45"
+                className="rounded mt-2 shadow-none"
+                value={formData.vehicleNumber}
+                onChange={handleChange}
+                disabled={isFormDisabled}
+              />
+            </div>
+            <div>
+              <Label htmlFor="occupation">Nghề nghiệp</Label>
+              <Input
+                type="text"
+                id="occupation"
+                name="occupation"
+                placeholder="Nhập nghề nghiệp"
+                className="rounded mt-2 shadow-none"
+                value={formData.occupation}
+                onChange={handleChange}
                 disabled={isFormDisabled}
               />
             </div>

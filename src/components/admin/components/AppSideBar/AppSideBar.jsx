@@ -14,7 +14,7 @@ import { FiLogOut } from "react-icons/fi";
 import { GiExpense } from "react-icons/gi";
 import { GrConfigure } from "react-icons/gr";
 import { IoWaterOutline } from "react-icons/io5";
-import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
+import { LiaFileContractSolid, LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import {
   MdElectricBolt,
   MdOutlineBedroomParent,
@@ -91,7 +91,7 @@ const data = {
     {
       title: "Hợp đồng",
       url: "/admin/rents",
-      icon: MdOutlineBedroomParent,
+      icon: LiaFileContractSolid,
       items: [],
     },
     {

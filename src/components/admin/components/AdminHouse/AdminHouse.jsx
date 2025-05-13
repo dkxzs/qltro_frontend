@@ -31,6 +31,8 @@ const AdminHouse = () => {
     queryFn: getAllHouseService,
   });
 
+  console.log(houseData);
+
   const filteredHouseData = houseData?.DT
     ? houseData.DT.filter((house) =>
         house.TenNha.toLowerCase().includes(searchText.toLowerCase())

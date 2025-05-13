@@ -69,12 +69,10 @@ const ModalAddHouse = ({ refetch }) => {
       toast.error("Tên nhà không được để trống");
       return false;
     }
-
     if (!formData.DiaChi.trim()) {
       toast.error("Địa chỉ không được để trống");
       return false;
     }
-
     return true;
   };
 
@@ -86,8 +84,7 @@ const ModalAddHouse = ({ refetch }) => {
   };
 
   const handleClose = () => {
-    const hasUnsavedChanges =
-      formData.TenNha || formData.DiaChi || formData.MoTa;
+    const hasUnsavedChanges = formData.TenNha || formData.DiaChi || formData.MoTa;
     if (
       hasUnsavedChanges &&
       !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
@@ -124,8 +121,8 @@ const ModalAddHouse = ({ refetch }) => {
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="w-full">
               <Label htmlFor="tennha">Tên nhà</Label>
               <Input
                 type="text"
@@ -138,7 +135,7 @@ const ModalAddHouse = ({ refetch }) => {
                 disabled={isFormDisabled}
               />
             </div>
-            <div>
+            <div className="w-full">
               <Label htmlFor="diachi">Địa chỉ</Label>
               <Input
                 type="text"
@@ -151,7 +148,7 @@ const ModalAddHouse = ({ refetch }) => {
                 disabled={isFormDisabled}
               />
             </div>
-            <div className="col-span-2">
+            <div className="w-full">
               <Label htmlFor="mota">Mô tả</Label>
               <Textarea
                 id="mota"

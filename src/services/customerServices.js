@@ -14,12 +14,15 @@ const createCustomerService = async (data) => {
   formData.append("CCCD", data.cardId);
   formData.append("GioiTinh", data.gender);
   formData.append("NgaySinh", data.birthday);
-  formData.append("DienThoai", data.phoneNumber);
+  formData.append("DienThoaiChinh", data.phoneNumberMain);
   formData.append("Email", data.email);
   formData.append("DiaChi", data.address);
   formData.append("Anh", data.avatar);
   formData.append("NgayCap", data.dateOfIssue);
   formData.append("NoiCap", data.placeOfIssue);
+  formData.append("DienThoaiPhu", data.phoneNumberSub);
+  formData.append("SoXe", data.vehicleNumber);
+  formData.append("NgheNghiep", data.occupation);
   const res = await axios.post("/customer/create-customer", formData);
   return res.data;
 };
@@ -30,7 +33,10 @@ const updateCustomerService = async (id, data) => {
   formData.append("CCCD", data.cardId);
   formData.append("GioiTinh", data.gender);
   formData.append("NgaySinh", data.birthday);
-  formData.append("DienThoai", data.phoneNumber);
+  formData.append("DienThoaiChinh", data.phoneNumberMain);
+  formData.append("DienThoaiPhu", data.phoneNumberSub);
+  formData.append("SoXe", data.vehicleNumber);
+  formData.append("NgheNghiep", data.occupation);
   formData.append("Email", data.email);
   formData.append("DiaChi", data.address);
   formData.append("NgayCap", data.dateOfIssue);

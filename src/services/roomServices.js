@@ -18,6 +18,7 @@ const createRoomService = async (data) => {
   dataRoom.append("DienTich", data.dienTich);
   dataRoom.append("MoTa", data.moTa);
   dataRoom.append("TrangThai", data.trangThai);
+  dataRoom.append("SoLuongNguoiToiDa", data.soLuongNguoiToiDa);
   dataRoom.append("ChiSoDien", data.chiSoDien);
   dataRoom.append("ChiSoNuoc", data.chiSoNuoc);
   dataRoom.append("Anh", data.anh);
@@ -32,6 +33,7 @@ const updateRoomService = async (id, data) => {
   dataUpdate.append("MaLP", parseInt(data.maLoaiPhong));
   dataUpdate.append("DienTich", data.dienTich);
   dataUpdate.append("MoTa", data.moTa);
+  dataUpdate.append("SoLuongNguoiToiDa", data.soLuongNguoiToiDa);
   dataUpdate.append("TrangThai", parseInt(data.trangThai));
   if (data.anh) dataUpdate.append("Anh", data.anh);
   const res = await axios.put(`/room/update-room/${id}`, dataUpdate);

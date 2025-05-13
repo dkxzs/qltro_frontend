@@ -151,8 +151,8 @@ const ModalUpdateHouse = ({ dataUpdate, refetch }) => {
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="w-full">
               <Label htmlFor="tennha">Tên nhà</Label>
               <Input
                 type="text"
@@ -165,7 +165,7 @@ const ModalUpdateHouse = ({ dataUpdate, refetch }) => {
                 disabled={isFormDisabled}
               />
             </div>
-            <div>
+            <div className="w-full">
               <Label htmlFor="diachi">Địa chỉ</Label>
               <Input
                 type="text"
@@ -178,7 +178,7 @@ const ModalUpdateHouse = ({ dataUpdate, refetch }) => {
                 disabled={isFormDisabled}
               />
             </div>
-            <div className="col-span-2">
+            <div className="w-full">
               <Label htmlFor="mota">Mô tả</Label>
               <Textarea
                 id="mota"

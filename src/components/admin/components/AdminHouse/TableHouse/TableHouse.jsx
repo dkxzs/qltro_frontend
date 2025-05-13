@@ -24,6 +24,9 @@ const TableHouse = (props) => {
               Tên nhà
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
+              Số phòng
+            </TableHead>
+            <TableHead className="py-2 px-4 text-left font-medium">
               Địa chỉ
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
@@ -49,6 +52,9 @@ const TableHouse = (props) => {
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[200px]">
                 {house.TenNha}
+              </TableCell>
+              <TableCell className="py-2 px-7 truncate max-w-[150px]">
+                {house.SoLuongPhong}
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[250px]">
                 {house.DiaChi}
