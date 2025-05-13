@@ -227,7 +227,7 @@ const AdminRent = () => {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-medium">Danh sách hợp đồng</h3>
         <div className="flex gap-2">
           <ModalAddRent />

@@ -6,11 +6,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import ModalUpdateService from "../ModalUpdateService/ModalUpdateService";
 import ModalDeleteService from "../ModalDeleteService/ModalDeleteService";
+import ModalUpdateService from "../ModalUpdateService/ModalUpdateService";
 
 const TableService = (props) => {
   const { serviceData, refetch } = props;
+
+  const getText = (text) => {
+    switch (text) {
+      case "CHI_SO":
+        return "Theo chỉ số";
+      case "CO_DINH":
+        return "Theo tháng";
+      case "SO_LUONG":
+        return "Theo số lượng";
+      default:
+        return "";
+    }
+  };
 
   return (
     <div className="w-full overflow-x-auto">
@@ -28,6 +41,12 @@ const TableService = (props) => {
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
               Đơn vị tính
+            </TableHead>
+            <TableHead className="py-2 px-4 text-left font-medium">
+              Bắt buộc
+            </TableHead>
+            <TableHead className="py-2 px-4 text-left font-medium">
+              Cách tính
             </TableHead>
             <TableHead className="py-2 px-4 text-center shrink-0 font-medium w-32">
               Hành động
@@ -55,6 +74,12 @@ const TableService = (props) => {
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[150px]">
                 {service.DonViTinh}
+              </TableCell>
+              <TableCell className="py-2 px-4 truncate max-w-[150px]">
+                {service.BatBuoc ? "Có" : "Không"}
+              </TableCell>
+              <TableCell className="py-2 px-4 truncate max-w-[150px]">
+                {getText(service.CachTinhPhi)}
               </TableCell>
               <TableCell className="py-2 px-4 text-center shrink-0 w-32">
                 <div className="flex space-x-2 justify-center">

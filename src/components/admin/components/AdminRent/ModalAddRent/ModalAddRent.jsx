@@ -41,6 +41,7 @@ const ModalAddRent = () => {
     useState("existing");
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
+  const [serviceQuantities, setServiceQuantities] = useState({});
   const [formData, setFormData] = useState({
     ngayBatDau: "",
     ngayKetThuc: "",
@@ -94,13 +95,15 @@ const ModalAddRent = () => {
   useEffect(() => {
     if (open && dataServices?.DT) {
       const defaultServices = dataServices.DT.filter(
-        (service) =>
-          service.TenDV.toLowerCase() === "điện" ||
-          service.TenDV.toLowerCase() === "nước" ||
-          service.TenDV.toLowerCase() === "vệ sinh" ||
-          service.TenDV.toLowerCase() === "internet"
+        (service) => service.BatBuoc === true
       ).map((service) => service.MaDV);
       setSelectedServices(defaultServices);
+      // Initialize quantities for all services with default value 1
+      const initialQuantities = dataServices.DT.reduce((acc, service) => {
+        acc[service.MaDV] = 1;
+        return acc;
+      }, {});
+      setServiceQuantities(initialQuantities);
     }
   }, [open, dataServices]);
 
@@ -181,9 +184,20 @@ const ModalAddRent = () => {
   const handleServiceChange = (maDV, isChecked) => {
     if (isChecked) {
       setSelectedServices((prev) => [...prev, maDV]);
+      setServiceQuantities((prev) => ({
+        ...prev,
+        [maDV]: prev[maDV] || 1,
+      }));
     } else {
       setSelectedServices((prev) => prev.filter((id) => id !== maDV));
     }
+  };
+
+  const handleQuantityChange = (maDV, value) => {
+    setServiceQuantities((prev) => ({
+      ...prev,
+      [maDV]: value === "" ? "" : Math.max(0, parseInt(value)),
+    }));
   };
 
   const resetForm = () => {
@@ -192,6 +206,7 @@ const ModalAddRent = () => {
     setSelectedCustomerOption("existing");
     setSelectedCustomer("");
     setSelectedServices([]);
+    setServiceQuantities({});
     setFormData({
       ngayBatDau: "",
       ngayKetThuc: "",
@@ -287,13 +302,13 @@ const ModalAddRent = () => {
               GioiTinh: formData.gender,
               NgaySinh: formData.birthday || null,
               DienThoaiChinh: formData.phoneNumberMain,
-              DienThoaiPhu: formData.phoneNumberSub.trim() || null, // Gửi null nếu rỗng
+              DienThoaiPhu: formData.phoneNumberSub.trim() || null,
               Email: formData.email.trim() || null,
               DiaChi: formData.address.trim() || null,
               NgayCap: formData.dateOfIssue || null,
               NoiCap: formData.placeOfIssue.trim() || null,
-              SoXe: formData.vehicleNumber.trim() || null, // Gửi null nếu rỗng
-              NgheNghiep: formData.occupation.trim() || null, // Gửi null nếu rỗng
+              SoXe: formData.vehicleNumber.trim() || null,
+              NgheNghiep: formData.occupation.trim() || null,
               Anh: formData.avatar,
             }
           : null,
@@ -309,7 +324,13 @@ const ModalAddRent = () => {
         typeof formData.datCoc === "string"
           ? parseInt(formData.datCoc.replace(/\D/g, ""))
           : formData.datCoc || 0,
-      dichVu: selectedServices,
+      dichVu: selectedServices.map((maDV) => ({
+        madv: maDV,
+        soluong:
+          serviceQuantities[maDV] === "" || isNaN(serviceQuantities[maDV])
+            ? 1
+            : serviceQuantities[maDV],
+      })),
     };
 
     createRentMutation.mutate(rentData);
@@ -318,11 +339,11 @@ const ModalAddRent = () => {
   const availableRooms =
     roomsData?.DT?.filter((room) => room.TrangThai === 0) || [];
 
-  const isDefaultService = (service) =>
+  const isDefaultService = (service) => service.BatBuoc === true;
+
+  const isElectricityOrWater = (service) =>
     service.TenDV.toLowerCase() === "điện" ||
-    service.TenDV.toLowerCase() === "nước" ||
-    service.TenDV.toLowerCase() === "vệ sinh" ||
-    service.TenDV.toLowerCase() === "internet";
+    service.TenDV.toLowerCase() === "nước";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -793,9 +814,21 @@ const ModalAddRent = () => {
                             {service.TenDV}
                           </Label>
                         </div>
-                        <span className="text-sm text-gray-600 w-32 text-right">
-                          {formatCurrency(service.DonGia || 0)} VNĐ
-                        </span>
+                        <div className="flex items-center space-x-4">
+                          <span className="text-sm text-gray-600 w-32 text-right">
+                            {formatCurrency(service.DonGia || 0)} VNĐ
+                          </span>
+                          <Input
+                            type="number"
+                            value={serviceQuantities[service.MaDV] ?? ""}
+                            onChange={(e) =>
+                              handleQuantityChange(service.MaDV, e.target.value)
+                            }
+                            disabled={isElectricityOrWater(service)}
+                            className="w-20 h-8 text-center rounded"
+                            aria-label={`Số lượng dịch vụ ${service.TenDV}`}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>

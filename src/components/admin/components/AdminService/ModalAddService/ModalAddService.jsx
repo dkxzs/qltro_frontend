@@ -11,6 +11,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createServiceService } from "@/services/serviceServices";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation } from "@tanstack/react-query";
 import { Plus, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -21,12 +29,20 @@ const ModalAddService = ({ refetch }) => {
     TenDV: "",
     DonGia: "",
     DonViTinh: "",
+    BatBuoc: false,
+    Code: "",
+    CachTinhPhi: "",
   });
   const [open, setOpen] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "DonGia") {
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: checked,
+      }));
+    } else if (name === "DonGia") {
       const numericValue = value.replace(/[^0-9]/g, "");
       const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
       setFormData((prev) => ({
@@ -41,11 +57,21 @@ const ModalAddService = ({ refetch }) => {
     }
   };
 
+  const handleCachTinhPhiChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      CachTinhPhi: value,
+    }));
+  };
+
   const resetForm = () => {
     setFormData({
       TenDV: "",
       DonGia: "",
       DonViTinh: "",
+      BatBuoc: false,
+      Code: "",
+      CachTinhPhi: "",
     });
   };
 
@@ -66,7 +92,7 @@ const ModalAddService = ({ refetch }) => {
     onError: (error) => {
       console.error("Add service error:", error);
       const errorMessage = error.message.includes("foreign key constraint")
-        ? "Thêm dịch vụ thất bại: Có dữ liệu liên quan không hợp lệ. Vui lòng kiểm tra lại."
+        ? "Thêm dịch vụ thất bại: Có dữ liệu liên quan không hợp lệ."
         : error.message.includes("duplicate")
         ? "Tên dịch vụ đã tồn tại. Vui lòng chọn tên khác."
         : error.message || "Đã có lỗi xảy ra khi thêm dịch vụ";
@@ -96,11 +122,23 @@ const ModalAddService = ({ refetch }) => {
       return false;
     }
 
+    if (!formData.CachTinhPhi) {
+      toast.error("Cách tính phí phải được chọn");
+      return false;
+    }
+
     return true;
   };
 
   const hasUnsavedChanges = () => {
-    return formData.TenDV || formData.DonGia || formData.DonViTinh;
+    return (
+      formData.TenDV ||
+      formData.DonGia ||
+      formData.DonViTinh ||
+      formData.BatBuoc ||
+      formData.Code ||
+      formData.CachTinhPhi
+    );
   };
 
   const handleSubmit = (e) => {
@@ -109,6 +147,7 @@ const ModalAddService = ({ refetch }) => {
       const dataToSubmit = {
         ...formData,
         DonGia: parseInt(formData.DonGia.replace(/\./g, "")),
+        Code: formData.Code.trim() || null,
       };
       mutationCreateService.mutate(dataToSubmit);
     }
@@ -139,7 +178,7 @@ const ModalAddService = ({ refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-2/5 rounded transition-all duration-300 ease-in-out"
+        className="w-3/5 rounded transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -193,6 +232,63 @@ const ModalAddService = ({ refetch }) => {
                 disabled={isFormDisabled}
                 aria-label="Đơn vị tính"
               />
+            </div>
+            <div>
+              <Label htmlFor="code">Mã dịch vụ</Label>
+              <Input
+                type="text"
+                id="code"
+                name="Code"
+                placeholder="DV001, ..."
+                className="rounded mt-2 shadow-none"
+                value={formData.Code}
+                onChange={handleChange}
+                disabled={isFormDisabled}
+                aria-label="Mã dịch vụ"
+              />
+            </div>
+            <div className="w-full">
+              <Label htmlFor="cachtinhphi">Cách tính phí</Label>
+              <Select
+                value={formData.CachTinhPhi}
+                onValueChange={handleCachTinhPhiChange}
+                disabled={isFormDisabled}
+              >
+                <SelectTrigger
+                  id="cachtinhphi"
+                  className="rounded mt-2 shadow-none w-full cursor-pointer"
+                  aria-label="Cách tính phí"
+                >
+                  <SelectValue placeholder="Chọn cách tính phí" />
+                </SelectTrigger>
+                <SelectContent className="rounded">
+                  <SelectItem className="cursor-pointer" value="CHI_SO">
+                    Tính theo chỉ số
+                  </SelectItem>
+                  <SelectItem className="cursor-pointer" value="SO_LUONG">
+                    Tính theo số lượng
+                  </SelectItem>
+                  <SelectItem className="cursor-pointer" value="CO_DINH">
+                    Tính theo tháng
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="batbuoc"
+                name="BatBuoc"
+                checked={formData.BatBuoc}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({ ...prev, BatBuoc: checked }))
+                }
+                disabled={isFormDisabled}
+                aria-label="Dịch vụ bắt buộc"
+                className="rounded-xs cursor-pointer"
+              />
+              <Label htmlFor="batbuoc" className="cursor-pointer">
+                Dịch vụ bắt buộc
+              </Label>
             </div>
           </div>
           <DialogFooter>

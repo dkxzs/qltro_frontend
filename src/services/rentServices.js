@@ -34,7 +34,8 @@ export const createRentService = async (data) => {
   formData.append("datCoc", data.datCoc);
   if (data.dichVu && Array.isArray(data.dichVu)) {
     data.dichVu.forEach((service, index) => {
-      formData.append(`dichVu[${index}]`, service);
+      formData.append(`dichVu[${index}][madv]`, service.madv);
+      formData.append(`dichVu[${index}][soluong]`, service.soluong);
     });
   }
 
