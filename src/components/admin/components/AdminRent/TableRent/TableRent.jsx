@@ -15,9 +15,11 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import ModalViewRent from "../ModalViewRent/ModalViewRent";
 import { formatCurrency, numberToText } from "@/utils/formatCurrency";
+import { useNavigate } from "react-router-dom";
 
 const TableRent = ({ filteredData }) => {
   const [printLoading, setPrintLoading] = useState(null);
+  const navigate = useNavigate();
   const [isViewRentModalOpen, setIsViewRentModalOpen] = useState(false);
   const template = useSelector((state) => state.contractConfig.template);
   const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
@@ -99,7 +101,7 @@ const TableRent = ({ filteredData }) => {
       .replace("[DiaChi]", rentData.KhachHang?.DiaChi || "[Địa chỉ khách hàng]")
       .replace(
         "[DienThoai]",
-        rentData.KhachHang?.DienThoai || "[Số điện thoại]"
+        rentData.KhachHang?.DienThoaiChinh || "[Số điện thoại]"
       )
       .replace("[TenPhong]", rentData.PhongTro?.TenPhong || "[Tên phòng]")
       .replace("[TenNha]", rentData.PhongTro?.Nha?.TenNha || "[Tên nhà]")
@@ -328,6 +330,14 @@ const TableRent = ({ filteredData }) => {
     }
   };
 
+  const checkInfo = (rentData) => {
+    if (!rentData?.KhachHang?.HoTen) {
+      toast.error("Khách hàng chưa có thông tin!");
+      return;
+    }
+    navigate("/admin/view-info", { state: { rentData } });
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="rounded overflow-x-auto border shadow-none">
@@ -373,7 +383,10 @@ const TableRent = ({ filteredData }) => {
                   <TableCell className="text-center py-2">
                     {rent.MaTP}
                   </TableCell>
-                  <TableCell className="text-left py-2">
+                  <TableCell
+                    className="text-left py-2 cursor-pointer"
+                    onClick={() => checkInfo(rent)}
+                  >
                     {rent.KhachHang?.HoTen || "-"}
                   </TableCell>
                   <TableCell className="text-left py-2">

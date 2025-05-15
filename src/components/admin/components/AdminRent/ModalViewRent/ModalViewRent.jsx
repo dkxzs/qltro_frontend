@@ -106,7 +106,7 @@ const ModalViewRent = ({ open, setOpen, rentData }) => {
       .replace("[DiaChi]", rentData.KhachHang?.DiaChi || "[Địa chỉ khách hàng]")
       .replace(
         "[DienThoai]",
-        rentData.KhachHang?.DienThoai || "[Số điện thoại]"
+        rentData.KhachHang?.DienThoaiChinh || "[Số điện thoại]"
       )
       .replace("[TenPhong]", rentData.PhongTro?.TenPhong || "[Tên phòng]")
       .replace("[TenNha]", rentData.PhongTro?.Nha?.TenNha || "[Tên nhà]")

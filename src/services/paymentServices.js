@@ -14,3 +14,8 @@ export const getInvoiceByIdService = async (invoiceId) => {
   const res = await axios.get(`/invoices/${invoiceId}`);
   return res.data;
 };
+
+export const getAllPaymentService = async () => {
+  const res = await axios.get("/payment/get-all-payment");
+  return res.data;
+};

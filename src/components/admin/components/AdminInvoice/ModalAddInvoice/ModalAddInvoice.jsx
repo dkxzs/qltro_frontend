@@ -135,7 +135,7 @@ const ModalAddInvoice = () => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="bg-white shadow-md rounded max-w-md"
+        className="bg-white shadow-md rounded w-2/5"
         aria-describedby="add-invoice-description"
       >
         <DialogHeader>
@@ -148,8 +148,8 @@ const ModalAddInvoice = () => {
         </DialogHeader>
         <div className="space-y-6 bg-gray-50 p-4 rounded-md">
           <div className="flex items-center gap-6">
-            <Label htmlFor="date" className="text-md w-32">
-              Ngày tính: <span className="text-red-500">*</span>
+            <Label htmlFor="date" className="text-md">
+              Từ ngày 1 đến ngày: <span className="text-red-500">*</span>
             </Label>
             <Input
               type="date"

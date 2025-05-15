@@ -744,7 +744,7 @@ const ModalAddRent = () => {
                                 <img
                                   src={previewImage}
                                   alt="Avatar preview"
-                                  className="w-32 h-32 object-contain rounded-full border"
+                                  className="w-32 h-32 object-contain"
                                 />
                               )}
                             </>

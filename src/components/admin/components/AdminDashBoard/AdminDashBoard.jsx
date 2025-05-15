@@ -1,5 +1,6 @@
 import { LayoutDashboard } from "lucide-react";
 import SectionCards from "./SectionCard";
+import Dashboard from "./Dashboard";
 
 const AdminDashBoard = () => {
   return (
@@ -14,6 +15,7 @@ const AdminDashBoard = () => {
             <SectionCards />
           </div>
         </div>
+        <Dashboard />
       </div>
     </div>
   );

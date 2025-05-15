@@ -33,13 +33,11 @@ const AdminRent = () => {
   const [roomName, setRoomName] = useState("");
   const [filteredRentData, setFilteredRentData] = useState([]);
 
-  // Fetch houses data
   const { data: housesData } = useQuery({
     queryKey: ["houses"],
     queryFn: getAllHouseService,
   });
 
-  // Fetch rent data
   const { data: rentData } = useQuery({
     queryKey: ["rent-list"],
     queryFn: getAllRentService,

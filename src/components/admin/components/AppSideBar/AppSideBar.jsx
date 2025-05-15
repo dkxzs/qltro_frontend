@@ -10,15 +10,13 @@ import {
 import { logout } from "@/redux/slices/userSlice";
 import { LayoutDashboard, LogOut, UserCog } from "lucide-react";
 import { BsHouseGear } from "react-icons/bs";
-import { FiLogOut } from "react-icons/fi";
 import { GiExpense } from "react-icons/gi";
 import { GrConfigure } from "react-icons/gr";
 import { IoWaterOutline } from "react-icons/io5";
 import { LiaFileContractSolid, LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import {
   MdElectricBolt,
-  MdOutlineBedroomParent,
-  MdOutlineMiscellaneousServices,
+  MdOutlineMiscellaneousServices
 } from "react-icons/md";
 import { TbReport } from "react-icons/tb";
 import { useDispatch } from "react-redux";

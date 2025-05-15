@@ -18,7 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  getAllMembersService,
+  updateMembersService,
+} from "@/services/memberServices";
 import {
   checkRoomHasRentService,
   getRoomServicesService,
@@ -27,16 +32,11 @@ import {
 } from "@/services/roomServices";
 import { getAllRoomTypeService } from "@/services/roomTypeServices";
 import { getAllServiceService } from "@/services/serviceServices";
-import {
-  getAllMembersService,
-  updateMembersService,
-} from "@/services/memberServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Pencil, Plus, Loader2, SquarePen } from "lucide-react";
+import { Loader2, Plus, SquarePen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Hàm định dạng ngày tháng sang YYYY-MM-DD
 const formatDateForInput = (dateString) => {
@@ -53,8 +53,10 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const [hasRent, setHasRent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
+  const [serviceQuantities, setServiceQuantities] = useState({});
   const [initialFormData, setInitialFormData] = useState(null);
   const [initialServices, setInitialServices] = useState([]);
+  const [initialQuantities, setInitialQuantities] = useState({});
   const [members, setMembers] = useState([]);
   const [initialMembers, setInitialMembers] = useState([]);
   const [status] = useState([
@@ -75,10 +77,39 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   });
   const [previewImage, setPreviewImage] = useState(null);
 
+  // Di chuyển useQuery lên trước các useEffect
+  const { data: membersData, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ["members", dataUpdate?.MaPT],
+    queryFn: async () => {
+      const response = await getAllMembersService();
+      const roomMembers = response.DT.filter(
+        (member) => member.MaTP === dataUpdate.MaTP
+      );
+      return roomMembers;
+    },
+    enabled: open && !!dataUpdate?.MaPT,
+  });
+
   const { data: dataRoomType, isLoading: isLoadingRoomType } = useQuery({
     queryKey: ["roomType"],
     queryFn: () => getAllRoomTypeService(),
     enabled: open,
+  });
+
+  const { data: dataService, isLoading: isLoadingService } = useQuery({
+    queryKey: ["services"],
+    queryFn: () => getAllServiceService(),
+    enabled: open && hasRent,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  console.log("dataService", dataService);
+
+  const { data: roomServices, isLoading: isLoadingRoomServices } = useQuery({
+    queryKey: ["roomServices", dataUpdate?.MaPT],
+    queryFn: () => getRoomServicesService(dataUpdate.MaPT),
+    enabled: open && hasRent && !!dataUpdate?.MaPT,
+    staleTime: 5 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -109,68 +140,60 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     }
   }, [dataUpdate, open]);
 
-  const { data: dataService, isLoading: isLoadingService } = useQuery({
-    queryKey: ["services"],
-    queryFn: () => getAllServiceService(),
-    enabled: open && hasRent,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: roomServices, isLoading: isLoadingRoomServices } = useQuery({
-    queryKey: ["roomServices", dataUpdate.MaPT],
-    queryFn: () => getRoomServicesService(dataUpdate.MaPT),
-    enabled: open && hasRent && dataUpdate.MaPT !== undefined,
-    staleTime: 5 * 60 * 1000,
-  });
-
   useEffect(() => {
-    if (
-      roomServices?.DT &&
-      Array.isArray(roomServices.DT) &&
-      roomServices.DT.length > 0
-    ) {
+    if (roomServices?.DT && Array.isArray(roomServices.DT)) {
       const serviceIds = roomServices.DT.map((service) =>
         service.MaDV.toString()
       );
-      const defaultServiceIds =
-        dataService?.DT?.filter((service) =>
-          ["điện", "nước", "internet", "vệ sinh"].includes(
-            service.TenDV.toLowerCase()
-          )
-        ).map((service) => service.MaDV.toString()) || [];
-      const newSelectedServices = [
-        ...new Set([...serviceIds, ...defaultServiceIds]),
-      ];
-      setSelectedServices(newSelectedServices);
+      const quantities = roomServices.DT.reduce((acc, service) => {
+        acc[service.MaDV.toString()] = service.SoLuong || 1;
+        return acc;
+      }, {});
+      setSelectedServices(serviceIds);
+      setServiceQuantities(quantities);
       if (!initialServices.length) {
-        setInitialServices(newSelectedServices);
+        setInitialServices(serviceIds);
+        setInitialQuantities(quantities);
       }
-    } else {
-      const defaultServiceIds =
-        dataService?.DT?.filter((service) =>
-          ["điện", "nước", "internet", "vệ sinh"].includes(
-            service.TenDV.toLowerCase()
-          )
-        ).map((service) => service.MaDV.toString()) || [];
+    } else if (dataService?.DT) {
+      const defaultServiceIds = dataService.DT.filter(
+        (service) => service.BatBuoc === true
+      ).map((service) => service.MaDV.toString());
+      const initialQuantities = dataService.DT.reduce((acc, service) => {
+        acc[service.MaDV.toString()] = 1;
+        return acc;
+      }, {});
       setSelectedServices(defaultServiceIds);
+      setServiceQuantities(initialQuantities);
       if (!initialServices.length) {
         setInitialServices(defaultServiceIds);
+        setInitialQuantities(initialQuantities);
       }
     }
   }, [roomServices, dataService]);
 
-  const { data: membersData, isLoading: isLoadingMembers } = useQuery({
-    queryKey: ["members", dataUpdate.MaPT],
-    queryFn: async () => {
-      const response = await getAllMembersService();
-      const roomMembers = response.DT.filter(
-        (member) => member.MaTP === dataUpdate.MaTP
-      );
-      return roomMembers;
-    },
-    enabled: open && !!dataUpdate.MaTP,
-  });
+  useEffect(() => {
+    const checkHasRent = async () => {
+      if (open && dataUpdate?.MaPT) {
+        try {
+          setLoading(true);
+          const res = await checkRoomHasRentService(dataUpdate.MaPT);
+          if (res?.EC === 0) {
+            setHasRent(res.DT);
+          }
+        } catch (error) {
+          console.error("Error checking rent status:", error);
+          toast.error("Không thể kiểm tra trạng thái thuê phòng");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
 
+    checkHasRent();
+  }, [open, dataUpdate?.MaPT]);
+
+  // Sử dụng membersData sau khi đã khai báo
   useEffect(() => {
     if (membersData && membersData.length > 0) {
       const formattedMembers = membersData.map((member) => ({
@@ -193,30 +216,8 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     }
   }, [membersData]);
 
-  useEffect(() => {
-    const checkHasRent = async () => {
-      if (open && dataUpdate.MaPT) {
-        try {
-          setLoading(true);
-          const res = await checkRoomHasRentService(dataUpdate.MaPT);
-          if (res?.EC === 0) {
-            setHasRent(res.DT);
-          }
-        } catch (error) {
-          console.error("Error checking rent status:", error);
-          toast.error("Không thể kiểm tra trạng thái thuê phòng");
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    checkHasRent();
-  }, [open, dataUpdate.MaPT]);
-
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-
     if (name === "anh" && files && files.length > 0) {
       setFormData({ ...formData, anh: files[0] });
       setPreviewImage(URL.createObjectURL(files[0]));
@@ -232,17 +233,24 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleServiceChange = (serviceId) => {
-    serviceId = serviceId.toString();
-    if (!isDefaultService(serviceId) && isServiceChangeAllowed()) {
-      setSelectedServices((prev) => {
-        if (prev.includes(serviceId)) {
-          return prev.filter((id) => id !== serviceId);
-        } else {
-          return [...prev, serviceId];
-        }
-      });
+  const handleServiceChange = (maDV, isChecked) => {
+    maDV = maDV.toString();
+    if (isChecked) {
+      setSelectedServices((prev) => [...prev, maDV]);
+      setServiceQuantities((prev) => ({
+        ...prev,
+        [maDV]: prev[maDV] || 1,
+      }));
+    } else {
+      setSelectedServices((prev) => prev.filter((id) => id !== maDV));
     }
+  };
+
+  const handleQuantityChange = (maDV, value) => {
+    setServiceQuantities((prev) => ({
+      ...prev,
+      [maDV]: value === "" ? "" : Math.max(0, parseInt(value)),
+    }));
   };
 
   const handleMemberChange = (index, e) => {
@@ -286,7 +294,12 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     return (
       selectedServices.length !== initialServices.length ||
       selectedServices.some((id) => !initialServices.includes(id)) ||
-      initialServices.some((id) => !selectedServices.includes(id))
+      initialServices.some((id) => !selectedServices.includes(id)) ||
+      Object.keys(serviceQuantities).some(
+        (maDV) =>
+          serviceQuantities[maDV] !== (initialQuantities[maDV] || 1) &&
+          selectedServices.includes(maDV)
+      )
     );
   };
 
@@ -315,6 +328,14 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     return currentDay <= 4;
   };
 
+  const isDefaultService = (service) => {
+    return service.BatBuoc === true;
+  };
+
+  const isElectricityOrWater = (service) =>
+    service.TenDV.toLowerCase() === "điện" ||
+    service.TenDV.toLowerCase() === "nước";
+
   const mutationUpdateRoom = useMutation({
     mutationFn: async ({ id, data, services, membersData }) => {
       let roomResponse = null;
@@ -325,7 +346,17 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
         }
       }
       if (hasRent && services?.length > 0 && isServicesChanged()) {
-        const serviceResponse = await updateRoomServicesService(id, services);
+        const servicePayload = services.map((maDV) => ({
+          madv: maDV,
+          soluong:
+            serviceQuantities[maDV] === "" || isNaN(serviceQuantities[maDV])
+              ? 1
+              : serviceQuantities[maDV],
+        }));
+        const serviceResponse = await updateRoomServicesService(
+          id,
+          servicePayload
+        );
         if (serviceResponse.EC !== 0) {
           throw new Error("Cập nhật dịch vụ thất bại: " + serviceResponse.EM);
         }
@@ -341,8 +372,9 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     onSuccess: (data) => {
       toast.success(data.EM);
       setInitialServices([...selectedServices]);
+      setInitialQuantities({ ...serviceQuantities });
       setInitialMembers([...members]);
-      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
+      setTimeout(() => setOpen(false), 300);
       if (refetch) refetch();
     },
     onError: (error) => {
@@ -367,12 +399,10 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
         toast.error("Vui lòng nhập tên phòng");
         return;
       }
-
       if (!formData.maLoaiPhong) {
         toast.error("Vui lòng chọn loại phòng");
         return;
       }
-
       if (!formData.dienTich) {
         toast.error("Vui lòng nhập diện tích phòng");
         return;
@@ -399,16 +429,13 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   };
 
   const handleClose = () => {
+    if (
+      (isFormDataChanged() || isServicesChanged() || isMembersChanged()) &&
+      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
+    ) {
+      return;
+    }
     setOpen(false);
-  };
-
-  const isDefaultService = (serviceId) => {
-    const defaultServiceIds = dataService?.DT?.filter((service) =>
-      ["điện", "nước", "internet", "vệ sinh"].includes(
-        service.TenDV.toLowerCase()
-      )
-    ).map((service) => service.MaDV.toString());
-    return defaultServiceIds?.includes(serviceId);
   };
 
   const isFormDisabled =
@@ -636,26 +663,30 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                       tháng
                     </Label>
                     <div className="mt-2 grid grid-cols-1 gap-2">
-                      {dataService.DT.map((service, index) => (
+                      {dataService.DT.map((service) => (
                         <div
-                          key={service.MaDV || index}
-                          className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 transition"
+                          key={service.MaDV}
+                          className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 shadow-sm transition"
                         >
                           <div className="flex items-center space-x-3 flex-1">
                             <Checkbox
                               id={`service-${service.MaDV}`}
-                              className="h-5 w-5 rounded cursor-pointer"
                               checked={selectedServices.includes(
                                 service.MaDV.toString()
                               )}
-                              onCheckedChange={() =>
-                                handleServiceChange(service.MaDV.toString())
+                              onCheckedChange={(checked) =>
+                                handleServiceChange(
+                                  service.MaDV.toString(),
+                                  checked
+                                )
                               }
                               disabled={
-                                isDefaultService(service.MaDV.toString()) ||
+                                isDefaultService(service) ||
                                 !isServiceChangeAllowed() ||
                                 isFormDisabled
                               }
+                              className="h-5 w-5"
+                              aria-label={`Chọn dịch vụ ${service.TenDV}`}
                             />
                             <Label
                               htmlFor={`service-${service.MaDV}`}
@@ -664,9 +695,28 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                               {service.TenDV}
                             </Label>
                           </div>
-                          <span className="text-sm text-gray-600 w-32 text-right">
-                            {formatCurrency(service.DonGia || 0)} VNĐ
-                          </span>
+                          <div className="flex items-center space-x-4">
+                            <span className="text-sm text-gray-600 w-32 text-right">
+                              {formatCurrency(service.DonGia || 0)} VNĐ
+                            </span>
+                            <Input
+                              type="number"
+                              value={
+                                serviceQuantities[service.MaDV.toString()] ?? ""
+                              }
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  service.MaDV.toString(),
+                                  e.target.value
+                                )
+                              }
+                              disabled={
+                                isElectricityOrWater(service) || isFormDisabled
+                              }
+                              className="w-20 h-8 text-center rounded"
+                              aria-label={`Số lượng dịch vụ ${service.TenDV}`}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>

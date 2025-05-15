@@ -86,10 +86,12 @@ const TableUser = (props) => {
                 <TableCell className="w-24">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="block truncate">{user.DienThoai}</span>
+                      <span className="block truncate">
+                        {user.DienThoaiChinh}
+                      </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{user.DienThoai}</p>
+                      <p>{user.DienThoaiChinh}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
@@ -104,7 +106,7 @@ const TableUser = (props) => {
                   </Tooltip>
                 </TableCell>
                 <TableCell className="w-24">
-                  {user.TrangThai ? "Đang thuê" : "Hết hạn"}
+                  {user.TrangThai ? "Đang thuê" : "Trả phòng"}
                 </TableCell>
                 <TableCell className="w-36">
                   <div className="flex justify-center gap-0.5">

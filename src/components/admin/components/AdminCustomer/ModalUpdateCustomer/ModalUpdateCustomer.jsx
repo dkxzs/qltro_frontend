@@ -12,12 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  updateCustomerService,
   checkCustomerHasRentService,
+  updateCustomerService,
 } from "@/services/customerServices";
 import { formatDateForInput } from "@/utils/dateFormat";
 import { useMutation } from "@tanstack/react-query";
-import { Pencil, Loader2, SquarePen } from "lucide-react";
+import { Loader2, SquarePen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -185,16 +185,16 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
       return false;
     }
 
-    const phoneRegex = /^\d{10}$/;
-    if (!phoneRegex.test(formData.phoneNumberMain)) {
-      toast.error("Số điện thoại chính phải là 10 chữ số");
-      return false;
-    }
+    // const phoneRegex = /^\d{10}$/;
+    // if (!phoneRegex.test(formData.phoneNumberMain)) {
+    //   toast.error("Số điện thoại chính phải là 10 chữ số");
+    //   return false;
+    // }
 
-    if (formData.phoneNumberSub && !phoneRegex.test(formData.phoneNumberSub)) {
-      toast.error("Số điện thoại phụ phải là 10 chữ số");
-      return false;
-    }
+    // if (formData.phoneNumberSub && !phoneRegex.test(formData.phoneNumberSub)) {
+    //   toast.error("Số điện thoại phụ phải là 10 chữ số");
+    //   return false;
+    // }
 
     if (!formData.address.trim()) {
       toast.error("Địa chỉ không được để trống");
@@ -555,7 +555,7 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
                   <img
                     src={previewImage}
                     alt="Avatar preview"
-                    className="w-32 h-32 object-contain rounded-full border"
+                    className="w-32 h-32 object-contain"
                   />
                 ) : (
                   <div className="flex items-center justify-center gap-1 text-lg font-mono">

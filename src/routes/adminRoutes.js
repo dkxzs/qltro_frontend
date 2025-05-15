@@ -11,6 +11,7 @@ import AdminUser from "@/components/admin/components/AdminCustomer/AdminCustomer
 import AdminWater from "@/components/admin/components/AdminWater/AdminWater";
 import AdminExpense from "@/components/admin/components/AdminExpense/AdminExpense";
 import AdminConfig from "@/components/admin/components/AdminConfig/AdminConfig";
+import AdminViewInfo from "@/components/admin/components/AdminRent/AdminViewInfo";
 
 export const adminRoutes = [
   {
@@ -65,5 +66,9 @@ export const adminRoutes = [
   {
     path: "config",
     page: AdminConfig,
+  },
+  {
+    path: "view-info",
+    page: AdminViewInfo,
   },
 ];
