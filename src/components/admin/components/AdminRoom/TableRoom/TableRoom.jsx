@@ -16,8 +16,10 @@ import ModalUpdateRoom from "../ModalUpdateRoom/ModalUpdateRoom";
 import ModalDeleteRoom from "../ModalDeleteRoom/ModalDeleteRoom";
 import { getRoomStatusColor, getRoomStatusText } from "@/utils/roomStatusUtils";
 import ModalAddMember from "../ModalAddMember/ModalAddMember";
+import { useNavigate } from "react-router-dom";
 
 const TableRoom = ({ roomData, refetch }) => {
+  const navigate = useNavigate();
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -25,7 +27,9 @@ const TableRoom = ({ roomData, refetch }) => {
     }).format(price);
   };
 
-  console.log(roomData);
+  const handleViewInfo = (roomId) => {
+    navigate(`/admin/view-room`, { state: { roomId } });
+  };
 
   return (
     <div className="w-full">
@@ -68,13 +72,11 @@ const TableRoom = ({ roomData, refetch }) => {
                 <TableCell className="py-2 px-2 text-center">
                   {index + 1}
                 </TableCell>
-                <TableCell className="py-2 px-5 truncate">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>{room.TenPhong}</TooltipTrigger>
-                      <TooltipContent>{room.TenPhong}</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                <TableCell
+                  className="py-2 px-5 truncate cursor-pointer"
+                  onClick={() => handleViewInfo(room.MaPT)}
+                >
+                  {room.TenPhong}
                 </TableCell>
                 <TableCell className="py-2 px-2 truncate">
                   <TooltipProvider>

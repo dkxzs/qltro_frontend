@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -6,21 +7,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Printer } from "lucide-react";
+import { formatCurrency, numberToText } from "@/utils/formatCurrency";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ModalViewRent from "../ModalViewRent/ModalViewRent";
-import { formatCurrency, numberToText } from "@/utils/formatCurrency";
-import { useNavigate } from "react-router-dom";
 
 const TableRent = ({ filteredData }) => {
   const [printLoading, setPrintLoading] = useState(null);
   const navigate = useNavigate();
-  const [isViewRentModalOpen, setIsViewRentModalOpen] = useState(false);
   const template = useSelector((state) => state.contractConfig.template);
   const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
 
@@ -413,11 +412,7 @@ const TableRent = ({ filteredData }) => {
                   </TableCell>
                   <TableCell className="text-center py-2">
                     <div className="flex items-center justify-center gap-2">
-                      <ModalViewRent
-                        open={isViewRentModalOpen}
-                        setOpen={setIsViewRentModalOpen}
-                        rentData={rent}
-                      />
+                      <ModalViewRent rentData={rent} />
                       <Button
                         onClick={() => {
                           setPrintLoading(rent.MaTP);
@@ -430,7 +425,7 @@ const TableRent = ({ filteredData }) => {
                         }`}
                         disabled={printLoading === rent.MaTP}
                       >
-                        <Printer className="size-5 text-blue-600" />
+                        <Printer className="size-4 text-gray-600" />
                       </Button>
                     </div>
                   </TableCell>

@@ -196,7 +196,7 @@ const ModalAddRent = () => {
   const handleQuantityChange = (maDV, value) => {
     setServiceQuantities((prev) => ({
       ...prev,
-      [maDV]: value === "" ? "" : Math.max(0, parseInt(value)),
+      [maDV]: value === "" ? "" : Math.max(1, parseInt(value) || 1),
     }));
   };
 
@@ -244,7 +244,7 @@ const ModalAddRent = () => {
       }
     },
     onError: (error) => {
-      toast.error("Có lỗi xảy ra khi tạo hợp đồng");
+      toast.error(error.response?.data?.EM);
       console.error(error);
     },
   });
@@ -264,6 +264,26 @@ const ModalAddRent = () => {
       }
       if (!formData.phoneNumberMain.trim()) {
         toast.error("Số điện thoại chính không được để trống");
+        return;
+      }
+      if (!formData.cardId.trim()) {
+        toast.error("Số CCCD không được để trống");
+        return;
+      }
+      if (formData.cardId.trim().length !== 12) {
+        toast.error("Số CCCD phải có 12 chữ số");
+        return;
+      }
+      if (!formData.dateOfIssue.trim()) {
+        toast.error("Ngày cấp không được để trống");
+        return;
+      }
+      if (!formData.placeOfIssue.trim()) {
+        toast.error("Nơi cấp không được để trống");
+        return;
+      }
+      if (formData.phoneNumberMain.trim().length !== 10) {
+        toast.error("Số điện thoại chính phải có 10 chữ số");
         return;
       }
       if (!formData.avatar) {
@@ -298,17 +318,17 @@ const ModalAddRent = () => {
         selectedCustomerOption === "new"
           ? {
               HoTen: formData.name,
-              CCCD: formData.cardId || null,
+              CCCD: formData.cardId,
               GioiTinh: formData.gender,
-              NgaySinh: formData.birthday || null,
+              NgaySinh: formData.birthday,
               DienThoaiChinh: formData.phoneNumberMain,
-              DienThoaiPhu: formData.phoneNumberSub.trim() || null,
-              Email: formData.email.trim() || null,
-              DiaChi: formData.address.trim() || null,
-              NgayCap: formData.dateOfIssue || null,
-              NoiCap: formData.placeOfIssue.trim() || null,
-              SoXe: formData.vehicleNumber.trim() || null,
-              NgheNghiep: formData.occupation.trim() || null,
+              DienThoaiPhu: formData.phoneNumberSub.trim(),
+              Email: formData.email.trim(),
+              DiaChi: formData.address.trim(),
+              NgayCap: formData.dateOfIssue,
+              NoiCap: formData.placeOfIssue.trim(),
+              SoXe: formData.vehicleNumber.trim(),
+              NgheNghiep: formData.occupation.trim(),
               Anh: formData.avatar,
             }
           : null,

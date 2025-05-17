@@ -483,7 +483,7 @@ const ModalAddUser = ({ refetch }) => {
                 disabled={isFormDisabled}
               />
               <div
-                className={`mt-2 w-40 h-40 border-2 border-dashed rounded p-4 flex items-center justify-center ${
+                className={`mt-2 w-56 h-44 border-2 border-dashed rounded p-4 flex items-center justify-center ${
                   isFormDisabled
                     ? "cursor-not-allowed opacity-50"
                     : "cursor-pointer"
@@ -496,7 +496,7 @@ const ModalAddUser = ({ refetch }) => {
                       <img
                         src={previewImage}
                         alt="Avatar preview"
-                        className="w-32 h-32 object-contain rounded-full border"
+                        className="w-56 h-36 object-contain"
                       />
                     )}
                   </>

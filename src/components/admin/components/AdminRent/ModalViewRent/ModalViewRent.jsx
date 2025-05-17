@@ -24,11 +24,12 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 import { Download, Eye } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
-const ModalViewRent = ({ open, setOpen, rentData }) => {
+const ModalViewRent = ({ rentData }) => {
+  const [open, setOpen] = useState(false);
   const contractRef = useRef(null);
   const template = useSelector((state) => state.contractConfig.template);
   const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
@@ -388,7 +389,7 @@ const ModalViewRent = ({ open, setOpen, rentData }) => {
           className="bg-transparent outline-none border-none shadow-none rounded-none cursor-pointer hover:text-white"
           onClick={() => setOpen(true)}
         >
-          <Eye className="size-5 text-blue-600" />
+          <Eye className="size-4 text-blue-600" />
         </Button>
       </DialogTrigger>
       <DialogContent

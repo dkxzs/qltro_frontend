@@ -250,7 +250,7 @@ const AdminElectricity = () => {
         </div>
       </div>
 
-      <div className="rounded overflow-hidden min-h-[305px]">
+      <div className="rounded overflow-hidden min-h-[315px]">
         <div div className="rounded border overflow-hidden">
           {isLoading ? (
             <p className="text-center text-md font-medium">
@@ -271,7 +271,7 @@ const AdminElectricity = () => {
       </div>
 
       {filteredData.length > 0 && (
-        <div className="mt-1 flex justify-center">
+        <div className="mt-4 flex justify-center">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

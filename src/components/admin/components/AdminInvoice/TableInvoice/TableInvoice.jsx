@@ -435,7 +435,7 @@ const TableInvoice = ({ invoices, isLoading }) => {
                       }`}
                       disabled={printLoading === invoice.MaHD}
                     >
-                      <Printer className="size-4 text-blue-600" />
+                      <Printer className="size-4 text-gray-600" />
                     </Button>
                   </TableCell>
                 </TableRow>

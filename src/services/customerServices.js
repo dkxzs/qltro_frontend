@@ -68,12 +68,18 @@ const paymentHistoryService = async (id) => {
   return res.data;
 };
 
+const getCustomerByRoomIdService = async (id) => {
+  const res = await axios.get(`/customer/get-customer-by-roomId/${id}`);
+  return res.data;
+};
+
 export {
-  createCustomerService,
-  getAllCustomerService,
-  updateCustomerService,
-  deleteCustomerService,
   checkCustomerHasRentService,
+  createCustomerService,
+  deleteCustomerService,
+  getAllCustomerService,
+  getCustomerByRoomIdService,
   historyCustomerRentService,
   paymentHistoryService,
+  updateCustomerService,
 };

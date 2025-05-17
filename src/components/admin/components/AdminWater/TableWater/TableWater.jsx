@@ -352,12 +352,12 @@ const TableWater = ({ waterData, month, year }) => {
       <Table className="min-w-full table-fixed border border-gray-200">
         <TableHeader className="bg-gray-100">
           <TableRow>
-            <TableHead className="w-[10%] text-center">Phòng</TableHead>
-            <TableHead className="w-[15%] text-center">Nhà</TableHead>
-            <TableHead className="w-[20%] text-center">Chỉ số cũ</TableHead>
-            <TableHead className="w-[25%] text-center">Chỉ số mới</TableHead>
-            <TableHead className="w-[15%] text-center">Tiêu thụ</TableHead>
-            <TableHead className="w-[15%] text-center">Hành động</TableHead>
+            <TableHead className="w-[10%] text-center py-3">Phòng</TableHead>
+            <TableHead className="w-[15%] text-center py-3">Nhà</TableHead>
+            <TableHead className="w-[20%] text-center py-3">Chỉ số cũ</TableHead>
+            <TableHead className="w-[25%] text-center py-3">Chỉ số mới</TableHead>
+            <TableHead className="w-[15%] text-center py-3">Tiêu thụ</TableHead>
+            <TableHead className="w-[15%] text-center py-3">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -388,10 +388,10 @@ const TableWater = ({ waterData, month, year }) => {
                 }-${month}-${year}-${index}`}
                 className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
               >
-                <TableCell className="text-center truncate">
+                <TableCell className="text-center truncate py-2">
                   {originalItem.PhongTro.TenPhong}
                 </TableCell>
-                <TableCell className="text-center truncate">
+                <TableCell className="text-center truncate py-2">
                   {originalItem.PhongTro.TenNha}
                 </TableCell>
                 <TableCell>
@@ -403,7 +403,7 @@ const TableWater = ({ waterData, month, year }) => {
                       handleInputChange(index, "ChiSoCu", e.target.value)
                     }
                     disabled={!canEditChiSoCu}
-                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none ${
+                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none py-2 ${
                       !canEditChiSoCu
                         ? "bg-gray-100 cursor-not-allowed"
                         : "bg-white"
@@ -420,14 +420,14 @@ const TableWater = ({ waterData, month, year }) => {
                       handleInputChange(index, "ChiSoMoi", e.target.value)
                     }
                     disabled={isDisabled}
-                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none ${
+                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none py-2 ${
                       isDisabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                     }`}
                     aria-label="Chỉ số mới"
                   />
                 </TableCell>
-                <TableCell className="text-center">{consumption}</TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center py-2">{consumption}</TableCell>
+                <TableCell className="text-center py-2">
                   <div className="flex justify-center gap-1">
                     <Button
                       onClick={() => handleSave(index)}

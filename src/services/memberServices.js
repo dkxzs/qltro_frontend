@@ -24,9 +24,15 @@ const deleteMemberService = async (id) => {
   return res.data;
 };
 
+const getMemberByRoomIdService = async (id) => {
+  const res = await axios.get(`/member/get-member-by-roomId/${id}`);
+  return res.data;
+};
+
 export {
   getAllMembersService,
   createMembersService,
   updateMembersService,
   deleteMemberService,
+  getMemberByRoomIdService,
 };

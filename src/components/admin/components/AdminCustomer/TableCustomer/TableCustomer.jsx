@@ -16,9 +16,15 @@ import ModalDeleteCustomer from "../ModalDeleteCustomer/ModalDeleteCustomer";
 import ModalRentHistory from "../ModalHistoryRent/ModalRentHistory";
 import ModalPaymentHistory from "../ModalPaymentHistory/ModalPaymentHistory";
 import ModalUpdateUser from "../ModalUpdateCustomer/ModalUpdateCustomer";
+import { useNavigate } from "react-router-dom";
 
 const TableUser = (props) => {
+  const navigate = useNavigate();
   const { userData, refetch } = props;
+
+  const handleViewInfo = (user) => {
+    navigate(`/admin/view-customer`, { state: { user } });
+  };
 
   return (
     <TooltipProvider>
@@ -50,15 +56,11 @@ const TableUser = (props) => {
                 className={index % 2 === 0 ? "bg-blue-50" : ""}
               >
                 <TableCell className="w-10 text-center">{index + 1}</TableCell>
-                <TableCell className="w-24">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="block truncate">{user.HoTen}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{user.HoTen}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                <TableCell
+                  className="w-24 cursor-pointer"
+                  onClick={() => handleViewInfo(user)}
+                >
+                  <p className="block truncate">{user.HoTen}</p>
                 </TableCell>
                 <TableCell className="w-32">
                   <Tooltip>

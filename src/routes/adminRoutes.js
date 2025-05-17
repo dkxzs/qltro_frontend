@@ -12,6 +12,8 @@ import AdminWater from "@/components/admin/components/AdminWater/AdminWater";
 import AdminExpense from "@/components/admin/components/AdminExpense/AdminExpense";
 import AdminConfig from "@/components/admin/components/AdminConfig/AdminConfig";
 import AdminViewInfo from "@/components/admin/components/AdminRent/AdminViewInfo";
+import AdminViewRoom from "@/components/admin/components/AdminRoom/AdminViewRoom";
+import AdminViewCustomer from "@/components/admin/components/AdminCustomer/AdminViewCustomer";
 
 export const adminRoutes = [
   {
@@ -70,5 +72,13 @@ export const adminRoutes = [
   {
     path: "view-info",
     page: AdminViewInfo,
+  },
+  {
+    path: "view-room",
+    page: AdminViewRoom,
+  },
+  {
+    path: "view-customer",
+    page: AdminViewCustomer,
   },
 ];

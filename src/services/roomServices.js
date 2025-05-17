@@ -62,6 +62,11 @@ const getRoomServicesService = async (roomId) => {
   return res.data;
 };
 
+const getRoomByRoomIdService = async (roomId) => {
+  const res = await axios.get(`/room/get-room-by-roomId/${roomId}`);
+  return res.data;
+};
+
 export {
   getAllRoomService,
   getRoomByIdService,
@@ -71,4 +76,5 @@ export {
   checkRoomHasRentService,
   updateRoomServicesService,
   getRoomServicesService,
+  getRoomByRoomIdService,
 };
