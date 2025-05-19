@@ -13,11 +13,11 @@ import { BsHouseGear } from "react-icons/bs";
 import { GiExpense } from "react-icons/gi";
 import { GrConfigure } from "react-icons/gr";
 import { IoWaterOutline } from "react-icons/io5";
-import { LiaFileContractSolid, LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import {
-  MdElectricBolt,
-  MdOutlineMiscellaneousServices
-} from "react-icons/md";
+  LiaFileContractSolid,
+  LiaFileInvoiceDollarSolid,
+} from "react-icons/lia";
+import { MdElectricBolt, MdOutlineMiscellaneousServices } from "react-icons/md";
 import { TbReport } from "react-icons/tb";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -108,6 +108,12 @@ const data = {
       title: "Chi phí phát sinh",
       url: "/admin/expenses",
       icon: GiExpense,
+      items: [],
+    },
+    {
+      title: "Cọc giữ phòng",
+      url: "/admin/deposit",
+      icon: LiaFileInvoiceDollarSolid,
       items: [],
     },
     {

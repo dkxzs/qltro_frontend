@@ -317,7 +317,7 @@ const AdminExpense = () => {
 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Danh sách chi phí phát sinh</h2>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <ModalAddExpense refetch={refetch} />
           <Button
             className="mr-2 flex items-center cursor-pointer bg-yellow-500 hover:bg-yellow-600 rounded"

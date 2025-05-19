@@ -1,19 +1,20 @@
-import AdminHouse from "@/components/admin/components/AdminHouse/AdminHouse";
+import AdminConfig from "@/components/admin/components/AdminConfig/AdminConfig";
+import AdminUser from "@/components/admin/components/AdminCustomer/AdminCustomer";
+import AdminViewCustomer from "@/components/admin/components/AdminCustomer/AdminViewCustomer";
 import AdminDashBoard from "@/components/admin/components/AdminDashBoard/AdminDashBoard";
+import AdminDepostit from "@/components/admin/components/AdminDeposit/AdminDepostit";
 import AdminElectricity from "@/components/admin/components/AdminElectricity/AdminElectricity";
+import AdminExpense from "@/components/admin/components/AdminExpense/AdminExpense";
+import AdminHouse from "@/components/admin/components/AdminHouse/AdminHouse";
 import AdminInvoice from "@/components/admin/components/AdminInvoice/AdminInvoice";
 import AdminRent from "@/components/admin/components/AdminRent/AdminRent";
+import AdminViewInfo from "@/components/admin/components/AdminRent/AdminViewInfo";
 import AdminReport from "@/components/admin/components/AdminReport/AdminReport";
 import AdminRoom from "@/components/admin/components/AdminRoom/AdminRoom";
+import AdminViewRoom from "@/components/admin/components/AdminRoom/AdminViewRoom";
 import AdminRoomType from "@/components/admin/components/AdminRoomType/AdminRoomType";
 import AdminService from "@/components/admin/components/AdminService/AdminService";
-import AdminUser from "@/components/admin/components/AdminCustomer/AdminCustomer";
 import AdminWater from "@/components/admin/components/AdminWater/AdminWater";
-import AdminExpense from "@/components/admin/components/AdminExpense/AdminExpense";
-import AdminConfig from "@/components/admin/components/AdminConfig/AdminConfig";
-import AdminViewInfo from "@/components/admin/components/AdminRent/AdminViewInfo";
-import AdminViewRoom from "@/components/admin/components/AdminRoom/AdminViewRoom";
-import AdminViewCustomer from "@/components/admin/components/AdminCustomer/AdminViewCustomer";
 
 export const adminRoutes = [
   {
@@ -80,5 +81,9 @@ export const adminRoutes = [
   {
     path: "view-customer",
     page: AdminViewCustomer,
+  },
+  {
+    path: "deposit",
+    page: AdminDepostit,
   },
 ];

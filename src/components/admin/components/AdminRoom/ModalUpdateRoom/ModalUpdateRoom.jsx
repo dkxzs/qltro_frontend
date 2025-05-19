@@ -62,8 +62,8 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const [status] = useState([
     { value: "0", label: "Còn trống" },
     { value: "1", label: "Đã cho thuê" },
-    { value: "2", label: "Đang sửa chữa" },
-    { value: "3", label: "Đặt cọc" },
+    { value: "2", label: "Đặt cọc" },
+    { value: "3", label: "Đang sửa chữa" },
   ]);
   const [formData, setFormData] = useState({
     tenPhong: "",

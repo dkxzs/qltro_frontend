@@ -6,16 +6,16 @@
 export const ROOM_STATUS = {
   0: "Còn trống",
   1: "Đang thuê",
-  2: "Đang sửa chữa",
-  3: "Tạm ngưng",
+  2: "Đặt cọc",
+  3: "Sửa chữa",
 };
 
 // Ánh xạ từ chuỗi sang số
 export const ROOM_STATUS_VALUE = {
   "Còn trống": 0,
   "Đang thuê": 1,
-  "Đang sửa chữa": 2,
-  "Tạm ngưng": 3,
+  "Đặt cọc": 2,
+  "Sửa chữa": 3,
 };
 
 /**

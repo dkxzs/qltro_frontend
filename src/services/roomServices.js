@@ -67,6 +67,11 @@ const getRoomByRoomIdService = async (roomId) => {
   return res.data;
 };
 
+const getAvailableRoomsByHouseService = async (houseId) => {
+  const res = await axios.get(`/room/get-room-available/${houseId}`);
+  return res.data;
+};
+
 export {
   getAllRoomService,
   getRoomByIdService,
@@ -77,4 +82,5 @@ export {
   updateRoomServicesService,
   getRoomServicesService,
   getRoomByRoomIdService,
+  getAvailableRoomsByHouseService,
 };

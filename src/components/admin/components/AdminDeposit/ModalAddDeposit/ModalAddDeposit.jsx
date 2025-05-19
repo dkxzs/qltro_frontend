@@ -9,6 +9,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { getAllHouseService } from "@/services/houseServices";
+import { getAvailableRoomsByHouseService } from "@/services/roomServices";
+import { Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { useQuery } from "@tanstack/react-query";
+import { createDepositService } from "@/services/depositServices";
 import {
   Select,
   SelectContent,
@@ -16,20 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { getAllHouseService } from "@/services/houseServices";
-import { getAllRoomService } from "@/services/roomServices";
-import { Plus } from "lucide-react";
-import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import { useQuery } from "@tanstack/react-query";
 
-const ModalAddDeposit = ({ onAddDeposit }) => {
+const ModalAddDeposit = ({ refetch }) => {
   const [open, setOpen] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
   const [formData, setFormData] = useState({
-    MaDC: "",
     MaNha: "",
     MaPT: "",
     TenKH: "",
@@ -37,7 +37,7 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
     SoTien: "",
     NgayDatCoc: "",
     GhiChu: "",
-    TrangThai: "Đang xử lý",
+    TrangThai: "Đang cọc",
   });
 
   // Lấy danh sách nhà
@@ -47,10 +47,14 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
     enabled: open,
   });
 
-  // Lấy danh sách phòng dựa trên mã nhà
-  const { data: roomData, isLoading: roomLoading } = useQuery({
-    queryKey: ["roomData", selectedHouse],
-    queryFn: () => getAllRoomService(selectedHouse),
+  // Lấy danh sách phòng trống dựa trên mã nhà
+  const {
+    data: roomData,
+    isLoading: roomLoading,
+    refetch: refetchRooms,
+  } = useQuery({
+    queryKey: ["availableRooms", selectedHouse],
+    queryFn: () => getAvailableRoomsByHouseService(selectedHouse),
     enabled: !!selectedHouse && open,
   });
 
@@ -68,8 +72,9 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
     if (selectedHouse) {
       setSelectedRoom("");
       setFormData((prev) => ({ ...prev, MaPT: "" }));
+      refetchRooms();
     }
-  }, [selectedHouse]);
+  }, [selectedHouse, refetchRooms]);
 
   const handleHouseChange = (value) => {
     setSelectedHouse(value);
@@ -90,41 +95,61 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "SoTien") {
+      const cleanValue = value.replace(/\D/g, "");
+      const numericValue = cleanValue === "" ? "" : parseInt(cleanValue, 10);
+      setFormData((prev) => ({ ...prev, [name]: numericValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (
-      !formData.MaDC ||
       !formData.MaNha ||
       !formData.MaPT ||
       !formData.TenKH ||
       !formData.SoDienThoai ||
       !formData.SoTien ||
-      !formData.NgayDatCoc ||
-      !formData.TrangThai
+      !formData.NgayDatCoc
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
       return;
     }
 
-    onAddDeposit({ ...formData, SoTien: parseFloat(formData.SoTien) });
-    toast.success("Thêm đặt cọc thành công!");
-    setOpen(false);
-    setFormData({
-      MaDC: "",
-      MaNha: "",
-      MaPT: "",
-      TenKH: "",
-      SoDienThoai: "",
-      SoTien: "",
-      NgayDatCoc: "",
-      GhiChu: "",
-      TrangThai: "Đang xử lý",
-    });
-    setSelectedHouse("");
-    setSelectedRoom("");
+    try {
+      const response = await createDepositService(formData);
+
+      if (response.EC === 0) {
+        toast.success("Thêm đặt cọc thành công!");
+        setOpen(false);
+        setFormData({
+          MaNha: "",
+          MaPT: "",
+          TenKH: "",
+          SoDienThoai: "",
+          SoTien: "",
+          NgayDatCoc: "",
+          GhiChu: "",
+          TrangThai: "Đang cọc",
+        });
+        setSelectedHouse("");
+        setSelectedRoom("");
+        refetch();
+      } else {
+        toast.error(response.EM || "Thêm đặt cọc thất bại!");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Có lỗi xảy ra khi thêm đặt cọc!");
+    }
+  };
+
+  // Hàm formatCurrency để hiển thị trong input
+  const formatCurrency = (value) => {
+    if (!value && value !== 0) return "";
+    return new Intl.NumberFormat("vi-VN").format(value);
   };
 
   return (
@@ -193,7 +218,13 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
               >
                 <SelectTrigger className="w-full rounded shadow-none cursor-pointer">
                   <SelectValue
-                    placeholder={roomLoading ? "Đang tải..." : "Chọn phòng"}
+                    placeholder={
+                      roomLoading
+                        ? "Đang tải..."
+                        : roomData?.DT?.length === 0
+                        ? "Không có phòng trống"
+                        : "Chọn phòng"
+                    }
                   />
                 </SelectTrigger>
                 <SelectContent className="rounded">
@@ -209,7 +240,7 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
                     ))
                   ) : (
                     <SelectItem disabled value="no-data">
-                      Không có dữ liệu
+                      Không có phòng trống
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -248,9 +279,8 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
               <Input
                 id="SoTien"
                 name="SoTien"
-                type="number"
-                step="0.01"
-                value={formData.SoTien}
+                type="text"
+                value={formatCurrency(formData.SoTien)}
                 onChange={handleChange}
                 className="col-span-3 rounded shadow-none"
                 required
@@ -269,30 +299,6 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
                 className="col-span-3 rounded shadow-none"
                 required
               />
-            </div>
-            <div className="grid items-center gap-4">
-              <Label htmlFor="TrangThai" className="text-right">
-                Trạng thái
-              </Label>
-              <Select
-                id="TrangThai"
-                name="TrangThai"
-                value={formData.TrangThai}
-                onValueChange={(value) =>
-                  handleChange({ target: { name: "TrangThai", value } })
-                }
-                className="col-span-3"
-                required
-              >
-                <SelectTrigger className="w-full rounded shadow-none">
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Đang xử lý">Đang xử lý</SelectItem>
-                  <SelectItem value="Hoàn tất">Hoàn tất</SelectItem>
-                  <SelectItem value="Đã hủy">Đã hủy</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <div className="mb-3">
