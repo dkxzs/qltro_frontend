@@ -21,7 +21,7 @@ import { Loader2, SquarePen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalUpdateUser = ({ dataUpdate, refetch }) => {
+const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
   const date = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     name: "",
@@ -598,4 +598,4 @@ const ModalUpdateUser = ({ dataUpdate, refetch }) => {
   );
 };
 
-export default ModalUpdateUser;
+export default ModalUpdateCustomer;

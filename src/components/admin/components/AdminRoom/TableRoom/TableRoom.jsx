@@ -17,6 +17,8 @@ import ModalDeleteRoom from "../ModalDeleteRoom/ModalDeleteRoom";
 import { getRoomStatusColor, getRoomStatusText } from "@/utils/roomStatusUtils";
 import ModalAddMember from "../ModalAddMember/ModalAddMember";
 import { useNavigate } from "react-router-dom";
+import ModalAddContractForEmpty from "../ModalAddContractForEmpty/ModalAddContractForEmpty"; // Phiên bản cho phòng trống
+import ModalAddContractForDeposit from "../../AdminDeposit/ModalAddContractForDeposit/ModalAddContractForDeposit"; // Phiên bản cho phòng đang đặt cọc
 
 const TableRoom = ({ roomData, refetch }) => {
   const navigate = useNavigate();
@@ -130,6 +132,23 @@ const TableRoom = ({ roomData, refetch }) => {
                 </TableCell>
                 <TableCell className="py-2 px-2">
                   <div className="flex justify-center gap-1">
+                    {room.TrangThai === 0 && (
+                      <ModalAddContractForEmpty
+                        houseId={room.Nha?.MaNha}
+                        roomId={room.MaPT}
+                        room={room}
+                        status={room.TrangThai}
+                        refetch={refetch}
+                      />
+                    )}
+                    {room.TrangThai === 2 && (
+                      <ModalAddContractForDeposit
+                        deposit={null} // Sẽ được cập nhật từ API trong component
+                        roomId={room.MaPT}
+                        room={room}
+                        refetch={refetch}
+                      />
+                    )}
                     {room.TrangThai === 1 && <ModalAddMember room={room} />}
                     <ModalUpdateRoom dataUpdate={room} refetch={refetch} />
                     <ModalDeleteRoom dataDelete={room} refetch={refetch} />

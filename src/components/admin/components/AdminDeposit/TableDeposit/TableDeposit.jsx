@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import ModalDeleteDeposit from "../ModalDeleteDeposit/ModalDeleteDeposit";
 import ModalUpdateDeposit from "../ModalUpdateDeposit/ModalUpdateDeposit";
-import ModalAddContract from "../ModalAddContract/ModalAddContract";
+import ModalAddContractForEmpty from "../ModalAddContractForDeposit/ModalAddContractForDeposit";
 
 const TableDeposit = ({ depositData, refetch }) => {
   console.log(depositData);
@@ -46,7 +46,10 @@ const TableDeposit = ({ depositData, refetch }) => {
                 <TableCell>{deposit.TrangThai}</TableCell>
                 <TableCell>
                   {deposit.TrangThai === "Đang cọc" && (
-                    <ModalAddContract deposit={deposit} refetch={refetch} />
+                    <ModalAddContractForEmpty
+                      deposit={deposit}
+                      refetch={refetch}
+                    />
                   )}
                   <ModalUpdateDeposit deposit={deposit} refetch={refetch} />
                   <ModalDeleteDeposit deposit={deposit} refetch={refetch} />

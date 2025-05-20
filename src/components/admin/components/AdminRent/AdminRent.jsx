@@ -228,7 +228,7 @@ const AdminRent = () => {
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-medium">Danh sách hợp đồng</h3>
         <div className="flex gap-2">
-          <ModalAddRent />
+          <ModalAddRent showText={true} />
           <Button
             className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
             onClick={handleExportExcel} // Gắn hàm xuất Excel vào nút

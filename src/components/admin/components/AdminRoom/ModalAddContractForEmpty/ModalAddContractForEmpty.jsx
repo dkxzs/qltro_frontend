@@ -22,9 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { getAllCustomerService } from "@/services/customerServices";
-import { getAllHouseService } from "@/services/houseServices";
 import { createRentService } from "@/services/rentServices";
-import { getRoomByIdService } from "@/services/roomServices";
 import { getAllServiceService } from "@/services/serviceServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -33,11 +31,9 @@ import { useEffect, useRef, useState } from "react";
 import { MdOutlinePostAdd } from "react-icons/md";
 import { toast } from "react-toastify";
 
-const ModalAddRent = ({ showText }) => {
+const ModalAddContractForEmpty = ({ room, refetch }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [selectedHouse, setSelectedHouse] = useState("");
-  const [selectedRoom, setSelectedRoom] = useState("");
   const [selectedCustomerOption, setSelectedCustomerOption] =
     useState("existing");
   const [selectedCustomer, setSelectedCustomer] = useState("");
@@ -47,7 +43,7 @@ const ModalAddRent = ({ showText }) => {
     ngayBatDau: "",
     ngayKetThuc: "",
     ghiChu: "",
-    donGia: "",
+    donGia: room?.LoaiPhong?.DonGia || "",
     datCoc: "",
     name: "",
     cardId: "",
@@ -65,19 +61,11 @@ const ModalAddRent = ({ showText }) => {
   });
   const [previewImage, setPreviewImage] = useState(null);
   const inputRef = useRef(null);
-  // eslint-disable-next-line no-unused-vars
-  const [roomPrice, setRoomPrice] = useState(0);
   const date = new Date().toISOString().split("T")[0];
 
   const { data: dataServices } = useQuery({
     queryKey: ["services"],
     queryFn: () => getAllServiceService(),
-    enabled: open,
-  });
-
-  const { data: housesData } = useQuery({
-    queryKey: ["houses-for-rent"],
-    queryFn: getAllHouseService,
     enabled: open,
   });
 
@@ -87,19 +75,13 @@ const ModalAddRent = ({ showText }) => {
     enabled: open,
   });
 
-  const { data: roomsData, refetch: refetchRooms } = useQuery({
-    queryKey: ["rooms-by-house", selectedHouse],
-    queryFn: () => getRoomByIdService(selectedHouse),
-    enabled: !!selectedHouse && open,
-  });
-
+  // Khởi tạo dịch vụ mặc định khi mở modal
   useEffect(() => {
     if (open && dataServices?.DT) {
       const defaultServices = dataServices.DT.filter(
         (service) => service.BatBuoc === true
       ).map((service) => service.MaDV);
       setSelectedServices(defaultServices);
-      // Initialize quantities for all services with default value 1
       const initialQuantities = dataServices.DT.reduce((acc, service) => {
         acc[service.MaDV] = 1;
         return acc;
@@ -108,34 +90,7 @@ const ModalAddRent = ({ showText }) => {
     }
   }, [open, dataServices]);
 
-  useEffect(() => {
-    if (open && housesData?.DT && housesData.DT.length > 0) {
-      setSelectedHouse(housesData.DT[0].MaNha.toString());
-    }
-  }, [open, housesData]);
-
-  useEffect(() => {
-    if (selectedHouse) {
-      setSelectedRoom("");
-      refetchRooms();
-    }
-  }, [selectedHouse, refetchRooms]);
-
-  useEffect(() => {
-    if (selectedRoom && roomsData?.DT) {
-      const selectedRoomData = roomsData.DT.find(
-        (room) => room.MaPT.toString() === selectedRoom
-      );
-      if (selectedRoomData && selectedRoomData.LoaiPhong) {
-        setRoomPrice(selectedRoomData.LoaiPhong.DonGia);
-        setFormData((prev) => ({
-          ...prev,
-          donGia: selectedRoomData.LoaiPhong.DonGia,
-        }));
-      }
-    }
-  }, [selectedRoom, roomsData]);
-
+  // Xử lý khi đóng modal để giải phóng bộ nhớ ảnh
   useEffect(() => {
     return () => {
       if (previewImage) {
@@ -202,8 +157,6 @@ const ModalAddRent = ({ showText }) => {
   };
 
   const resetForm = () => {
-    setSelectedHouse("");
-    setSelectedRoom("");
     setSelectedCustomerOption("existing");
     setSelectedCustomer("");
     setSelectedServices([]);
@@ -212,7 +165,7 @@ const ModalAddRent = ({ showText }) => {
       ngayBatDau: "",
       ngayKetThuc: "",
       ghiChu: "",
-      donGia: "",
+      donGia: room?.LoaiPhong?.DonGia || "",
       datCoc: "",
       name: "",
       cardId: "",
@@ -229,7 +182,6 @@ const ModalAddRent = ({ showText }) => {
       occupation: "",
     });
     setPreviewImage(null);
-    setRoomPrice(0);
   };
 
   const createRentMutation = useMutation({
@@ -240,12 +192,13 @@ const ModalAddRent = ({ showText }) => {
         setOpen(false);
         resetForm();
         queryClient.invalidateQueries(["rent-list"]);
+        refetch?.();
       } else {
         toast.error(data.EM);
       }
     },
     onError: (error) => {
-      toast.error(error.response?.data?.EM);
+      toast.error(error.response?.data?.EM || "Có lỗi xảy ra");
       console.error(error);
     },
   });
@@ -293,11 +246,6 @@ const ModalAddRent = ({ showText }) => {
       }
     }
 
-    if (!selectedRoom) {
-      toast.error("Vui lòng chọn phòng");
-      return;
-    }
-
     if (!formData.ngayBatDau) {
       toast.error("Vui lòng chọn ngày bắt đầu");
       return;
@@ -312,6 +260,11 @@ const ModalAddRent = ({ showText }) => {
       toast.error("Vui lòng nhập tiền đặt cọc");
       return;
     }
+
+    const datCocValue =
+      typeof formData.datCoc === "string"
+        ? parseInt(formData.datCoc.replace(/\D/g, ""))
+        : formData.datCoc || 0;
 
     const rentData = {
       maKH: selectedCustomerOption === "existing" ? selectedCustomer : null,
@@ -333,7 +286,7 @@ const ModalAddRent = ({ showText }) => {
               Anh: formData.avatar,
             }
           : null,
-      maPT: selectedRoom,
+      maPT: room.MaPT,
       ngayBatDau: formData.ngayBatDau,
       ngayKetThuc: formData.ngayKetThuc || null,
       ghiChu: formData.ghiChu || "",
@@ -341,10 +294,7 @@ const ModalAddRent = ({ showText }) => {
         typeof formData.donGia === "string"
           ? parseInt(formData.donGia.replace(/\D/g, ""))
           : formData.donGia || 0,
-      datCoc:
-        typeof formData.datCoc === "string"
-          ? parseInt(formData.datCoc.replace(/\D/g, ""))
-          : formData.datCoc || 0,
+      datCoc: datCocValue,
       dichVu: selectedServices.map((maDV) => ({
         madv: maDV,
         soluong:
@@ -357,9 +307,6 @@ const ModalAddRent = ({ showText }) => {
     createRentMutation.mutate(rentData);
   };
 
-  const availableRooms =
-    roomsData?.DT?.filter((room) => room.TrangThai === 0) || [];
-
   const isDefaultService = (service) => service.BatBuoc === true;
 
   const isElectricityOrWater = (service) =>
@@ -369,16 +316,9 @@ const ModalAddRent = ({ showText }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {showText ? (
-          <Button className="mr-2 flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded">
-            <Plus className="size-4" />
-            Tạo hợp đồng
-          </Button>
-        ) : (
-          <Button className=" cursor-pointer rounded-none shadow-none border-none bg-transparent">
-            <MdOutlinePostAdd className="size-5 text-orange-500" />
-          </Button>
-        )}
+        <Button className="cursor-pointer rounded-none outline-none bg-transparent shadow-none">
+          <MdOutlinePostAdd className="size-5 text-orange-600" />
+        </Button>
       </DialogTrigger>
       <DialogContent
         className="bg-white shadow-md rounded max-w-4xl max-h-[90vh] min-h-[90vh] flex flex-col"
@@ -386,8 +326,8 @@ const ModalAddRent = ({ showText }) => {
       >
         <DialogHeader>
           <DialogTitle>Thêm hợp đồng</DialogTitle>
-          <DialogDescription id="add-rent-description">
-            Vui lòng nhập đầy đủ thông tin vào hợp đồng mới.
+          <DialogDescription id="add-contract-description">
+            Vui lòng nhập đầy đủ thông tin để tạo hợp đồng mới.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -431,57 +371,24 @@ const ModalAddRent = ({ showText }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
                   <div className="w-full">
                     <Label htmlFor="nha">Nhà</Label>
-                    <Select
-                      value={selectedHouse}
-                      onValueChange={setSelectedHouse}
-                    >
-                      <SelectTrigger
-                        id="nha"
-                        className="w-full rounded mt-2 shadow-none cursor-pointer"
-                        aria-label="Chọn nhà"
-                      >
-                        <SelectValue placeholder="Chọn nhà" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto rounded">
-                        {housesData?.DT?.map((house) => (
-                          <SelectItem
-                            key={house.MaNha}
-                            value={house.MaNha.toString()}
-                            className="cursor-pointer"
-                          >
-                            {house.TenNha}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="nha"
+                      value={room?.Nha?.TenNha || ""}
+                      disabled
+                      className="w-full rounded mt-2 shadow-none cursor-not-allowed"
+                      aria-label="Nhà"
+                    />
                   </div>
 
                   <div className="w-full">
                     <Label htmlFor="phong">Phòng</Label>
-                    <Select
-                      value={selectedRoom}
-                      onValueChange={setSelectedRoom}
-                    >
-                      <SelectTrigger
-                        id="phong"
-                        className="w-full rounded mt-2 shadow-none cursor-pointer"
-                        aria-label="Chọn phòng"
-                      >
-                        <SelectValue placeholder="Chọn phòng" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto rounded">
-                        {availableRooms.map((room) => (
-                          <SelectItem
-                            key={room.MaPT}
-                            value={room.MaPT.toString()}
-                            className="cursor-pointer"
-                          >
-                            {room.TenPhong} -{" "}
-                            {room.LoaiPhong?.TenLoaiPhong || ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="phong"
+                      value={room?.TenPhong || ""}
+                      disabled
+                      className="w-full rounded mt-2 shadow-none cursor-not-allowed"
+                      aria-label="Phòng"
+                    />
                   </div>
 
                   <div className="w-full">
@@ -581,13 +488,13 @@ const ModalAddRent = ({ showText }) => {
                           <SelectValue placeholder="Chọn khách trọ" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60 overflow-y-auto rounded">
-                          {customersData?.DT?.map((customer) => (
+                          {customersData?.DT.map((customer) => (
                             <SelectItem
                               key={customer.MaKH}
                               value={customer.MaKH.toString()}
                               className="cursor-pointer"
                             >
-                              {customer.HoTen} - {customer.CCCD}
+                              {customer.HoTen}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -648,7 +555,7 @@ const ModalAddRent = ({ showText }) => {
                         <RadioGroup
                           value={formData.gender}
                           onValueChange={(value) =>
-                            setFormData({ ...formData, gender: value })
+                            setFormData((prev) => ({ ...prev, gender: value }))
                           }
                           className="mt-3 flex space-x-4"
                         >
@@ -893,4 +800,4 @@ const ModalAddRent = ({ showText }) => {
   );
 };
 
-export default ModalAddRent;
+export default ModalAddContractForEmpty;

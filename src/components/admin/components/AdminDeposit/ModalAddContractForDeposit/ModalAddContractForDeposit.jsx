@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -10,20 +11,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { getDepositByRoomIdService } from "@/services/depositServices";
 import { createRentFromDepositService } from "@/services/rentServices";
 import { getAllServiceService } from "@/services/serviceServices";
+import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { MdOutlinePostAdd } from "react-icons/md";
 import { toast } from "react-toastify";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { MdOutlineNoteAdd } from "react-icons/md";
 
-const ModalAddContract = ({ deposit, refetch }) => {
+const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
@@ -32,13 +33,13 @@ const ModalAddContract = ({ deposit, refetch }) => {
     ngayBatDau: "",
     ngayKetThuc: "",
     ghiChu: "",
-    donGia: deposit?.PhongTro?.LoaiPhong?.DonGia || "",
-    datCoc: deposit?.SoTien || "",
-    name: deposit?.TenKH || "",
+    donGia: "",
+    datCoc: "",
+    name: "",
     cardId: "",
     gender: "Nam",
     birthday: "",
-    phoneNumberMain: deposit?.SoDienThoai || "",
+    phoneNumberMain: "",
     phoneNumberSub: "",
     email: "",
     address: "",
@@ -52,12 +53,24 @@ const ModalAddContract = ({ deposit, refetch }) => {
   const inputRef = useRef(null);
   const date = new Date().toISOString().split("T")[0];
 
+  // Lấy danh sách dịch vụ
   const { data: dataServices } = useQuery({
     queryKey: ["services"],
     queryFn: () => getAllServiceService(),
     enabled: open,
   });
 
+  // Lấy thông tin đặt cọc từ roomId (nếu không có deposit từ props)
+  const { data: depositData } = useQuery({
+    queryKey: ["deposit-by-room", roomId],
+    queryFn: () => getDepositByRoomIdService(roomId),
+    enabled: open && !!roomId && !deposit,
+  });
+
+  // Xác định dữ liệu đặt cọc cuối cùng để sử dụng
+  const finalDeposit = deposit || depositData?.DT || null;
+
+  // Khởi tạo dịch vụ mặc định và điền thông tin từ deposit khi mở modal
   useEffect(() => {
     if (open && dataServices?.DT) {
       const defaultServices = dataServices.DT.filter(
@@ -70,8 +83,19 @@ const ModalAddContract = ({ deposit, refetch }) => {
       }, {});
       setServiceQuantities(initialQuantities);
     }
-  }, [open, dataServices]);
+    if (open && finalDeposit) {
+      setFormData((prev) => ({
+        ...prev,
+        donGia: finalDeposit?.PhongTro?.LoaiPhong?.DonGia || "",
+        datCoc: finalDeposit?.SoTien || "",
+        name: finalDeposit?.TenKH || "",
+        phoneNumberMain: finalDeposit?.SoDienThoai || "",
+        // Không điền sẵn ghiChu từ finalDeposit nữa vì ghiChu giờ chỉ dùng cho hợp đồng
+      }));
+    }
+  }, [open, dataServices, finalDeposit]);
 
+  // Xử lý khi đóng modal để giải phóng bộ nhớ ảnh
   useEffect(() => {
     return () => {
       if (previewImage) {
@@ -144,13 +168,13 @@ const ModalAddContract = ({ deposit, refetch }) => {
       ngayBatDau: "",
       ngayKetThuc: "",
       ghiChu: "",
-      donGia: deposit?.PhongTro?.LoaiPhong?.DonGia || "",
-      datCoc: deposit?.SoTien || "",
-      name: deposit?.TenKH || "",
+      donGia: finalDeposit?.PhongTro?.LoaiPhong?.DonGia || "",
+      datCoc: finalDeposit?.SoTien || "",
+      name: finalDeposit?.TenKH || "",
       cardId: "",
       gender: "Nam",
       birthday: "",
-      phoneNumberMain: deposit?.SoDienThoai || "",
+      phoneNumberMain: finalDeposit?.SoDienThoai || "",
       phoneNumberSub: "",
       email: "",
       address: "",
@@ -164,14 +188,14 @@ const ModalAddContract = ({ deposit, refetch }) => {
   };
 
   const createRentMutation = useMutation({
-    mutationFn: (data) => createRentFromDepositService(data, deposit),
+    mutationFn: (data) => createRentFromDepositService(data, finalDeposit),
     onSuccess: (data) => {
       if (data.EC === 0) {
         toast.success(data.EM);
         setOpen(false);
         resetForm();
         queryClient.invalidateQueries(["rent-list"]);
-        refetch();
+        refetch?.();
       } else {
         toast.error(data.EM);
       }
@@ -184,6 +208,11 @@ const ModalAddContract = ({ deposit, refetch }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!finalDeposit) {
+      toast.error("Không tìm thấy thông tin đặt cọc");
+      return;
+    }
 
     if (!formData.name.trim()) {
       toast.error("Tên không được để trống");
@@ -251,10 +280,10 @@ const ModalAddContract = ({ deposit, refetch }) => {
         NgheNghiep: formData.occupation.trim(),
         Anh: formData.avatar,
       },
-      maPT: deposit?.MaPT,
+      maPT: finalDeposit?.MaPT,
       ngayBatDau: formData.ngayBatDau,
       ngayKetThuc: formData.ngayKetThuc || null,
-      ghiChu: formData.ghiChu || "",
+      ghiChu: formData.ghiChu || "", // Ghi chú của hợp đồng thuê phòng
       donGia:
         typeof formData.donGia === "string"
           ? parseInt(formData.donGia.replace(/\D/g, ""))
@@ -271,7 +300,7 @@ const ModalAddContract = ({ deposit, refetch }) => {
         TenKH: formData.name,
         SoDienThoai: formData.phoneNumberMain,
         SoTien: datCocValue,
-        GhiChu: formData.ghiChu || deposit?.GhiChu,
+        GhiChu: finalDeposit?.GhiChu || "", // Giữ nguyên ghi chú của đặt cọc, không lấy từ formData
       },
     };
 
@@ -288,7 +317,7 @@ const ModalAddContract = ({ deposit, refetch }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="cursor-pointer rounded-none outline-none bg-transparent shadow-none">
-          <MdOutlineNoteAdd className="size-5 text-orange-600" />
+          <MdOutlinePostAdd className="size-5 text-orange-600" />
         </Button>
       </DialogTrigger>
       <DialogContent
@@ -344,7 +373,7 @@ const ModalAddContract = ({ deposit, refetch }) => {
                     <Label htmlFor="nha">Nhà</Label>
                     <Input
                       id="nha"
-                      value={deposit?.PhongTro?.Nha?.TenNha || ""}
+                      value={finalDeposit?.PhongTro?.Nha?.TenNha || ""}
                       className="w-full rounded mt-2 shadow-none"
                       disabled
                       aria-label="Tên nhà"
@@ -355,7 +384,7 @@ const ModalAddContract = ({ deposit, refetch }) => {
                     <Label htmlFor="phong">Phòng</Label>
                     <Input
                       id="phong"
-                      value={deposit?.PhongTro?.TenPhong || ""}
+                      value={finalDeposit?.PhongTro?.TenPhong || ""}
                       className="w-full rounded mt-2 shadow-none"
                       disabled
                       aria-label="Tên phòng"
@@ -621,7 +650,7 @@ const ModalAddContract = ({ deposit, refetch }) => {
                   </div>
 
                   <div className="w-full col-span-2">
-                    <Label htmlFor="ghiChu">Ghi chú</Label>
+                    <Label htmlFor="ghiChu">Ghi chú hợp đồng</Label>
                     <Textarea
                       id="ghiChu"
                       name="ghiChu"
@@ -629,7 +658,7 @@ const ModalAddContract = ({ deposit, refetch }) => {
                       onChange={handleChange}
                       className="w-full rounded mt-2 shadow-none"
                       rows={3}
-                      placeholder="Nhập ghi chú (nếu có)"
+                      placeholder="Nhập ghi chú cho hợp đồng (nếu có)"
                       aria-label="Ghi chú hợp đồng"
                     />
                   </div>
@@ -715,4 +744,4 @@ const ModalAddContract = ({ deposit, refetch }) => {
   );
 };
 
-export default ModalAddContract;
+export default ModalAddContractForDeposit;

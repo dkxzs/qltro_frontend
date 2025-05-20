@@ -20,9 +20,15 @@ const deleteDepositService = async (id) => {
   return res.data;
 };
 
+const getDepositByRoomIdService = async (roomId) => {
+  const res = await axios.get(`/deposit/get-deposit-by-roomId/${roomId}`);
+  return res.data;
+};
+
 export {
   getAllDepositService,
   createDepositService,
   updateDepositService,
   deleteDepositService,
+  getDepositByRoomIdService,
 };
