@@ -1,17 +1,31 @@
 import axios from "../utils/axiosCustomize";
 
-// Gửi email hóa đơn
 export const sendInvoiceService = async ({
   invoiceId,
-  htmlContent,
   fromEmail,
   encryptedPassword,
+  bankInfo,
 }) => {
   const res = await axios.post("/email/send-invoice", {
     invoiceId,
-    htmlContent,
     fromEmail,
     encryptedPassword,
+    bankInfo,
+  });
+  return res.data;
+};
+
+export const sendBulkInvoiceEmailService = async ({
+  invoiceIds,
+  fromEmail,
+  encryptedPassword,
+  bankInfo,
+}) => {
+  const res = await axios.post("/email/send-bulk-invoice", {
+    invoiceIds,
+    fromEmail,
+    encryptedPassword,
+    bankInfo,
   });
   return res.data;
 };

@@ -46,8 +46,8 @@ const ModalViewInvoice = ({ invoiceId }) => {
   const dienNuoc = data?.DT?.dienNuoc || [];
 
   const defaultBankInfo = {
-    bank: "Sacombank",
-    accountNumber: "0786123512124 - [ Huỳnh Công Khanh ]",
+    bank: "MB Bank",
+    accountNumber: "0786123512124 - [ Nguyễn Sĩ Hà ]",
     phone: "0777905219",
   };
 
@@ -395,6 +395,13 @@ const ModalViewInvoice = ({ invoiceId }) => {
       return;
     }
 
+    const bankInfo = {
+      bank: displayBank,
+      accountNumber: displayAccountNumber,
+      phone: displayPhone,
+      qrCodeUrl: personalInfo.qrCodeUrl, // Thêm URL mã QR từ Redux
+    };
+
     const htmlContent = `
       <html>
         <head>
@@ -536,6 +543,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
         htmlContent,
         fromEmail,
         encryptedPassword,
+        bankInfo,
       });
       setLoading(false);
       toast.success("Hóa đơn đã được gửi thành công!");
@@ -707,7 +715,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
               className={` rounded flex items-center bg-blue-500 ${
                 loading ? "cursor-no-drop" : "cursor-pointer"
               }`}
-              disable={loading}
+              disabled={loading}
             >
               {loading ? "Đang gửi ..." : "Gửi hóa đơn"}
               <Send className="h-4 w-4" />

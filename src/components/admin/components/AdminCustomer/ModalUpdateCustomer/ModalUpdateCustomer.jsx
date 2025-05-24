@@ -51,7 +51,7 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
         cardId: dataUpdate?.CCCD || "",
         gender: dataUpdate?.GioiTinh || "Nam",
         birthday: formatDateForInput(dataUpdate?.NgaySinh) || "",
-        phoneNumberMain: dataUpdate?.DienThoai || "",
+        phoneNumberMain: dataUpdate?.DienThoaiChinh || "",
         phoneNumberSub: dataUpdate?.DienThoaiPhu || "",
         vehicleNumber: dataUpdate?.SoXe || "",
         occupation: dataUpdate?.NgheNghiep || "",

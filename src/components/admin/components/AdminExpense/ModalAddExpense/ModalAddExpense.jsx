@@ -5,7 +5,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,44 +16,107 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { createExpenseService } from "@/services/expenseServices";
 import { getAllHouseService } from "@/services/houseServices";
-import { getAllRoomService } from "@/services/roomServices";
-import { Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import { getRoomByIdService, getAllRoomService } from "@/services/roomServices";
+import { formatCurrency } from "@/utils/formatCurrency";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Loader2, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useQuery } from "@tanstack/react-query";
 
-const ModalAddDeposit = ({ onAddDeposit }) => {
+const ModalAddExpense = ({ refetch }) => {
   const [open, setOpen] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [selectedRoom, setSelectedRoom] = useState("");
   const [formData, setFormData] = useState({
-    MaDC: "",
     MaNha: "",
     MaPT: "",
-    TenKH: "",
-    SoDienThoai: "",
-    SoTien: "",
-    NgayDatCoc: "",
-    GhiChu: "",
-    TrangThai: "Đang xử lý",
+    ThangNam: "",
+    Thang: "",
+    Nam: "",
+    NguoiChiTra: "",
+    TongTien: "",
+    MoTa: "",
+    ApplyAllHouses: false,
+    ApplyAllRooms: false,
   });
+  const [displayTongTien, setDisplayTongTien] = useState("");
 
   // Lấy danh sách nhà
   const { data: houseData, isLoading: houseLoading } = useQuery({
-    queryKey: ["houseData"],
+    queryKey: ["houses"],
     queryFn: () => getAllHouseService(),
     enabled: open,
   });
 
   // Lấy danh sách phòng dựa trên mã nhà
-  const { data: roomData, isLoading: roomLoading } = useQuery({
-    queryKey: ["roomData", selectedHouse],
-    queryFn: () => getAllRoomService(selectedHouse),
-    enabled: !!selectedHouse && open,
+  const { data: roomData, refetch: refetchRooms } = useQuery({
+    queryKey: ["rooms", selectedHouse],
+    queryFn: () =>
+      selectedHouse === "all"
+        ? getAllRoomService()
+        : getRoomByIdService(selectedHouse),
+    enabled: !!selectedHouse && formData.NguoiChiTra !== "",
   });
 
+  const createExpenseMutation = useMutation({
+    mutationFn: (data) => createExpenseService(data),
+    onSuccess: (response) => {
+      if (response.EC === 0) {
+        toast.success("Thêm chi phí phát sinh thành công");
+        setOpen(false);
+        refetch();
+        resetForm();
+      } else {
+        toast.error(response.EM);
+        if (response.DT?.skippedRooms?.length > 0) {
+          toast.warn(
+            `Một số phòng không được thêm chi phí: ${response.DT.skippedRooms
+              .map((r) => `${r.TenPhong} (${r.reason})`)
+              .join(", ")}`
+          );
+        }
+      }
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi thêm chi phí phát sinh");
+    },
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "ThangNam" && value) {
+      const [nam, thang] = value.split("-");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        Thang: parseInt(thang, 10),
+        Nam: parseInt(nam, 10),
+      }));
+    } else if (name === "TongTien") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      const parsedValue = numericValue ? parseInt(numericValue, 10) : "";
+      setFormData((prev) => ({
+        ...prev,
+        [name]: parsedValue,
+      }));
+      setDisplayTongTien(parsedValue ? formatCurrency(parsedValue) : "");
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
   // Đặt nhà mặc định là nhà đầu tiên khi dữ liệu nhà được tải
+  useEffect(() => {
+    setDisplayTongTien(
+      formData.TongTien ? formatCurrency(formData.TongTien) : ""
+    );
+  }, [formData.TongTien]);
+
   useEffect(() => {
     if (!houseLoading && houseData?.DT?.length > 0 && !selectedHouse) {
       const firstHouse = houseData.DT[0].MaNha.toString();
@@ -67,268 +129,355 @@ const ModalAddDeposit = ({ onAddDeposit }) => {
   useEffect(() => {
     if (selectedHouse) {
       setSelectedRoom("");
-      setFormData((prev) => ({ ...prev, MaPT: "" }));
+      setFormData((prev) => ({ ...prev, MaPT: "", ApplyAllRooms: false }));
+      refetchRooms();
     }
-  }, [selectedHouse]);
+  }, [selectedHouse, refetchRooms]);
 
   const handleHouseChange = (value) => {
     setSelectedHouse(value);
+    setSelectedRoom("");
     setFormData((prev) => ({
       ...prev,
       MaNha: value,
       MaPT: "",
+      ApplyAllHouses: value === "all",
+      ApplyAllRooms: false,
     }));
   };
 
-  const handleRoomChange = (value) => {
-    setSelectedRoom(value);
-    setFormData((prev) => ({
-      ...prev,
-      MaPT: value,
-    }));
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (
-      !formData.MaDC ||
-      !formData.MaNha ||
-      !formData.MaPT ||
-      !formData.TenKH ||
-      !formData.SoDienThoai ||
-      !formData.SoTien ||
-      !formData.NgayDatCoc ||
-      !formData.TrangThai
-    ) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
-      return;
+  const handleSelectChange = (name, value) => {
+    if (name === "NguoiChiTra") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        MaNha: "",
+        MaPT: "",
+        ApplyAllHouses: false,
+        ApplyAllRooms: false,
+      }));
+      setSelectedHouse("");
+      setSelectedRoom("");
+    } else if (name === "MaPT") {
+      setSelectedRoom(value);
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        ApplyAllRooms: value === "all",
+      }));
     }
+  };
 
-    onAddDeposit({ ...formData, SoTien: parseFloat(formData.SoTien) });
-    toast.success("Thêm đặt cọc thành công!");
-    setOpen(false);
+  const filteredRooms = roomData?.DT?.filter((room) => {
+    if (formData.NguoiChiTra === "Chủ trọ") {
+      return true;
+    } else if (formData.NguoiChiTra === "Khách trọ") {
+      return room.TrangThai === 1;
+    }
+    return true;
+  });
+
+  const resetForm = () => {
     setFormData({
-      MaDC: "",
       MaNha: "",
       MaPT: "",
-      TenKH: "",
-      SoDienThoai: "",
-      SoTien: "",
-      NgayDatCoc: "",
-      GhiChu: "",
-      TrangThai: "Đang xử lý",
+      ThangNam: "",
+      Thang: "",
+      Nam: "",
+      NguoiChiTra: "",
+      TongTien: "",
+      MoTa: "",
+      ApplyAllHouses: false,
+      ApplyAllRooms: false,
     });
+    setDisplayTongTien("");
     setSelectedHouse("");
     setSelectedRoom("");
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!formData.NguoiChiTra) {
+      toast.error("Vui lòng chọn người chi trả!");
+      return;
+    }
+    if (!formData.MaNha) {
+      toast.error("Vui lòng chọn nhà!");
+      return;
+    }
+    if (
+      formData.NguoiChiTra === "Khách trọ" &&
+      !formData.MaPT &&
+      !formData.ApplyAllRooms
+    ) {
+      toast.error(
+        "Vui lòng chọn phòng hoặc tất cả phòng khi người chi trả là khách trọ!"
+      );
+      return;
+    }
+    if (!formData.Thang || !formData.Nam) {
+      toast.error("Vui lòng chọn tháng/năm!");
+      return;
+    }
+    if (!formData.TongTien) {
+      toast.error("Vui lòng nhập tổng tiền!");
+      return;
+    }
+
+    const parsedTongTien = parseInt(formData.TongTien, 10);
+    if (isNaN(parsedTongTien) || parsedTongTien <= 0) {
+      toast.error("Tổng tiền phải là số lớn hơn 0!");
+      return;
+    }
+
+    const data = {
+      MaNha: formData.ApplyAllHouses
+        ? houseData?.DT?.map((house) => parseInt(house.MaNha, 10))
+        : [parseInt(formData.MaNha, 10)],
+      MaPT: formData.ApplyAllRooms
+        ? filteredRooms?.map((room) => parseInt(room.MaPT, 10))
+        : formData.MaPT
+        ? [parseInt(formData.MaPT, 10)]
+        : null,
+      Thang: formData.Thang,
+      Nam: formData.Nam,
+      NguoiChiTra: formData.NguoiChiTra,
+      TongTien: parsedTongTien,
+      MoTa: formData.MoTa,
+      ApplyAllHouses: formData.ApplyAllHouses,
+      ApplyAllRooms: formData.ApplyAllRooms,
+    };
+
+    createExpenseMutation.mutate(data);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-green-600 hover:bg-green-700 rounded cursor-pointer flex items-center">
-          <Plus className="size-5" />
-          Thêm mới
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="w-3/5 rounded" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>Thêm đặt cọc</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 md:grid-cols-2 py-4">
-            <div className="grid items-center gap-4">
-              <Label htmlFor="MaNha" className="text-right">
-                Chọn nhà
-              </Label>
-              <Select
-                id="MaNha"
-                name="MaNha"
-                value={selectedHouse}
-                onValueChange={handleHouseChange}
-                className="col-span-3"
-                required
-                disabled={houseLoading}
-              >
-                <SelectTrigger className="w-full rounded cursor-pointer shadow-none">
-                  <SelectValue
-                    placeholder={houseLoading ? "Đang tải..." : "Chọn nhà"}
-                  />
-                </SelectTrigger>
-                <SelectContent className="rounded">
-                  {!houseLoading && houseData?.DT?.length > 0 ? (
-                    houseData.DT.map((house) => (
-                      <SelectItem
-                        className="cursor-pointer"
-                        key={house.MaNha}
-                        value={house.MaNha.toString()}
-                      >
-                        {house.TenNha}
+    <>
+      <Button
+        className="mr-2 flex items-center cursor-pointer bg-green-600 hover:bg-green-700 rounded"
+        onClick={() => setOpen(true)}
+        aria-label="Mở modal thêm chi phí phát sinh"
+      >
+        <Plus className="h-4 w-4" />
+        Thêm chi phí
+      </Button>
+
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) resetForm();
+        }}
+      >
+        <DialogContent
+          className="bg-white shadow-md rounded w-2/5"
+          aria-describedby="add-expense-description"
+        >
+          <DialogHeader>
+            <DialogTitle>Thêm chi phí phát sinh</DialogTitle>
+            <div id="add-expense-description" className="text-sm text-gray-500">
+              Vui lòng điền thông tin chi phí phát sinh.
+            </div>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-6 py-4 bg-gray-50 p-4 rounded-md">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="NguoiChiTra" className="text-right">
+                  Người chi trả <span className="text-red-500">*</span>
+                </Label>
+                <div className="col-span-3">
+                  <Select
+                    value={formData.NguoiChiTra}
+                    onValueChange={(value) =>
+                      handleSelectChange("NguoiChiTra", value)
+                    }
+                    required
+                  >
+                    <SelectTrigger
+                      id="NguoiChiTra"
+                      className="w-full rounded cursor-pointer shadow-none"
+                      aria-label="Chọn người chi trả"
+                    >
+                      <SelectValue placeholder="Chọn người chi trả" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded">
+                      <SelectItem value="Chủ trọ" className="cursor-pointer">
+                        Chủ trọ
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem disabled value="no-data">
-                      Không có dữ liệu
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid items-center gap-4">
-              <Label htmlFor="MaPT" className="text-right">
-                Chọn phòng
-              </Label>
-              <Select
-                id="MaPT"
-                name="MaPT"
-                value={selectedRoom}
-                onValueChange={handleRoomChange}
-                className="col-span-3"
-                required
-                disabled={!selectedHouse || roomLoading}
-              >
-                <SelectTrigger className="w-full rounded shadow-none cursor-pointer">
-                  <SelectValue
-                    placeholder={roomLoading ? "Đang tải..." : "Chọn phòng"}
-                  />
-                </SelectTrigger>
-                <SelectContent className="rounded">
-                  {!roomLoading && roomData?.DT?.length > 0 ? (
-                    roomData.DT.map((room) => (
-                      <SelectItem
-                        className="cursor-pointer"
-                        key={room.MaPT}
-                        value={room.MaPT.toString()}
-                      >
-                        {room.TenPhong}
+                      <SelectItem value="Khách trọ" className="cursor-pointer">
+                        Khách trọ
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem disabled value="no-data">
-                      Không có dữ liệu
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="MaNha" className="text-right">
+                  Nhà <span className="text-red-500">*</span>
+                </Label>
+                <div className="col-span-3">
+                  <Select
+                    value={selectedHouse}
+                    onValueChange={handleHouseChange}
+                    required
+                    disabled={!formData.NguoiChiTra}
+                  >
+                    <SelectTrigger
+                      id="MaNha"
+                      className="w-full cursor-pointer rounded shadow-none"
+                      aria-label="Chọn nhà"
+                    >
+                      <SelectValue placeholder="Chọn nhà" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded">
+                      {formData.NguoiChiTra === "Chủ trọ" && (
+                        <SelectItem value="all" className="cursor-pointer">
+                          Tất cả
+                        </SelectItem>
+                      )}
+                      {houseData?.DT?.map((house) => (
+                        <SelectItem
+                          key={house.MaNha}
+                          value={house.MaNha.toString()}
+                          className="cursor-pointer"
+                        >
+                          {house.TenNha}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="MaPT" className="text-right">
+                  Phòng{" "}
+                  {formData.NguoiChiTra === "Khách trọ" &&
+                    !formData.ApplyAllRooms && (
+                      <span className="text-red-500">*</span>
+                    )}
+                </Label>
+                <div className="col-span-3">
+                  <Select
+                    value={formData.MaPT}
+                    onValueChange={(value) => handleSelectChange("MaPT", value)}
+                    disabled={!selectedHouse || !formData.NguoiChiTra}
+                  >
+                    <SelectTrigger
+                      id="MaPT"
+                      className="w-full cursor-pointer rounded shadow-none"
+                      aria-label="Chọn phòng"
+                    >
+                      <SelectValue placeholder="Chọn phòng" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded">
+                      {formData.NguoiChiTra === "Chủ trọ" && (
+                        <SelectItem value="all" className="cursor-pointer">
+                          Tất cả
+                        </SelectItem>
+                      )}
+                      {filteredRooms?.map((room) => (
+                        <SelectItem
+                          key={room.MaPT}
+                          value={room.MaPT.toString()}
+                          className="cursor-pointer"
+                        >
+                          {room.TenPhong}{" "}
+                          {room.TrangThai === 1 ? "(Đã thuê)" : "(Trống)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="ThangNam" className="text-right">
+                  Tháng/Năm <span className="text-red-500">*</span>
+                </Label>
+                <div className="col-span-3">
+                  <Input
+                    id="ThangNam"
+                    name="ThangNam"
+                    type="month"
+                    value={formData.ThangNam}
+                    onChange={handleChange}
+                    required
+                    className="rounded shadow-none"
+                    placeholder="Chọn tháng/năm"
+                    aria-label="Chọn tháng/năm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="TongTien" className="text-right">
+                  Tổng tiền <span className="text-red-500">*</span>
+                </Label>
+                <div className="col-span-3">
+                  <Input
+                    id="TongTien"
+                    name="TongTien"
+                    type="text"
+                    value={displayTongTien}
+                    onChange={handleChange}
+                    required
+                    className="rounded shadow-none"
+                    placeholder="Nhập số tiền (VD: 1,000,000)"
+                    aria-label="Nhập tổng tiền"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="MoTa" className="text-right">
+                  Mô tả
+                </Label>
+                <div className="col-span-3">
+                  <Textarea
+                    id="MoTa"
+                    name="MoTa"
+                    value={formData.MoTa}
+                    onChange={handleChange}
+                    rows={3}
+                    className="rounded shadow-none"
+                    placeholder="Nhập mô tả chi phí (nếu có)"
+                    aria-label="Nhập mô tả chi phí"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="grid items-center gap-4">
-              <Label htmlFor="TenKH" className="text-right">
-                Tên khách
-              </Label>
-              <Input
-                id="TenKH"
-                name="TenKH"
-                value={formData.TenKH}
-                onChange={handleChange}
-                className="col-span-3 rounded shadow-none"
-                required
-              />
-            </div>
-            <div className="grid items-center gap-4">
-              <Label htmlFor="SoDienThoai" className="text-right">
-                Số điện thoại
-              </Label>
-              <Input
-                id="SoDienThoai"
-                name="SoDienThoai"
-                value={formData.SoDienThoai}
-                onChange={handleChange}
-                className="col-span-3 rounded shadow-none"
-                required
-              />
-            </div>
-            <div className="grid items-center gap-4">
-              <Label htmlFor="SoTien" className="text-right">
-                Số tiền
-              </Label>
-              <Input
-                id="SoTien"
-                name="SoTien"
-                type="number"
-                step="0.01"
-                value={formData.SoTien}
-                onChange={handleChange}
-                className="col-span-3 rounded shadow-none"
-                required
-              />
-            </div>
-            <div className="grid items-center gap-4">
-              <Label htmlFor="NgayDatCoc" className="text-right">
-                Ngày đặt cọc
-              </Label>
-              <Input
-                id="NgayDatCoc"
-                name="NgayDatCoc"
-                type="date"
-                value={formData.NgayDatCoc}
-                onChange={handleChange}
-                className="col-span-3 rounded shadow-none"
-                required
-              />
-            </div>
-            <div className="grid items-center gap-4">
-              <Label htmlFor="TrangThai" className="text-right">
-                Trạng thái
-              </Label>
-              <Select
-                id="TrangThai"
-                name="TrangThai"
-                value={formData.TrangThai}
-                onValueChange={(value) =>
-                  handleChange({ target: { name: "TrangThai", value } })
-                }
-                className="col-span-3"
-                required
+
+            <DialogFooter className="mt-4">
+              <Button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={createExpenseMutation.isPending}
+                aria-label="Thêm chi phí phát sinh"
               >
-                <SelectTrigger className="w-full rounded shadow-none">
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Đang xử lý">Đang xử lý</SelectItem>
-                  <SelectItem value="Hoàn tất">Hoàn tất</SelectItem>
-                  <SelectItem value="Đã hủy">Đã hủy</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="mb-3">
-            <div className="grid items-center gap-4">
-              <Label htmlFor="GhiChu" className="text-right">
-                Ghi chú
-              </Label>
-              <Textarea
-                id="GhiChu"
-                name="GhiChu"
-                value={formData.GhiChu}
-                onChange={handleChange}
-                className="col-span-3 rounded shadow-none"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="submit"
-              className="bg-blue-500 rounded cursor-pointer hover:bg-blue-600"
-            >
-              Lưu
-            </Button>
-            <Button
-              type="button"
-              className="rounded cursor-pointer"
-              variant="destructive"
-              onClick={() => setOpen(false)}
-            >
-              Đóng
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+                {createExpenseMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Lưu"
+                )}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="text-white rounded cursor-pointer"
+                variant="destructive"
+                aria-label="Hủy thêm chi phí"
+              >
+                Đóng
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
-export default ModalAddDeposit;
+export default ModalAddExpense;

@@ -9,7 +9,6 @@ import AdminHouse from "@/components/admin/components/AdminHouse/AdminHouse";
 import AdminInvoice from "@/components/admin/components/AdminInvoice/AdminInvoice";
 import AdminRent from "@/components/admin/components/AdminRent/AdminRent";
 import AdminViewInfo from "@/components/admin/components/AdminRent/AdminViewInfo";
-import AdminReport from "@/components/admin/components/AdminReport/AdminReport";
 import AdminRoom from "@/components/admin/components/AdminRoom/AdminRoom";
 import AdminViewRoom from "@/components/admin/components/AdminRoom/AdminViewRoom";
 import AdminRoomType from "@/components/admin/components/AdminRoomType/AdminRoomType";
@@ -53,10 +52,6 @@ export const adminRoutes = [
   {
     path: "invoices",
     page: AdminInvoice,
-  },
-  {
-    path: "reports",
-    page: AdminReport,
   },
   {
     path: "expenses",

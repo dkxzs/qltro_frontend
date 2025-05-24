@@ -99,12 +99,6 @@ const data = {
       items: [],
     },
     {
-      title: "Thống kê báo cáo",
-      url: "/admin/reports",
-      icon: TbReport,
-      items: [],
-    },
-    {
       title: "Chi phí phát sinh",
       url: "/admin/expenses",
       icon: GiExpense,

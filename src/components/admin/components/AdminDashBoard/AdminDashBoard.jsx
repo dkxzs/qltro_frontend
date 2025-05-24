@@ -1,11 +1,11 @@
 import { LayoutDashboard } from "lucide-react";
 import SectionCards from "./SectionCard";
-import Dashboard from "./Dashboard";
+import Dashboard from "./DashboardContainer";
 
 const AdminDashBoard = () => {
   return (
-    <div className="p-2">
-      <div className="flex gap-2 items-center">
+    <div className="p-2 bg-gray-100">
+      <div className="flex gap-2 items-center mb-2">
         <LayoutDashboard />
         <h1 className="font-semibold text-2xl">Tổng quan</h1>
       </div>
@@ -15,7 +15,9 @@ const AdminDashBoard = () => {
             <SectionCards />
           </div>
         </div>
-        <Dashboard />
+        <div className="">
+          <Dashboard />
+        </div>
       </div>
     </div>
   );

@@ -16,6 +16,8 @@ const initialState = {
     DiaChi: "",
     TenNganHang: "",
     SoTaiKhoan: "",
+    qrCodeUrl: "",
+    qrCodeFileId: "",
   },
 };
 
