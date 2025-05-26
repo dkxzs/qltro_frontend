@@ -41,8 +41,10 @@ const NavMain = ({ items }) => {
         return "text-pink-500";
       case "Cấu hình":
         return "text-gray-500";
+      case "Báo cáo sự cố":
+        return "text-red-500";
       default:
-        return "text-gray-400"; // Màu mặc định
+        return "text-gray-400";
     }
   };
 

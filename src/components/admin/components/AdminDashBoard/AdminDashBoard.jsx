@@ -15,7 +15,7 @@ const AdminDashBoard = () => {
             <SectionCards />
           </div>
         </div>
-        <div className="">
+        <div>
           <Dashboard />
         </div>
       </div>

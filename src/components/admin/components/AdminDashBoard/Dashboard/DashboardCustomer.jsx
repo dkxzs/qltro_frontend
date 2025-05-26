@@ -17,7 +17,6 @@ import {
 const processCustomerData = (customerData) => {
   if (!customerData?.DT || !Array.isArray(customerData.DT)) return [];
 
-  // Tạo danh sách 12 tháng gần nhất (tính từ tháng hiện tại)
   const currentDate = new Date();
   const months = [];
   for (let i = 0; i < 12; i++) {
@@ -47,14 +46,11 @@ const processCustomerData = (customerData) => {
 };
 
 const DashboardCustomer = () => {
-  // eslint-disable-next-line no-unused-vars
-
   const { data: customerData, isLoading: customerLoading } = useQuery({
     queryKey: ["customerData"],
     queryFn: () => getAllCustomerService(false),
   });
 
-  // Xử lý dữ liệu khách hàng cho biểu đồ
   const chartData = processCustomerData(customerData);
 
   return (

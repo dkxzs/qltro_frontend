@@ -34,7 +34,7 @@ const DashboardContainer = () => {
         <DashboardExpense />
         <DashboardContracts />
       </div>
-      <div className="mt-6">
+      <div>
         <DashboardContractExpiring />
       </div>
     </div>
