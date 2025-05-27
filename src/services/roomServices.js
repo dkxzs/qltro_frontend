@@ -11,33 +11,46 @@ const getRoomByIdService = async (houseId) => {
 };
 
 const createRoomService = async (data) => {
-  const dataRoom = new FormData();
-  dataRoom.append("TenPhong", data.tenPhong);
-  dataRoom.append("MaNha", parseInt(data.maNha));
-  dataRoom.append("MaLP", parseInt(data.maLoaiPhong));
-  dataRoom.append("DienTich", data.dienTich);
-  dataRoom.append("MoTa", data.moTa);
-  dataRoom.append("TrangThai", data.trangThai);
-  dataRoom.append("SoLuongNguoiToiDa", data.soLuongNguoiToiDa);
-  dataRoom.append("ChiSoDien", data.chiSoDien);
-  dataRoom.append("ChiSoNuoc", data.chiSoNuoc);
-  dataRoom.append("Anh", data.anh);
-  const res = await axios.post("/room/create-room", dataRoom);
-  return res.data;
+  try {
+    const payload = {
+      tenPhong: data.tenPhong,
+      maNha: parseInt(data.maNha),
+      maLoaiPhong: parseInt(data.maLoaiPhong),
+      dienTich: data.dienTich,
+      moTa: data.moTa,
+      trangThai: data.trangThai,
+      soLuongNguoiToiDa: data.soLuongNguoiToiDa,
+      chiSoDien: data.chiSoDien,
+      chiSoNuoc: data.chiSoNuoc,
+      images: data.images || [],
+    };
+
+    const res = await axios.post("/room/create-room", payload);
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.EM || "Lỗi khi tạo phòng");
+  }
 };
 
-const updateRoomService = async (id, data) => {
-  const dataUpdate = new FormData();
-  dataUpdate.append("TenPhong", data.tenPhong);
-  dataUpdate.append("MaNha", parseInt(data.maNha));
-  dataUpdate.append("MaLP", parseInt(data.maLoaiPhong));
-  dataUpdate.append("DienTich", data.dienTich);
-  dataUpdate.append("MoTa", data.moTa);
-  dataUpdate.append("SoLuongNguoiToiDa", data.soLuongNguoiToiDa);
-  dataUpdate.append("TrangThai", parseInt(data.trangThai));
-  if (data.anh) dataUpdate.append("Anh", data.anh);
-  const res = await axios.put(`/room/update-room/${id}`, dataUpdate);
-  return res.data;
+const updateRoomService = async (data) => {
+  try {
+    const payload = {
+      TenPhong: data.tenPhong,
+      MaNha: parseInt(data.maNha),
+      MaLP: parseInt(data.maLoaiPhong),
+      DienTich: data.dienTich,
+      MoTa: data.moTa,
+      SoLuongNguoiToiDa: data.soLuongNguoiToiDa || 0,
+      TrangThai: parseInt(data.trangThai),
+      images: data.images || [],
+      imagesToDelete: data.imagesToDelete || [],
+    };
+
+    const res = await axios.put(`/room/update-room/${data.maPT}`, payload);
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.EM || "Lỗi khi cập nhật phòng");
+  }
 };
 
 const deleteRoomService = async (id) => {

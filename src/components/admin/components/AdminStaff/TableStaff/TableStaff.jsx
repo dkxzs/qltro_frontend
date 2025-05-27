@@ -6,24 +6,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import ModalDeleteService from "../ModalDeleteService/ModalDeleteService";
-import ModalUpdateService from "../ModalUpdateService/ModalUpdateService";
+import ModalUpdateStaff from "../ModalUpdateStaff/ModalUpdateStaff";
+import ModalDeleteStaff from "../ModalDeleteStaff/ModalDeleteStaff";
 
-const TableService = (props) => {
-  const { serviceData, refetch } = props;
-
-  const getText = (text) => {
-    switch (text) {
-      case "CHI_SO":
-        return "Theo chỉ số";
-      case "CO_DINH":
-        return "Theo tháng";
-      case "SO_LUONG":
-        return "Theo số lượng";
-      default:
-        return "";
-    }
-  };
+const TableStaff = (props) => {
+  const { employeeData, refetch } = props;
 
   return (
     <div className="w-full overflow-x-auto">
@@ -34,19 +21,22 @@ const TableService = (props) => {
               STT
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
-              Tên dịch vụ
+              Họ Tên
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
-              Đơn giá
+              Ngày Sinh
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
-              Đơn vị tính
+              Giới Tính
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
-              Bắt buộc
+              Điện Thoại
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
-              Cách tính
+              Email
+            </TableHead>
+            <TableHead className="py-2 px-4 text-left font-medium">
+              Chức Vụ
             </TableHead>
             <TableHead className="py-2 px-4 text-center shrink-0 font-medium w-32">
               Hành động
@@ -54,7 +44,7 @@ const TableService = (props) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {serviceData.map((service, index) => (
+          {employeeData.map((employee, index) => (
             <TableRow
               key={index}
               className={
@@ -66,33 +56,36 @@ const TableService = (props) => {
               <TableCell className="py-2 px-4 text-center shrink-0 w-12">
                 {index + 1}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[250px]">
-                {service.TenDV}
+              <TableCell className="py-2 px-4 truncate max-w-[200px]">
+                {employee.HoTen}
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[150px]">
-                {service.DonGia.toLocaleString()} VNĐ
+                {employee.NgaySinh ? new Date(employee.NgaySinh).toLocaleDateString() : "-"}
+              </TableCell>
+              <TableCell className="py-2 px-4 truncate max-w-[100px]">
+                {employee.GioiTinh || "-"}
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[150px]">
-                {service.DonViTinh}
+                {employee.DienThoai || "-"}
+              </TableCell>
+              <TableCell className="py-2 px-4 truncate max-w-[200px]">
+                {employee.Email || "-"}
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[150px]">
-                {service.BatBuoc ? "Có" : "Không"}
-              </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[150px]">
-                {getText(service.CachTinhPhi)}
+                {employee.ChucVu || "-"}
               </TableCell>
               <TableCell className="py-2 px-4 text-center shrink-0 w-32">
-                <div className="flex space-x-2 justify-center">
-                  <ModalUpdateService dataUpdate={service} refetch={refetch} />
-                  <ModalDeleteService dataDelete={service} refetch={refetch} />
+                <div className="flex justify-center">
+                  <ModalUpdateStaff dataUpdate={employee} refetch={refetch} />
+                  <ModalDeleteStaff dataDelete={employee} refetch={refetch} />
                 </div>
               </TableCell>
             </TableRow>
           ))}
-          {serviceData.length === 0 && (
+          {employeeData.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-4">
-                Không có dữ liệu dịch vụ
+              <TableCell colSpan={8} className="text-center py-4">
+                Không có dữ liệu nhân viên
               </TableCell>
             </TableRow>
           )}
@@ -102,4 +95,4 @@ const TableService = (props) => {
   );
 };
 
-export default TableService;
+export default TableStaff;

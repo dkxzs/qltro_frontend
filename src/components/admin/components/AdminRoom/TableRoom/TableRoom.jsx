@@ -17,8 +17,8 @@ import ModalDeleteRoom from "../ModalDeleteRoom/ModalDeleteRoom";
 import { getRoomStatusColor, getRoomStatusText } from "@/utils/roomStatusUtils";
 import ModalAddMember from "../ModalAddMember/ModalAddMember";
 import { useNavigate } from "react-router-dom";
-import ModalAddContractForEmpty from "../ModalAddContractForEmpty/ModalAddContractForEmpty"; // Phiên bản cho phòng trống
-import ModalAddContractForDeposit from "../../AdminDeposit/ModalAddContractForDeposit/ModalAddContractForDeposit"; // Phiên bản cho phòng đang đặt cọc
+import ModalAddContractForEmpty from "../ModalAddContractForEmpty/ModalAddContractForEmpty";
+import ModalAddContractForDeposit from "../../AdminDeposit/ModalAddContractForDeposit/ModalAddContractForDeposit";
 
 const TableRoom = ({ roomData, refetch }) => {
   const navigate = useNavigate();
@@ -29,6 +29,7 @@ const TableRoom = ({ roomData, refetch }) => {
     }).format(price);
   };
 
+  console.log("roomData", roomData);
   const handleViewInfo = (roomId) => {
     navigate(`/admin/view-room`, { state: { roomId } });
   };
@@ -143,7 +144,7 @@ const TableRoom = ({ roomData, refetch }) => {
                     )}
                     {room.TrangThai === 2 && (
                       <ModalAddContractForDeposit
-                        deposit={null} // Sẽ được cập nhật từ API trong component
+                        deposit={null}
                         roomId={room.MaPT}
                         room={room}
                         refetch={refetch}

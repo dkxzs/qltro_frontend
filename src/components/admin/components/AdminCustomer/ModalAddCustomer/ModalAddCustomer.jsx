@@ -17,7 +17,7 @@ import { Plus, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalAddUser = ({ refetch }) => {
+const ModalAddCustomer = ({ refetch }) => {
   const date = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     name: "",
@@ -542,4 +542,4 @@ const ModalAddUser = ({ refetch }) => {
   );
 };
 
-export default ModalAddUser;
+export default ModalAddCustomer;

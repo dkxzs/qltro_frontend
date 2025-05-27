@@ -15,7 +15,7 @@ export const userSlice = createSlice({
     login: (state, action) => {
       state.account = {
         ...state.account,
-        isAdmin: action.payload?.DT?.VaiTro,
+        isAdmin: action.payload?.DT?.LoaiTaiKhoan === "admin",
       };
       state.isLogin = true;
     },

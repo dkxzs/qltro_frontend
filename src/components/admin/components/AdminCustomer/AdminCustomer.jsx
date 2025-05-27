@@ -31,6 +31,8 @@ const AdminCustomer = () => {
     queryFn: () => getAllCustomerService(false),
   });
 
+  console.log("userData", userData);
+
   const filteredUserData = userData?.DT.filter((user) =>
     user.HoTen.toLowerCase().includes(searchText.toLowerCase())
   );

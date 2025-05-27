@@ -8,7 +8,13 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { logout } from "@/redux/slices/userSlice";
-import { LayoutDashboard, LogOut, TriangleAlert, UserCog } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  TriangleAlert,
+  UserCog,
+  Users,
+} from "lucide-react";
 import { BsHouseGear } from "react-icons/bs";
 import { GiExpense } from "react-icons/gi";
 import { GrConfigure } from "react-icons/gr";
@@ -108,6 +114,12 @@ const data = {
       title: "Cọc giữ phòng",
       url: "/admin/deposit",
       icon: LiaFileInvoiceDollarSolid,
+      items: [],
+    },
+    {
+      title: "Nhân viên",
+      url: "/admin/staffs",
+      icon: Users,
       items: [],
     },
     {

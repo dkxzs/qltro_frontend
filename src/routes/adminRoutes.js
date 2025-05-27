@@ -14,6 +14,7 @@ import AdminRoom from "@/components/admin/components/AdminRoom/AdminRoom";
 import AdminViewRoom from "@/components/admin/components/AdminRoom/AdminViewRoom";
 import AdminRoomType from "@/components/admin/components/AdminRoomType/AdminRoomType";
 import AdminService from "@/components/admin/components/AdminService/AdminService";
+import AdminStaff from "@/components/admin/components/AdminStaff/AdminStaff";
 import AdminWater from "@/components/admin/components/AdminWater/AdminWater";
 
 export const adminRoutes = [
@@ -85,5 +86,9 @@ export const adminRoutes = [
   {
     path: "issues",
     page: AdminIssue,
+  },
+  {
+    path: "staffs",
+    page: AdminStaff,
   },
 ];

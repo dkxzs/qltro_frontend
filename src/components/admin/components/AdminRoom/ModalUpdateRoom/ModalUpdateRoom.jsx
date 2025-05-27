@@ -34,11 +34,18 @@ import { getAllRoomTypeService } from "@/services/roomTypeServices";
 import { getAllServiceService } from "@/services/serviceServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Loader2, Plus, SquarePen } from "lucide-react";
+import { Loader2, Plus, SquarePen, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { ImageKitProvider, upload } from "@imagekit/react";
+import axios from "@/utils/axiosCustomize";
 
-// Hàm định dạng ngày tháng sang YYYY-MM-DD
+const imagekitConfig = {
+  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
+  urlEndpoint: "https://ik.imagekit.io/sudodev",
+  authenticationEndpoint: "http://localhost:8000/api/image/auth",
+};
+
 const formatDateForInput = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
@@ -48,7 +55,7 @@ const formatDateForInput = (dateString) => {
 
 const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const [open, setOpen] = useState(false);
-  const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [roomTypes, setRoomTypes] = useState([]);
   const [hasRent, setHasRent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,33 +66,34 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const [initialQuantities, setInitialQuantities] = useState({});
   const [members, setMembers] = useState([]);
   const [initialMembers, setInitialMembers] = useState([]);
-  const [status] = useState([
+  const [tempFiles, setTempFiles] = useState([]);
+  const [previewImages, setPreviewImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [imagesToDelete, setImagesToDelete] = useState([]);
+  const status = [
     { value: "0", label: "Còn trống" },
     { value: "1", label: "Đã cho thuê" },
     { value: "2", label: "Đặt cọc" },
     { value: "3", label: "Đang sửa chữa" },
-  ]);
+  ];
+
+  console.log("dataUpdate in ModalUpdateRoom:", dataUpdate);
   const [formData, setFormData] = useState({
     tenPhong: "",
     maNha: "",
     maLoaiPhong: "",
     dienTich: "",
-    diaChi: "",
     moTa: "",
     trangThai: "",
-    anh: null,
+    soLuongNguoiToiDa: "",
   });
-  const [previewImage, setPreviewImage] = useState(null);
 
-  // Di chuyển useQuery lên trước các useEffect
+  // API queries
   const { data: membersData, isLoading: isLoadingMembers } = useQuery({
     queryKey: ["members", dataUpdate?.MaPT],
     queryFn: async () => {
       const response = await getAllMembersService();
-      const roomMembers = response.DT.filter(
-        (member) => member.MaTP === dataUpdate.MaTP
-      );
-      return roomMembers;
+      return response.DT.filter((member) => member.MaTP === dataUpdate.MaTP);
     },
     enabled: open && !!dataUpdate?.MaPT,
   });
@@ -103,8 +111,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  console.log("dataService", dataService);
-
   const { data: roomServices, isLoading: isLoadingRoomServices } = useQuery({
     queryKey: ["roomServices", dataUpdate?.MaPT],
     queryFn: () => getRoomServicesService(dataUpdate.MaPT),
@@ -112,6 +118,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Khởi tạo dữ liệu
   useEffect(() => {
     if (dataRoomType?.DT) {
       setRoomTypes(dataRoomType.DT);
@@ -122,21 +129,21 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     if (dataUpdate && open) {
       const newFormData = {
         tenPhong: dataUpdate.TenPhong || "",
-        maNha: parseInt(dataUpdate.MaNha?.toString()),
-        maLoaiPhong: dataUpdate.MaLP?.toString() || "1",
+        maNha: dataUpdate.MaNha?.toString() || "",
+        maLoaiPhong: dataUpdate.MaLP?.toString() || "",
         dienTich: dataUpdate.DienTich?.toString() || "",
         moTa: dataUpdate.MoTa || "",
-        trangThai: dataUpdate.TrangThai?.toString(),
-        anh: null,
+        trangThai: dataUpdate.TrangThai?.toString() || "0",
+        soLuongNguoiToiDa: dataUpdate.SoLuongNguoiToiDa?.toString() || "",
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
-
-      if (dataUpdate.Anh) {
-        setPreviewImage(dataUpdate.Anh);
-      } else {
-        setPreviewImage(null);
-      }
+      setExistingImages(
+        dataUpdate.HinhAnh?.map((img) => ({
+          Url: img.Url,
+          FileId: img.FileId,
+        })) || []
+      );
     }
   }, [dataUpdate, open]);
 
@@ -189,11 +196,9 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
         }
       }
     };
-
     checkHasRent();
   }, [open, dataUpdate?.MaPT]);
 
-  // Sử dụng membersData sau khi đã khai báo
   useEffect(() => {
     if (membersData && membersData.length > 0) {
       const formattedMembers = membersData.map((member) => ({
@@ -216,12 +221,58 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     }
   }, [membersData]);
 
+  // Xử lý ảnh
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.every((file) => file.type.startsWith("image/"))) {
+      toast.error("Vui lòng chỉ chọn file ảnh!");
+      return;
+    }
+    if (files.some((file) => file.size > 5 * 1024 * 1024)) {
+      toast.error("Mỗi file ảnh không được vượt quá 5MB!");
+      return;
+    }
+    if (tempFiles.length + existingImages.length + files.length > 5) {
+      toast.error("Chỉ được chọn tối đa 5 ảnh!");
+      return;
+    }
+
+    const newPreviews = files.map((file) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      return new Promise((resolve) => {
+        reader.onloadend = () => resolve(reader.result);
+      });
+    });
+
+    Promise.all(newPreviews).then((newPreviewUrls) => {
+      setTempFiles((prev) => [...prev, ...files]);
+      setPreviewImages((prev) => [...prev, ...newPreviewUrls]);
+    });
+  };
+
+  const handleRemoveExistingImage = (fileId) => {
+    if (!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
+    setExistingImages((prev) => prev.filter((img) => img.FileId !== fileId));
+    setImagesToDelete((prev) => [...prev, fileId]);
+  };
+
+  const handleRemoveNewImage = (index) => {
+    if (!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
+    setTempFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  useEffect(() => {
+    return () => {
+      previewImages.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previewImages]);
+
+  // Xử lý form
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "anh" && files && files.length > 0) {
-      setFormData({ ...formData, anh: files[0] });
-      setPreviewImage(URL.createObjectURL(files[0]));
-    } else if (name === "dienTich") {
+    const { name, value } = e.target;
+    if (name === "dienTich") {
       const numericValue = value.replace(/[^0-9]/g, "");
       setFormData({ ...formData, [name]: numericValue });
     } else {
@@ -257,10 +308,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     const { name, value } = e.target;
     setMembers((prev) => {
       const updatedMembers = [...prev];
-      updatedMembers[index] = {
-        ...updatedMembers[index],
-        [name]: value,
-      };
+      updatedMembers[index] = { ...updatedMembers[index], [name]: value };
       return updatedMembers;
     });
   };
@@ -268,10 +316,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const handleMemberStatusChange = (index, checked) => {
     setMembers((prev) => {
       const updatedMembers = [...prev];
-      updatedMembers[index] = {
-        ...updatedMembers[index],
-        TrangThai: checked,
-      };
+      updatedMembers[index] = { ...updatedMembers[index], TrangThai: checked };
       return updatedMembers;
     });
   };
@@ -285,7 +330,9 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
       formData.dienTich !== initialFormData.dienTich ||
       formData.moTa !== initialFormData.moTa ||
       formData.trangThai !== initialFormData.trangThai ||
-      formData.anh !== initialFormData.anh
+      formData.soLuongNguoiToiDa !== initialFormData.soLuongNguoiToiDa ||
+      tempFiles.length > 0 ||
+      imagesToDelete.length > 0
     );
   };
 
@@ -328,9 +375,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     return currentDay <= 4;
   };
 
-  const isDefaultService = (service) => {
-    return service.BatBuoc === true;
-  };
+  const isDefaultService = (service) => service.BatBuoc === true;
 
   const isElectricityOrWater = (service) =>
     service.TenDV.toLowerCase() === "điện" ||
@@ -338,13 +383,55 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
 
   const mutationUpdateRoom = useMutation({
     mutationFn: async ({ id, data, services, membersData }) => {
+      const images = [];
+      if (tempFiles.length > 0) {
+        for (const file of tempFiles) {
+          const authResponse = await axios.get(
+            "http://localhost:8000/api/image/auth"
+          );
+          const authParams = authResponse.data.DT;
+
+          if (
+            !authParams.signature ||
+            !authParams.token ||
+            !authParams.expire
+          ) {
+            throw new Error("Thông tin xác thực không hợp lệ từ backend");
+          }
+
+          const response = await upload({
+            file,
+            fileName: `room-image-${Date.now()}-${file.name}`,
+            publicKey: imagekitConfig.publicKey,
+            ...authParams,
+          });
+
+          if (!response.url || !response.fileId) {
+            throw new Error(
+              "Upload không thành công, không nhận được URL hoặc fileId"
+            );
+          }
+
+          images.push({
+            Url: response.url,
+            FileId: response.fileId,
+          });
+        }
+      }
+
       let roomResponse = null;
       if (isFormDataChanged()) {
-        roomResponse = await updateRoomService(id, data);
+        roomResponse = await updateRoomService({
+          maPT: id,
+          ...data,
+          images,
+          imagesToDelete,
+        });
         if (roomResponse.EC !== 0) {
           throw new Error(roomResponse.EM);
         }
       }
+
       if (hasRent && services?.length > 0 && isServicesChanged()) {
         const servicePayload = services.map((maDV) => ({
           madv: maDV,
@@ -361,12 +448,14 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
           throw new Error("Cập nhật dịch vụ thất bại: " + serviceResponse.EM);
         }
       }
+
       if (hasRent && membersData?.length > 0 && isMembersChanged()) {
         const memberResponse = await updateMembersService(membersData);
         if (memberResponse.EC !== 0) {
           throw new Error("Cập nhật thành viên thất bại: " + memberResponse.EM);
         }
       }
+
       return roomResponse || { EC: 0, EM: "Cập nhật thành công" };
     },
     onSuccess: (data) => {
@@ -374,6 +463,12 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
       setInitialServices([...selectedServices]);
       setInitialQuantities({ ...serviceQuantities });
       setInitialMembers([...members]);
+      setTempFiles([]);
+      setPreviewImages([]);
+      setExistingImages((prev) =>
+        prev.filter((img) => !imagesToDelete.includes(img.FileId))
+      );
+      setImagesToDelete([]);
       setTimeout(() => setOpen(false), 300);
       if (refetch) refetch();
     },
@@ -436,6 +531,9 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
       return;
     }
     setOpen(false);
+    setTempFiles([]);
+    setPreviewImages([]);
+    setImagesToDelete([]);
   };
 
   const isFormDisabled =
@@ -447,476 +545,515 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     loading;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          className="flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
-          aria-label="Cập nhật phòng"
+    <ImageKitProvider config={imagekitConfig}>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button
+            className="flex items-center cursor-pointer bg-transparent border-none rounded-none shadow-none outline-none text-white"
+            aria-label="Cập nhật phòng"
+          >
+            <SquarePen className="size-4 text-blue-600" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent
+          className="w-4/5 max-w-4xl rounded max-h-[95vh] min-h-[95vh] flex flex-col transition-all duration-300 ease-in-out overflow-auto"
+          onInteractOutside={(event) => event.preventDefault()}
         >
-          <SquarePen className="size-4 text-blue-600" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent
-        className="w-4/5 max-w-4xl rounded max-h-[90vh] min-h-[90vh] flex flex-col transition-all duration-300 ease-in-out"
-        onInteractOutside={(event) => {
-          event.preventDefault();
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle>Cập nhật phòng</DialogTitle>
-          <DialogDescription className="-mt-1">
-            Chỉnh sửa thông tin phòng, dịch vụ hoặc thành viên. Nhấn Cập nhật
-            khi hoàn tất.
-          </DialogDescription>
-        </DialogHeader>
-        <form
-          className="w-full mt-3 flex-1 flex flex-col"
-          onSubmit={handleSubmit}
-        >
-          <Tabs defaultValue="tab1" className="w-full flex-1 flex flex-col">
-            <TabsList className="w-full p-0 bg-background justify-start border-b rounded-none">
-              <TabsTrigger
-                value="tab1"
-                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
+          <DialogHeader>
+            <DialogTitle>Cập nhật phòng</DialogTitle>
+            <DialogDescription className="-mt-1">
+              Chỉnh sửa thông tin phòng, dịch vụ hoặc thành viên. Nhấn Cập nhật
+              khi hoàn tất.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="w-full mt-3 flex-1 flex flex-col"
+            onSubmit={handleSubmit}
+          >
+            <Tabs defaultValue="tab1" className="w-full flex-1 flex flex-col">
+              <TabsList className="w-full p-0 bg-background justify-start border-b rounded-none">
+                <TabsTrigger
+                  value="tab1"
+                  className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
+                >
+                  Thông tin phòng
+                </TabsTrigger>
+                <TabsTrigger
+                  value="tab2"
+                  className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
+                >
+                  Dịch vụ phòng
+                </TabsTrigger>
+                <TabsTrigger
+                  value="tab3"
+                  className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
+                >
+                  Thành viên
+                </TabsTrigger>
+              </TabsList>
+              <div
+                className="scrollbar-hide flex-1"
+                style={{
+                  height: "50vh",
+                  overflowY: "auto",
+                  borderRadius: "inherit",
+                }}
               >
-                Thông tin phòng
-              </TabsTrigger>
-              <TabsTrigger
-                value="tab2"
-                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
-              >
-                Dịch vụ phòng
-              </TabsTrigger>
-              <TabsTrigger
-                value="tab3"
-                className="rounded-none bg-background h-full data-[state=active]:shadow-none border-b-2 border-l-0 border-r-0 border-t-0 border-transparent data-[state=active]:border-primary cursor-pointer"
-              >
-                Thành viên
-              </TabsTrigger>
-            </TabsList>
-
-            <div
-              className="scrollbar-hide flex-1"
-              style={{
-                height: "50vh",
-                overflowY: "auto",
-                borderRadius: "inherit",
-              }}
-            >
-              <TabsContent value="tab1" className="pt-4">
-                {isFormDisabled ? (
-                  <div className="flex justify-center items-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                    <span className="ml-2">Đang tải dữ liệu...</span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-6 w-full">
-                    <div className="w-full">
-                      <Label htmlFor="tenPhong">Tên phòng</Label>
-                      <Input
-                        id="tenPhong"
-                        name="tenPhong"
-                        value={formData.tenPhong}
-                        onChange={handleChange}
-                        placeholder="Nhập tên phòng"
-                        className="w-full rounded mt-2 shadow-none"
-                        disabled={hasRent || isFormDisabled}
-                      />
+                <TabsContent value="tab1" className="pt-4">
+                  {isFormDisabled ? (
+                    <div className="flex justify-center items-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                      <span className="ml-2">Đang tải dữ liệu...</span>
                     </div>
-                    <div className="w-full">
-                      <Label htmlFor="maLoaiPhong">Loại phòng</Label>
-                      <Select
-                        value={formData.maLoaiPhong}
-                        onValueChange={(value) =>
-                          handleSelectChange("maLoaiPhong", value)
-                        }
-                        disabled={hasRent || isFormDisabled}
-                      >
-                        <SelectTrigger
-                          id="maLoaiPhong"
-                          className="w-full rounded mt-2 shadow-none cursor-pointer"
-                        >
-                          <SelectValue placeholder="Chọn loại phòng" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60 overflow-y-auto rounded">
-                          {roomTypes.map((type) => (
-                            <SelectItem
-                              key={type.MaLP}
-                              value={type.MaLP.toString()}
-                              className="cursor-pointer"
-                            >
-                              {type.TenLoaiPhong}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="w-full">
-                      <Label htmlFor="dienTich">Diện tích (m²)</Label>
-                      <Input
-                        id="dienTich"
-                        name="dienTich"
-                        value={formData.dienTich}
-                        onChange={handleChange}
-                        placeholder="Nhập diện tích"
-                        className="w-full rounded mt-2 shadow-none"
-                        disabled={isFormDisabled}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <Label htmlFor="trangThai">Trạng thái</Label>
-                      <Select
-                        value={formData.trangThai}
-                        onValueChange={(value) =>
-                          handleSelectChange("trangThai", value)
-                        }
-                        disabled={hasRent || isFormDisabled}
-                      >
-                        <SelectTrigger
-                          id="trangThai"
-                          className="w-full rounded mt-2 shadow-none cursor-pointer"
-                        >
-                          <SelectValue placeholder="Chọn trạng thái" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60 overflow-y-auto rounded">
-                          {status.map((item) => (
-                            <SelectItem
-                              key={item.value}
-                              value={item.value}
-                              className="cursor-pointer"
-                            >
-                              {item.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="w-full col-span-2">
-                      <Label htmlFor="moTa">Mô tả</Label>
-                      <Textarea
-                        id="moTa"
-                        name="moTa"
-                        value={formData.moTa}
-                        onChange={handleChange}
-                        placeholder="Nhập mô tả phòng"
-                        className="w-full rounded mt-2 shadow-none"
-                        rows={3}
-                        disabled={isFormDisabled}
-                      />
-                    </div>
-                    <div className="w-full col-span-2">
-                      <Label htmlFor="anh">Hình ảnh</Label>
-                      <Input
-                        id="anh"
-                        name="anh"
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={handleChange}
-                        className="w-full"
-                        ref={inputRef}
-                        disabled={isFormDisabled}
-                      />
-                      {previewImage ? (
-                        <div
-                          className="border-2 w-30 h-30 border-dashed cursor-pointer"
-                          onClick={() =>
-                            !isFormDisabled && inputRef.current.click()
+                  ) : (
+                    <div className="grid grid-cols-2 gap-6 w-full">
+                      <div className="w-full">
+                        <Label htmlFor="tenPhong">Tên phòng</Label>
+                        <Input
+                          id="tenPhong"
+                          name="tenPhong"
+                          value={formData.tenPhong}
+                          onChange={handleChange}
+                          placeholder="Nhập tên phòng"
+                          className="w-full rounded mt-2 shadow-none"
+                          disabled={hasRent || isFormDisabled}
+                        />
+                      </div>
+                      <div className="w-full">
+                        <Label htmlFor="maLoaiPhong">Loại phòng</Label>
+                        <Select
+                          value={formData.maLoaiPhong}
+                          onValueChange={(value) =>
+                            handleSelectChange("maLoaiPhong", value)
                           }
+                          disabled={hasRent || isFormDisabled}
                         >
-                          <img
-                            src={previewImage}
-                            alt="Preview"
-                            className="p-1 object-contain rounded"
+                          <SelectTrigger
+                            id="maLoaiPhong"
+                            className="w-full rounded mt-2 cursor-pointer"
+                          >
+                            <SelectValue placeholder="Chọn loại phòng" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60 overflow-y-auto rounded">
+                            {roomTypes.map((type) => (
+                              <SelectItem
+                                key={type.MaLP}
+                                value={type.MaLP.toString()}
+                                className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                              >
+                                {type.TenLoaiPhong}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-full">
+                        <Label htmlFor="dienTich">Diện tích (m²)</Label>
+                        <Input
+                          id="dienTich"
+                          name="dienTich"
+                          value={formData.dienTich}
+                          onChange={handleChange}
+                          placeholder="Nhập diện tích"
+                          className="w-full rounded mt-2 shadow-none"
+                          disabled={isFormDisabled}
+                        />
+                      </div>
+                      <div className="w-full">
+                        <Label htmlFor="soLuongNguoiToiDa">
+                          Số lượng người tối đa
+                        </Label>
+                        <Input
+                          id="soLuongNguoiToiDa"
+                          name="soLuongNguoiToiDa"
+                          value={formData.soLuongNguoiToiDa}
+                          onChange={handleChange}
+                          placeholder="Nhập số lượng"
+                          type="number"
+                          className="w-full rounded mt-2 shadow-none"
+                          disabled={isFormDisabled}
+                        />
+                      </div>
+                      <div className="w-full">
+                        <Label htmlFor="trangThai">Trạng thái</Label>
+                        <Select
+                          value={formData.trangThai}
+                          onValueChange={(value) =>
+                            handleSelectChange("trangThai", value)
+                          }
+                          disabled={hasRent || isFormDisabled}
+                        >
+                          <SelectTrigger
+                            id="trangThai"
+                            className="w-full rounded mt-2 cursor-pointer"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {status.map((item) => (
+                              <SelectItem
+                                key={item.value}
+                                value={item.value}
+                                className="relative cursor-pointer"
+                              >
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-full col-span-2">
+                        <Label htmlFor="moTa">Mô tả</Label>
+                        <Textarea
+                          id="moTa"
+                          name="moTa"
+                          value={formData.moTa}
+                          onChange={handleChange}
+                          placeholder="Nhập mô tả phòng"
+                          className="w-full rounded mt-2 shadow-none"
+                          rows={3}
+                          disabled={isFormDisabled}
+                        />
+                      </div>
+                      <div className="w-full col-span-2">
+                        <Label>Hình ảnh</Label>
+                        <div className="flex flex-wrap gap-4 mt-2">
+                          {existingImages.map((img, index) => (
+                            <div key={img.FileId} className="relative">
+                              <img
+                                src={img.Url}
+                                alt={`Existing ${index + 1}`}
+                                className="max-w-[150px h-36 object-cover rounded"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2 rounded-full p-1"
+                                onClick={() =>
+                                  handleRemoveExistingImage(img.FileId)
+                                }
+                                disabled={isFormDisabled}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          {previewImages.map((src, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={src}
+                                alt={`New ${index + 1}`}
+                                className="max-w-[150px h-36 object-cover rounded"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2 rounded-full p-1"
+                                onClick={() => handleRemoveNewImage(index)}
+                                disabled={isFormDisabled}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <div
+                            className="flex items-center w-36 h-36 justify-center border-2 border-dashed border-gray-300 rounded p-4 cursor-pointer"
+                            onClick={() =>
+                              !isFormDisabled && fileInputRef.current.click()
+                            }
+                          >
+                            <Plus />
+                            Chọn ảnh
+                          </div>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageSelect}
+                            disabled={isFormDisabled}
+                            className="hidden"
+                            ref={fileInputRef}
                           />
                         </div>
-                      ) : (
-                        <div
-                          className="w-30 h-30 border-2 border-dashed flex items-center justify-center cursor-pointer"
-                          onClick={() =>
-                            !isFormDisabled && inputRef.current.click()
-                          }
-                        >
-                          <Plus className="h-8 w-8 mx-auto mt-2" />
-                        </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="tab2" className="pt-4">
-                {isFormDisabled ? (
-                  <div className="flex justify-center items-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                    <span className="ml-2">Đang tải dữ liệu...</span>
-                  </div>
-                ) : hasRent &&
-                  Array.isArray(dataService?.DT) &&
-                  dataService.DT.length > 0 ? (
-                  <div className="w-full">
-                    <Label className="text-lg font-semibold">
-                      Dịch vụ phòng
-                    </Label>
-                    <Label className="font-normal mb-2 text-red-500 block">
-                      Lưu ý: chỉ có thể thay đổi dịch vụ trong 4 ngày đầu của
-                      tháng
-                    </Label>
-                    <div className="mt-2 grid grid-cols-1 gap-2">
-                      {dataService.DT.map((service) => (
-                        <div
-                          key={service.MaDV}
-                          className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 shadow-sm transition"
-                        >
-                          <div className="flex items-center space-x-3 flex-1">
-                            <Checkbox
-                              id={`service-${service.MaDV}`}
-                              checked={selectedServices.includes(
-                                service.MaDV.toString()
-                              )}
-                              onCheckedChange={(checked) =>
-                                handleServiceChange(
-                                  service.MaDV.toString(),
-                                  checked
-                                )
-                              }
-                              disabled={
-                                isDefaultService(service) ||
-                                !isServiceChangeAllowed() ||
-                                isFormDisabled
-                              }
-                              className="h-5 w-5"
-                              aria-label={`Chọn dịch vụ ${service.TenDV}`}
-                            />
-                            <Label
-                              htmlFor={`service-${service.MaDV}`}
-                              className="cursor-pointer flex-1"
-                            >
-                              {service.TenDV}
+                  )}
+                </TabsContent>
+                <TabsContent value="tab2" className="pt-4">
+                  {isFormDisabled ? (
+                    <div className="flex justify-center items-center py-8">
+                      <Loader2 className="h-8 w-8 rounded-full animate-spin" />
+                      <span className="ml-2">Đang tải dữ liệu...</span>
+                    </div>
+                  ) : hasRent &&
+                    Array.isArray(dataService?.DT) &&
+                    dataService.DT.length > 0 ? (
+                    <div className="w-full">
+                      <Label className="text-lg font-semibold">
+                        Dịch vụ phòng
+                      </Label>
+                      <Label className="font-normal mb-2 text-red-500 block">
+                        Lưu ý: chỉ có thể thay đổi dịch vụ trong 4 ngày đầu của
+                        tháng
+                      </Label>
+                      <div className="mt-2 grid grid-cols-1 gap-2">
+                        {dataService.DT.map((service, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 border rounded bg-gray-50 hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="flex items-center space-x-3 flex-1">
+                              <Checkbox
+                                id={`service-${service.MaDV}`}
+                                checked={selectedServices.includes(
+                                  service.MaDV.toString()
+                                )}
+                                onCheckedChange={(checked) =>
+                                  handleServiceChange(
+                                    service.MaDV.toString(),
+                                    checked
+                                  )
+                                }
+                                disabled={
+                                  isDefaultService(service) ||
+                                  !isServiceChangeAllowed() ||
+                                  isFormDisabled
+                                }
+                                className="h-5 w-5"
+                              />
+                              <Label
+                                htmlFor={`service-${service.MaDV}`}
+                                className="cursor-pointer flex-1"
+                              >
+                                {service.TenDV}
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                              <span className="text-sm text-gray-600 w-32 text-right">
+                                {formatCurrency(service.DonGia || 0)} VNĐ
+                              </span>
+                              <Input
+                                type="number"
+                                value={
+                                  serviceQuantities[service.MaDV.toString()] ??
+                                  ""
+                                }
+                                onChange={(e) =>
+                                  handleQuantityChange(
+                                    service.MaDV.toString(),
+                                    e.target.value
+                                  )
+                                }
+                                disabled={
+                                  isElectricityOrWater(service) ||
+                                  isFormDisabled
+                                }
+                                className="w-20 h-8 text-center rounded"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : hasRent ? (
+                    <div className="w-full">
+                      <Label className="text-lg font-semibold">
+                        Dịch vụ phòng
+                      </Label>
+                      <div className="h-[200px] flex items-center justify-center">
+                        <p className="text-gray-500">
+                          Không có dịch vụ nào được thêm.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full">
+                      <Label className="text-lg font-semibold">
+                        Dịch vụ phòng
+                      </Label>
+                      <div className="h-[200px] flex items-center justify-center">
+                        <p className="text-gray-500">
+                          Phòng chưa có hợp đồng thuê, không thể thêm dịch vụ.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+                <TabsContent value="tab3" className="pt-4">
+                  {isFormDisabled ? (
+                    <div className="flex justify-center items-center py-8">
+                      <Loader2 className="h-8 w-8 rounded-full animate-spin" />
+                      <span className="ml-2">Đang tải dữ liệu...</span>
+                    </div>
+                  ) : hasRent && members.length > 0 ? (
+                    <div className="w-full">
+                      <Label className="text-lg font-semibold">
+                        Danh sách thành viên
+                      </Label>
+                      <div className="mt-2 max-h-[50vh] overflow-y-auto">
+                        {members.map((member, index) => (
+                          <div key={index} className="mb-6">
+                            <Label className="text-md font-semibold">
+                              Thành viên {index + 1}
                             </Label>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <span className="text-sm text-gray-600 w-32 text-right">
-                              {formatCurrency(service.DonGia || 0)} VNĐ
-                            </span>
-                            <Input
-                              type="number"
-                              value={
-                                serviceQuantities[service.MaDV.toString()] ?? ""
-                              }
-                              onChange={(e) =>
-                                handleQuantityChange(
-                                  service.MaDV.toString(),
-                                  e.target.value
-                                )
-                              }
-                              disabled={
-                                isElectricityOrWater(service) || isFormDisabled
-                              }
-                              className="w-20 h-8 text-center rounded"
-                              aria-label={`Số lượng dịch vụ ${service.TenDV}`}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : hasRent ? (
-                  <div className="w-full">
-                    <Label className="text-lg font-semibold">
-                      Dịch vụ phòng
-                    </Label>
-                    <div className="h-[200px] flex items-center justify-center">
-                      <p className="text-gray-500">
-                        Không có dịch vụ nào được thêm.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-full">
-                    <Label className="text-lg font-semibold">
-                      Dịch vụ phòng
-                    </Label>
-                    <div className="h-[200px] flex items-center justify-center">
-                      <p className="text-gray-500">
-                        Phòng chưa có hợp đồng thuê, không thể thêm dịch vụ.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="tab3" className="pt-4">
-                {isFormDisabled ? (
-                  <div className="flex justify-center items-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                    <span className="ml-2">Đang tải dữ liệu...</span>
-                  </div>
-                ) : hasRent && members.length > 0 ? (
-                  <div className="w-full">
-                    <Label className="text-lg font-semibold">
-                      Danh sách thành viên
-                    </Label>
-                    <div className="mt-2 max-h-[50vh] overflow-y-auto scrollbar-hide">
-                      {members.map((member, index) => (
-                        <div key={index} className="mb-6">
-                          <Label className="text-md font-semibold">
-                            Thành viên {index + 1}
-                          </Label>
-                          <div className="grid grid-cols-2 gap-6 w-full mt-2">
-                            <div className="w-full">
-                              <Label htmlFor={`tenTV-${index}`}>
-                                Tên thành viên
-                              </Label>
-                              <Input
-                                id={`tenTV-${index}`}
-                                name="TenTV"
-                                value={member.TenTV}
-                                onChange={(e) => handleMemberChange(index, e)}
-                                className="w-full rounded mt-2 shadow-none"
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                            <div className="w-full">
-                              <Label htmlFor={`cccd-${index}`}>Số CCCD</Label>
-                              <Input
-                                id={`cccd-${index}`}
-                                name="CCCD"
-                                value={member.CCCD}
-                                onChange={(e) => handleMemberChange(index, e)}
-                                className="w-full rounded mt-2 shadow-none"
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                            <div className="w-full">
-                              <Label htmlFor={`ngaySinh-${index}`}>
-                                Ngày sinh
-                              </Label>
-                              <Input
-                                id={`ngaySinh-${index}`}
-                                name="NgaySinh"
-                                type="date"
-                                value={member.NgaySinh}
-                                onChange={(e) => handleMemberChange(index, e)}
-                                className="w-full rounded mt-2 shadow-none"
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                            <div className="w-full">
-                              <Label htmlFor={`dienThoai-${index}`}>
-                                Số điện thoại
-                              </Label>
-                              <Input
-                                id={`dienThoai-${index}`}
-                                name="DienThoai"
-                                value={member.DienThoai}
-                                onChange={(e) => handleMemberChange(index, e)}
-                                className="w-full rounded mt-2 shadow-none"
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                            <div className="w-full col-span-2">
-                              <Label htmlFor={`diaChi-${index}`}>Địa chỉ</Label>
-                              <Textarea
-                                id={`diaChi-${index}`}
-                                name="DiaChi"
-                                value={member.DiaChi}
-                                onChange={(e) => handleMemberChange(index, e)}
-                                className="w-full rounded mt-2 shadow-none"
-                                rows={3}
-                                disabled={isFormDisabled}
-                              />
-                            </div>
-                            <div className="w-full">
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`trangThai-${index}`}
-                                  checked={member.TrangThai}
-                                  onCheckedChange={(checked) =>
-                                    handleMemberStatusChange(index, checked)
-                                  }
-                                  className="h-5 w-5 rounded cursor-pointer"
+                            <div className="grid grid-cols-2 gap-6 w-full mt-2">
+                              <div className="w-full">
+                                <Label htmlFor={`ten-${index}`}>
+                                  Tên thành viên
+                                </Label>
+                                <Input
+                                  id={`ten-${index}`}
+                                  name="TenTV"
+                                  value={member.TenTV}
+                                  onChange={(e) => handleMemberChange(index, e)}
+                                  className="w-full rounded mt-2 shadow-none"
                                   disabled={isFormDisabled}
                                 />
-                                <Label htmlFor={`trangThai-${index}`}>
-                                  Trạng thái (đang ở)
+                              </div>
+                              <div className="w-full">
+                                <Label htmlFor={`cccd-${index}`}>Số CCCD</Label>
+                                <Input
+                                  id={`cccd-${index}`}
+                                  name="CCCD"
+                                  value={member.CCCD}
+                                  onChange={(e) => handleMemberChange(index, e)}
+                                  className="w-full rounded mt-2 shadow-none"
+                                  disabled={isFormDisabled}
+                                />
+                              </div>
+                              <div className="w-full">
+                                <Label htmlFor={`ngaySinh-${index}`}>
+                                  Ngày sinh
                                 </Label>
+                                <Input
+                                  id={`ngaySinh-${index}`}
+                                  name="NgaySinh"
+                                  type="date"
+                                  value={member.NgaySinh}
+                                  onChange={(e) => handleMemberChange(index, e)}
+                                  className="w-full rounded mt-2 shadow-none"
+                                  disabled={isFormDisabled}
+                                />
+                              </div>
+                              <div className="w-full">
+                                <Label htmlFor={`dienThoai-${index}`}>
+                                  Số điện thoại
+                                </Label>
+                                <Input
+                                  id={`dienThoai-${index}`}
+                                  name="DienThoai"
+                                  value={member.DienThoai}
+                                  onChange={(e) => handleMemberChange(index, e)}
+                                  className="w-full rounded mt-2 shadow-none"
+                                  disabled={isFormDisabled}
+                                />
+                              </div>
+                              <div className="w-full col-span-2">
+                                <Label htmlFor={`diaChi-${index}`}>
+                                  Địa chỉ
+                                </Label>
+                                <Textarea
+                                  id={`diaChi-${index}`}
+                                  name="DiaChi"
+                                  value={member.DiaChi}
+                                  onChange={(e) => handleMemberChange(index, e)}
+                                  className="w-full rounded mt-2 shadow-none"
+                                  rows={3}
+                                  disabled={isFormDisabled}
+                                />
+                              </div>
+                              <div className="w-full">
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`trangThai-${index}`}
+                                    checked={member.TrangThai}
+                                    onCheckedChange={(checked) =>
+                                      handleMemberStatusChange(index, checked)
+                                    }
+                                    className="h-5 w-5 rounded cursor-pointer"
+                                    disabled={isFormDisabled}
+                                  />
+                                  <Label htmlFor={`trangThai-${index}`}>
+                                    Trạng thái (đang ở)
+                                  </Label>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : hasRent ? (
-                  <div className="w-full">
-                    <Label className="text-lg font-semibold">
-                      Danh sách thành viên
-                    </Label>
-                    <div className="h-[200px] flex items-center justify-center">
-                      <p className="text-gray-500">
-                        Phòng này chưa có thành viên nào.
-                      </p>
+                  ) : hasRent ? (
+                    <div className="w-full">
+                      <Label className="text-lg font-semibold">
+                        Danh sách thành viên
+                      </Label>
+                      <div className="h-[200px] rounded">
+                        <p className="text-gray-600">
+                          Phòng này chưa có thành viên nào.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="w-full">
+                      <Label className="text-lg font-semibold">
+                        Danh sách thành viên
+                      </Label>
+                      <div className="h-[200px] rounded">
+                        <p className="text-gray-600">
+                          Phòng chưa có hợp đồng thuê, không thể hiển thị thành
+                          viên xem.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+              </div>
+            </Tabs>
+            <DialogFooter className="pt-2">
+              <Button
+                type="submit"
+                disabled={isFormDisabled}
+                className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+                aria-label="Cập nhật thông tin phòng"
+              >
+                {mutationUpdateRoom.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Đang cập nhật...
+                  </>
                 ) : (
-                  <div className="w-full">
-                    <Label className="text-lg font-semibold">
-                      Danh sách thành viên
-                    </Label>
-                    <div className="h-[200px] flex items-center justify-center">
-                      <p className="text-gray-500">
-                        Phòng chưa có hợp đồng thuê, không thể hiển thị thành
-                        viên.
-                      </p>
-                    </div>
-                  </div>
+                  "Cập nhật"
                 )}
-              </TabsContent>
-            </div>
-          </Tabs>
-
-          <DialogFooter className="pt-2">
-            <Button
-              type="submit"
-              disabled={isFormDisabled}
-              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
-              aria-label="Cập nhật thông tin phòng"
-            >
-              {mutationUpdateRoom.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Đang cập nhật...
-                </>
-              ) : (
-                "Cập nhật"
-              )}
-            </Button>
-            <Button
-              type="button"
-              onClick={handleClose}
-              className="rounded cursor-pointer"
-              disabled={isFormDisabled}
-              variant="destructive"
-              aria-label="Đóng dialog cập nhật phòng"
-            >
-              Đóng
-            </Button>
-          </DialogFooter>
-        </form>
-        <style>
-          {`
-            .scrollbar-hide {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-          `}
-        </style>
-      </DialogContent>
-    </Dialog>
+              </Button>
+              <Button
+                type="button"
+                onClick={handleClose}
+                className="rounded cursor-pointer"
+                disabled={isFormDisabled}
+                variant="destructive"
+                aria-label="Đóng dialog cập nhật phòng"
+              >
+                Đóng
+              </Button>
+            </DialogFooter>
+          </form>
+          <style>
+            {`
+              .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+              }
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+            `}
+          </style>
+        </DialogContent>
+      </Dialog>
+    </ImageKitProvider>
   );
 };
 
