@@ -23,7 +23,6 @@ const AdminViewCustomer = () => {
     }
   }, [location.state, navigate]);
 
-  console.log("userData: ", userData);
 
   if (!userData) {
     return (
@@ -163,7 +162,7 @@ const AdminViewCustomer = () => {
             <div>
               <Zoom>
                 <img
-                  src={userData?.Anh}
+                  src={userData?.Anh?.Url}
                   alt="Hình ảnh đính kèm"
                   className="w-64 h-48 rounded object-contain "
                 />

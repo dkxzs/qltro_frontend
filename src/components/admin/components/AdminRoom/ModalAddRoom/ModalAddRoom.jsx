@@ -45,6 +45,7 @@ const ModalAddRoom = ({ refetch }) => {
     dienTich: "",
     moTa: "",
     soLuongNguoiToiDa: "",
+    tieuDe: "",
     trangThai: ROOM_STATUS_VALUE["Còn trống"],
     chiSoDien: "",
     chiSoNuoc: "",
@@ -130,6 +131,7 @@ const ModalAddRoom = ({ refetch }) => {
       dienTich: "",
       moTa: "",
       soLuongNguoiToiDa: "",
+      tieuDe: "",
       trangThai: ROOM_STATUS_VALUE["Còn trống"],
       chiSoDien: "",
       chiSoNuoc: "",
@@ -425,6 +427,20 @@ const ModalAddRoom = ({ refetch }) => {
                       onChange={handleChange}
                       className="rounded shadow-none"
                       placeholder="Nhập số lượng người tối đa"
+                      disabled={isFormDisabled}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tieuDe" className="text-right">
+                      Tiêu đề
+                    </Label>
+                    <Input
+                      id="tieuDe"
+                      name="tieuDe"
+                      value={formData.tieuDe}
+                      onChange={handleChange}
+                      className="rounded shadow-none"
+                      placeholder="Nhập tiêu đề phòng"
                       disabled={isFormDisabled}
                     />
                   </div>

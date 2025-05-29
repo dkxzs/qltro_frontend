@@ -6,89 +6,80 @@ export const getAllRentService = async () => {
 };
 
 export const createRentService = async (data) => {
-  const formData = new FormData();
+  const payload = {
+    maKH: data.maKH,
+    newCustomer: data.newCustomer
+      ? {
+          HoTen: data.newCustomer.HoTen,
+          CCCD: data.newCustomer.CCCD,
+          GioiTinh: data.newCustomer.GioiTinh,
+          NgaySinh: data.newCustomer.NgaySinh,
+          DienThoaiChinh: data.newCustomer.DienThoaiChinh,
+          DienThoaiPhu: data.newCustomer.DienThoaiPhu,
+          Email: data.newCustomer.Email,
+          DiaChi: data.newCustomer.DiaChi,
+          NgayCap: data.newCustomer.NgayCap,
+          NoiCap: data.newCustomer.NoiCap,
+          SoXe: data.newCustomer.SoXe,
+          NgheNghiep: data.newCustomer.NgheNghiep,
+          Anh: data.newCustomer.Anh,
+        }
+      : null,
+    maPT: data.maPT,
+    ngayBatDau: data.ngayBatDau,
+    ngayKetThuc: data.ngayKetThuc || "",
+    ghiChu: data.ghiChu || "",
+    donGia: data.donGia,
+    datCoc: data.datCoc,
+    dichVu: data.dichVu,
+  };
 
-  formData.append("maKH", data.maKH);
-  if (data.newCustomer) {
-    formData.append("HoTen", data.newCustomer.HoTen);
-    formData.append("CCCD", data.newCustomer.CCCD);
-    formData.append("GioiTinh", data.newCustomer.GioiTinh);
-    formData.append("NgaySinh", data.newCustomer.NgaySinh);
-    formData.append("DienThoaiChinh", data.newCustomer.DienThoaiChinh);
-    formData.append("Email", data.newCustomer.Email);
-    formData.append("DiaChi", data.newCustomer.DiaChi);
-    formData.append("NgayCap", data.newCustomer.NgayCap);
-    formData.append("NoiCap", data.newCustomer.NoiCap);
-    formData.append("NgheNghiep", data.newCustomer.NgheNghiep);
-    formData.append("SoXe", data.newCustomer.SoXe);
-    formData.append("DienThoaiPhu", data.newCustomer.DienThoaiPhu);
-    if (data.newCustomer.Anh) {
-      formData.append("Anh", data.newCustomer.Anh);
-    }
-  }
-  formData.append("maPT", data.maPT);
-  formData.append("ngayBatDau", data.ngayBatDau);
-  formData.append("ngayKetThuc", data.ngayKetThuc || "");
-  formData.append("ghiChu", data.ghiChu || "");
-  formData.append("donGia", data.donGia);
-  formData.append("datCoc", data.datCoc);
-  if (data.dichVu && Array.isArray(data.dichVu)) {
-    data.dichVu.forEach((service, index) => {
-      formData.append(`dichVu[${index}][madv]`, service.madv);
-      formData.append(`dichVu[${index}][soluong]`, service.soluong);
-    });
-  }
-
-  const res = await axios.post("/rent/create-rent", formData, {
+  const res = await axios.post("/rent/create-rent", payload, {
     headers: {
-      "Content-Type": "multipart/form-data",
+      "Content-Type": "application/json",
     },
   });
   return res.data;
 };
 
-export const createRentFromDepositService = async (data, deposit) => {
-  const formData = new FormData();
+export const createRentFromDepositService = async (data) => {
+  const payload = {
+    newCustomer: data.newCustomer
+      ? {
+          HoTen: data.newCustomer.HoTen,
+          CCCD: data.newCustomer.CCCD,
+          GioiTinh: data.newCustomer.GioiTinh,
+          NgaySinh: data.newCustomer.NgaySinh,
+          DienThoaiChinh: data.newCustomer.DienThoaiChinh,
+          DienThoaiPhu: data.newCustomer.DienThoaiPhu,
+          Email: data.newCustomer.Email,
+          DiaChi: data.newCustomer.DiaChi,
+          NgayCap: data.newCustomer.NgayCap,
+          NoiCap: data.newCustomer.NoiCap,
+          SoXe: data.newCustomer.SoXe,
+          NgheNghiep: data.newCustomer.NgheNghiep,
+          Anh: data.newCustomer.Anh,
+        }
+      : null,
+    maPT: data.maPT,
+    ngayBatDau: data.ngayBatDau,
+    ngayKetThuc: data.ngayKetThuc || "",
+    ghiChu: data.ghiChu || "",
+    donGia: data.donGia,
+    datCoc: data.datCoc,
+    dichVu: data.dichVu,
+    deposit: data.deposit, // Truyền toàn bộ deposit (bao gồm MaDC)
+    datCocUpdateData: {
+      TenKH: data.deposit.TenKH,
+      SoDienThoai: data.deposit.SoDienThoai,
+      SoTien: data.datCoc,
+      GhiChu: data.deposit.GhiChu || "",
+    },
+  };
 
-  // Thêm dữ liệu khách hàng mới
-  formData.append("HoTen", data.newCustomer.HoTen);
-  formData.append("CCCD", data.newCustomer.CCCD);
-  formData.append("GioiTinh", data.newCustomer.GioiTinh);
-  formData.append("NgaySinh", data.newCustomer.NgaySinh);
-  formData.append("DienThoaiChinh", data.newCustomer.DienThoaiChinh);
-  formData.append("Email", data.newCustomer.Email);
-  formData.append("DiaChi", data.newCustomer.DiaChi);
-  formData.append("NgayCap", data.newCustomer.NgayCap);
-  formData.append("NoiCap", data.newCustomer.NoiCap);
-  formData.append("NgheNghiep", data.newCustomer.NgheNghiep);
-  formData.append("SoXe", data.newCustomer.SoXe);
-  formData.append("DienThoaiPhu", data.newCustomer.DienThoaiPhu);
-  if (data.newCustomer.Anh) {
-    formData.append("avatar", data.newCustomer.Anh);
-  }
-
-  // Thêm dữ liệu hợp đồng
-  formData.append("maPT", data.maPT);
-  formData.append("ngayBatDau", data.ngayBatDau);
-  formData.append("ngayKetThuc", data.ngayKetThuc || "");
-  formData.append("ghiChu", data.ghiChu || "");
-  formData.append("donGia", data.donGia);
-  formData.append("datCoc", data.datCoc);
-
-  // Thêm danh sách dịch vụ
-  if (data.dichVu && Array.isArray(data.dichVu)) {
-    data.dichVu.forEach((service, index) => {
-      formData.append(`dichVu[${index}][madv]`, service.madv);
-      formData.append(`dichVu[${index}][soluong]`, service.soluong);
-    });
-  }
-
-  // Thêm thông tin deposit
-  formData.append("deposit", JSON.stringify(deposit));
-
-  const res = await axios.post("/rent/create-rent-from-deposit", formData, {
+  const res = await axios.post("/rent/create-rent-from-deposit", payload, {
     headers: {
-      "Content-Type": "multipart/form-data",
+      "Content-Type": "application/json",
     },
   });
   return res.data;

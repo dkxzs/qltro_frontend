@@ -20,6 +20,7 @@ const createRoomService = async (data) => {
       moTa: data.moTa,
       trangThai: data.trangThai,
       soLuongNguoiToiDa: data.soLuongNguoiToiDa,
+      tieuDe: data.tieuDe,
       chiSoDien: data.chiSoDien,
       chiSoNuoc: data.chiSoNuoc,
       images: data.images || [],
@@ -41,6 +42,7 @@ const updateRoomService = async (data) => {
       DienTich: data.dienTich,
       MoTa: data.moTa,
       SoLuongNguoiToiDa: data.soLuongNguoiToiDa || 0,
+      TieuDe: data.tieuDe,
       TrangThai: parseInt(data.trangThai),
       images: data.images || [],
       imagesToDelete: data.imagesToDelete || [],
@@ -85,6 +87,11 @@ const getAvailableRoomsByHouseService = async (houseId) => {
   return res.data;
 };
 
+const getAllAvailableRoomsService = async () => {
+  const res = await axios.get(`/room/get-all-available-room`);
+  return res.data;
+};
+
 export {
   getAllRoomService,
   getRoomByIdService,
@@ -96,4 +103,5 @@ export {
   getRoomServicesService,
   getRoomByRoomIdService,
   getAvailableRoomsByHouseService,
+  getAllAvailableRoomsService,
 };

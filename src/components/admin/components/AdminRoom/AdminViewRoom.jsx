@@ -40,7 +40,6 @@ const AdminViewRoom = () => {
     }
   }, [location.state, navigate]);
 
-  // Lấy dữ liệu phòng
   const {
     data: roomResponse,
     isLoading: isRoomLoading,
@@ -52,7 +51,6 @@ const AdminViewRoom = () => {
     enabled: !!roomId,
   });
 
-  // Lấy dữ liệu khách hàng
   const {
     data: customerResponse,
     isLoading: isCustomerLoading,
@@ -64,7 +62,6 @@ const AdminViewRoom = () => {
     enabled: !!roomId && roomResponse?.DT?.TrangThai === 1,
   });
 
-  // Lấy danh sách thành viên
   const {
     data: membersResponse,
     isLoading: isMembersLoading,
@@ -224,14 +221,17 @@ const AdminViewRoom = () => {
 
           <div className="pt-6">
             <h3 className="text-lg font-semibold mb-4">Hình Ảnh</h3>
-            <div>
-              <Zoom>
-                <img
-                  src={roomData?.Anh || "/placeholder.svg"}
-                  alt="Hình ảnh phòng"
-                  className="w-64 h-48 rounded object-contain border border-gray-200 mb-6"
-                />
-              </Zoom>
+            <div className="flex flex-wrap gap-4">
+              {roomData?.HinhAnh?.map((image, index) => (
+                <Zoom>
+                  <img
+                    key={index}
+                    src={image.Url}
+                    alt={`Hình ảnh ${index + 1}`}
+                    className="w-64 h-48 rounded object-contain border border-gray-200 mb-6"
+                  />
+                </Zoom>
+              ))}
             </div>
           </div>
         </CardContent>
@@ -358,12 +358,12 @@ const AdminViewRoom = () => {
                 <h3 className="text-lg font-semibold mb-2">
                   Hình ảnh đính kèm
                 </h3>
-                <div>
+                <div className="w-40 h-40">
                   <Zoom>
                     <img
-                      src={customerData?.Anh || "/placeholder.svg"}
-                      alt="Hình ảnh đính kèm"
-                      className="w-64 h-48 rounded object-contain"
+                      src={customerData?.HinhAnh?.Url || "/placeholder.svg"}
+                      alt={`Image`}
+                      className="w-full h-auto"
                     />
                   </Zoom>
                 </div>

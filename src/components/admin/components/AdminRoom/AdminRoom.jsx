@@ -35,7 +35,7 @@ const AdminRoom = () => {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(6);
 
   const { data: houseData, isLoading: isLoadingHouse } = useQuery({
     queryKey: ["house"],
@@ -46,7 +46,6 @@ const AdminRoom = () => {
     queryKey: ["allRoom"],
     queryFn: getAllRoomService,
   });
-
 
   useEffect(() => {
     if (houseData?.DT && houseData.DT.length > 0) {

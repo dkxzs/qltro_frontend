@@ -24,8 +24,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { exportToExcel } from "@/utils/exportToExcel"; // Thêm import
-import { toast } from "react-toastify"; // Thêm import để hiển thị thông báo
+import { exportToExcel } from "@/utils/exportToExcel";
+import { toast } from "react-toastify";
 
 const AdminRent = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -43,9 +43,6 @@ const AdminRent = () => {
     queryFn: getAllRentService,
   });
 
-  console.log("rentData", rentData);
-
-  // Filter rent data based on selected house and room name
   useEffect(() => {
     if (rentData?.DT) {
       const filtered = rentData.DT.filter((rent) => {

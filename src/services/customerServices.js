@@ -9,43 +9,37 @@ const getAllCustomerService = async (onlyAvailable = false) => {
 };
 
 const createCustomerService = async (data) => {
-  const formData = new FormData();
-  formData.append("HoTen", data.name);
-  formData.append("CCCD", data.cardId);
-  formData.append("GioiTinh", data.gender);
-  formData.append("NgaySinh", data.birthday);
-  formData.append("DienThoaiChinh", data.phoneNumberMain);
-  formData.append("Email", data.email);
-  formData.append("DiaChi", data.address);
-  formData.append("Anh", data.avatar);
-  formData.append("NgayCap", data.dateOfIssue);
-  formData.append("NoiCap", data.placeOfIssue);
-  formData.append("DienThoaiPhu", data.phoneNumberSub);
-  formData.append("SoXe", data.vehicleNumber);
-  formData.append("NgheNghiep", data.occupation);
-  const res = await axios.post("/customer/create-customer", formData);
-  return res.data;
+  try {
+    const payload = {
+      HoTen: data.name,
+      CCCD: data.cardId,
+      GioiTinh: data.gender,
+      NgaySinh: data.birthday,
+      DienThoaiChinh: data.phoneNumberMain,
+      DienThoaiPhu: data.phoneNumberSub,
+      SoXe: data.vehicleNumber,
+      NgheNghiep: data.occupation,
+      Email: data.email,
+      DiaChi: data.address,
+      NgayCap: data.dateOfIssue,
+      NoiCap: data.placeOfIssue,
+      image: data.image,
+    };
+
+    const res = await axios.post("/customer/create-customer", payload);
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.EM || "Lỗi khi thêm khách hàng");
+  }
 };
 
 const updateCustomerService = async (id, data) => {
-  const formData = new FormData();
-  formData.append("HoTen", data.name);
-  formData.append("CCCD", data.cardId);
-  formData.append("GioiTinh", data.gender);
-  formData.append("NgaySinh", data.birthday);
-  formData.append("DienThoaiChinh", data.phoneNumberMain);
-  formData.append("DienThoaiPhu", data.phoneNumberSub);
-  formData.append("SoXe", data.vehicleNumber);
-  formData.append("NgheNghiep", data.occupation);
-  formData.append("Email", data.email);
-  formData.append("DiaChi", data.address);
-  formData.append("NgayCap", data.dateOfIssue);
-  formData.append("NoiCap", data.placeOfIssue);
-  if (data.avatar instanceof File) {
-    formData.append("Anh", data.avatar);
+  try {
+    const res = await axios.put(`/customer/update-customer/${id}`, data);
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.EM || "Lỗi khi cập nhật khách hàng");
   }
-  const res = await axios.put(`/customer/update-customer/${id}`, formData);
-  return res.data;
 };
 
 const deleteCustomerService = async (id) => {

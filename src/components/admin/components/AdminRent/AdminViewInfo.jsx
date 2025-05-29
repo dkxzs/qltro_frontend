@@ -42,6 +42,8 @@ const AdminViewInfo = () => {
     return <div className="container mx-auto py-3 px-2">Đang tải...</div>;
   }
 
+  console.log("rentData: ", rentData);
+
   return (
     <div className="container mx-auto py-3 px-2">
       <div className="flex justify-between items-center mb-6">
@@ -181,7 +183,7 @@ const AdminViewInfo = () => {
             <div>
               <Zoom>
                 <img
-                  src={rentData?.KhachHang?.Anh}
+                  src={rentData?.KhachHang?.HinhAnh?.Url}
                   alt="Hình ảnh đính kèm"
                   className="w-64 h-48 rounded object-contain "
                 />

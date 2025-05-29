@@ -86,6 +86,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     moTa: "",
     trangThai: "",
     soLuongNguoiToiDa: "",
+    tieuDe: "",
   });
 
   // API queries
@@ -135,6 +136,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
         moTa: dataUpdate.MoTa || "",
         trangThai: dataUpdate.TrangThai?.toString() || "0",
         soLuongNguoiToiDa: dataUpdate.SoLuongNguoiToiDa?.toString() || "",
+        tieuDe: dataUpdate.TieuDe || "",
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
@@ -331,6 +333,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
       formData.moTa !== initialFormData.moTa ||
       formData.trangThai !== initialFormData.trangThai ||
       formData.soLuongNguoiToiDa !== initialFormData.soLuongNguoiToiDa ||
+      formData.tieuDe !== initialFormData.tieuDe ||
       tempFiles.length > 0 ||
       imagesToDelete.length > 0
     );
@@ -630,7 +633,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         >
                           <SelectTrigger
                             id="maLoaiPhong"
-                            className="w-full rounded mt-2 cursor-pointer"
+                            className="w-full rounded mt-2 cursor-pointer shadow-none"
                           >
                             <SelectValue placeholder="Chọn loại phòng" />
                           </SelectTrigger>
@@ -670,6 +673,18 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           onChange={handleChange}
                           placeholder="Nhập số lượng"
                           type="number"
+                          className="w-full rounded mt-2 shadow-none"
+                          disabled={isFormDisabled}
+                        />
+                      </div>
+                      <div className="w-full">
+                        <Label htmlFor="tieuDe">Tiêu đề</Label>
+                        <Input
+                          id="tieuDe"
+                          name="tieuDe"
+                          value={formData.tieuDe}
+                          onChange={handleChange}
+                          placeholder="Nhập tiêu đề phòng"
                           className="w-full rounded mt-2 shadow-none"
                           disabled={isFormDisabled}
                         />

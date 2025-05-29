@@ -22,6 +22,7 @@ import TableIssue from "./TableIssue/TableIssue";
 const AdminIssue = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {
     data: reportData,
@@ -134,7 +135,11 @@ const AdminIssue = () => {
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-medium">Danh sách báo cáo sự cố</h3>
         <div className="flex gap-2">
-          <ModalAddIssue refetch={refetch} />
+          <ModalAddIssue
+            open={isModalOpen}
+            onOpenChange={setIsModalOpen}
+            refetch={refetch}
+          />
           <Button
             className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
             onClick={handleExportExcel}
