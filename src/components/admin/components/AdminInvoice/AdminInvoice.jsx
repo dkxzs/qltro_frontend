@@ -67,20 +67,26 @@ const AdminInvoice = () => {
       const [year, month] = selectedMonthYear.split("-");
       return await invoiceByMonthYearService(month, year);
     }
-    return { DT: [] }; // Trả về mảng rỗng nếu không có tháng
+    return { DT: [] };
   };
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["invoices", selectedMonthYear],
     queryFn: queryFn,
-    enabled: true,
+    enabled: !!selectedMonthYear, // Chỉ gọi API khi selectedMonthYear có giá trị
   });
 
   useEffect(() => {
-    if (isError || (data && data.EC !== 0)) {
-      toast.error(data?.EM || "Có lỗi xảy ra khi tải danh sách hóa đơn");
+    if (isError) {
+      toast.error(error?.message || "Có lỗi xảy ra khi tải danh sách hóa đơn", {
+        toastId: "fetch-invoice-error", // Đảm bảo toast không lặp lại
+      });
+    } else if (data && data.EC !== 0) {
+      toast.error(data?.EM || "Có lỗi xảy ra khi tải danh sách hóa đơn", {
+        toastId: "fetch-invoice-error", // Đảm bảo toast không lặp lại
+      });
     }
-  }, [data, isError]);
+  }, [data, isError, error]);
 
   const invoices = data?.DT || [];
 
@@ -342,7 +348,14 @@ const AdminInvoice = () => {
         </div>
       </div>
       <div className="rounded">
-        <TableInvoice invoices={filteredInvoices} isLoading={isLoading} />
+        {filteredInvoices.length === 0 && !isLoading ? (
+          <p className="text-center text-gray-500 mt-4">
+            Không có hóa đơn nào cho tháng này. Vui lòng chọn tháng khác hoặc
+            tạo hóa đơn mới.
+          </p>
+        ) : (
+          <TableInvoice invoices={filteredInvoices} isLoading={isLoading} />
+        )}
       </div>
     </div>
   );

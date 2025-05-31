@@ -11,13 +11,12 @@ import { getRoomByRoomIdService } from "@/services/roomServices";
 import zalo from "@/assets/images/zalo_icon.png";
 
 const RoomDetailPage = () => {
-  const { id } = useParams(); // Lấy roomId từ URL
+  const { id } = useParams();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [roomLocation, setRoomLocation] = useState(null);
   const mapContainer = useRef(null);
   const map = useRef(null);
 
-  // Gọi API để lấy thông tin phòng theo roomId
   const {
     data: roomData,
     isLoading,
@@ -55,7 +54,6 @@ const RoomDetailPage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  // Thiết lập Mapbox
   useEffect(() => {
     if (!mapContainer.current) return;
 

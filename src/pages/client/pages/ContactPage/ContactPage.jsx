@@ -89,8 +89,8 @@ const ContactPage = () => {
                 Địa chỉ
               </h3>
               <p className="text-gray-700">
-                58A Trung Kính, Trung Hòa, <br />
-                Cầu Giấy, Hà Nội
+                Ov3.33 Khu đô thị Xuân Phương,
+                <br /> Nam Từ Liêm, Hà Nội
               </p>
             </div>
             {/* Mạng xã hội */}
@@ -143,10 +143,10 @@ const ContactPage = () => {
                 </Label>
                 <Input
                   id="name"
-                  name="from_name" // Tên trường cho EmailJS
+                  name="from_name"
                   type="text"
                   placeholder="Nhập tên của bạn"
-                  className="w-full rounded mt-2 shadow-none"
+                  className="w-full rounded mt-2 shadow-none py-5 border-gray-300"
                   required
                 />
               </div>
@@ -156,10 +156,10 @@ const ContactPage = () => {
                 </Label>
                 <Input
                   id="email"
-                  name="from_email" // Tên trường cho EmailJS
+                  name="from_email"
                   type="email"
                   placeholder="Nhập email của bạn"
-                  className="w-full rounded mt-2 shadow-none"
+                  className="w-full rounded mt-2 shadow-none py-5 border-gray-300"
                   required
                 />
               </div>
@@ -169,9 +169,9 @@ const ContactPage = () => {
                 </Label>
                 <Textarea
                   id="message"
-                  name="message" // Tên trường cho EmailJS
+                  name="message"
                   placeholder="Nhập nội dung tin nhắn"
-                  className="w-full rounded mt-2 min-h-[120px] shadow-none"
+                  className="w-full rounded mt-2 min-h-[120px] shadow-none border-gray-300"
                   required
                 />
               </div>
@@ -179,7 +179,7 @@ const ContactPage = () => {
                 <Button
                   type="submit"
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded cursor-pointer py-2 text-lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full cursor-pointer py-6 text-lg w-full"
                 >
                   <Send className="size-4 mr-2" />
                   Gửi

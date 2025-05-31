@@ -109,10 +109,16 @@ const RoomPage = () => {
               <SelectTrigger className="w-full md:w-40 h-12 outline-none focus:outline-none py-6 bg-gray-100 border cursor-pointer shadow-none rounded">
                 <SelectValue placeholder="Diện tích" />
               </SelectTrigger>
-              <SelectContent className="cursor-pointer">
-                <SelectItem value="10-15">10 - 15m2</SelectItem>
-                <SelectItem value="15-20">15 - 20m2</SelectItem>
-                <SelectItem value="over-20">trên 20m2</SelectItem>
+              <SelectContent className="rounded">
+                <SelectItem className="cursor-pointer" value="10-15">
+                  10 - 15m2
+                </SelectItem>
+                <SelectItem className="cursor-pointer" value="15-20">
+                  15 - 20m2
+                </SelectItem>
+                <SelectItem className="cursor-pointer" value="over-20">
+                  trên 20m2
+                </SelectItem>
               </SelectContent>
             </Select>
 
@@ -120,25 +126,37 @@ const RoomPage = () => {
               <SelectTrigger className="w-full md:w-40 h-12 outline-none focus:outline-none py-6 bg-gray-100 border shadow-none cursor-pointer rounded">
                 <SelectValue placeholder="Loại phòng" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="normal">Phòng thường</SelectItem>
-                <SelectItem value="convenient">Phòng tiện nghi</SelectItem>
-                <SelectItem value="premium">Phòng cao cấp</SelectItem>
+              <SelectContent className="rounded">
+                <SelectItem className="cursor-pointer" value="normal">
+                  Phòng thường
+                </SelectItem>
+                <SelectItem className="cursor-pointer" value="convenient">
+                  Phòng tiện nghi
+                </SelectItem>
+                <SelectItem className="cursor-pointer" value="premium">
+                  Phòng cao cấp
+                </SelectItem>
               </SelectContent>
             </Select>
 
             <Select onValueChange={(value) => setPriceFilter(value)}>
-              <SelectTrigger className="w-full md:w-40 h-12 outline-none focus:outline-none py-6 bg-gray-100 border shadow-none rounded">
+              <SelectTrigger className="w-full md:w-40 h-12 outline-none focus:outline-none py-6 bg-gray-100 border shadow-none rounded cursor-pointer">
                 <SelectValue placeholder="Giá thuê phòng" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="under-5m">Dưới 5 triệu</SelectItem>
-                <SelectItem value="5-10m">5-10 triệu</SelectItem>
-                <SelectItem value="over-10m">Trên 10 triệu</SelectItem>
+              <SelectContent className="rounded">
+                <SelectItem className="cursor-pointer" value="under-5m">
+                  Dưới 5 triệu
+                </SelectItem>
+                <SelectItem className="cursor-pointer" value="5-10m">
+                  5-10 triệu
+                </SelectItem>
+                <SelectItem className="cursor-pointer" value="over-10m">
+                  Trên 10 triệu
+                </SelectItem>
               </SelectContent>
             </Select>
 
-            <Button className="w-full md:w-auto px-8 bg-blue-500 hover:bg-blue-600 h-12 cursor-pointer text-white rounded">
+            <Button className=" w-full md:w-auto px-8 bg-blue-500 hover:bg-blue-600 h-12 cursor-pointer text-white rounded">
               <Search className="w-4 h-4" />
               Tìm kiếm
             </Button>
@@ -147,7 +165,6 @@ const RoomPage = () => {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 py-4">
-        {/* Main Heading */}
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
             BẠN CẦN TÌM PHÒNG TRỌ UY TÍN TẠI HÀ NỘI?
@@ -157,10 +174,18 @@ const RoomPage = () => {
           </p>
         </div>
 
-        <RoomList rooms={filteredRooms} />
-        <div className="mt-5">
-          <Pagination />
-        </div>
+        {filteredRooms.length === 0 ? (
+          <p className="text-center font-semibold text-xl">
+            Không tìm thấy phòng trọ
+          </p>
+        ) : (
+          <>
+            <RoomList rooms={filteredRooms} />
+            <div className="mt-5">
+              <Pagination />
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

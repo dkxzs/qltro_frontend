@@ -16,9 +16,9 @@ const RoomCard = ({
     navigate(`/room/${roomId}`);
   };
 
-  return (
+  return ( 
     <div
-      className="bg-white rounded shadow-md overflow-hidden hover:shadow-lg transition-shadow h-[400px] cursor-pointer"
+      className="bg-white rounded shadow-md overflow-hidden hover:shadow-lg transition-shadow h-[420px] cursor-pointer"
       onClick={handleClick}
     >
       <div className="relative">
@@ -29,10 +29,10 @@ const RoomCard = ({
         />
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 py-1 text-truncate">
+        <h3 className="font-semibold text-gray-900 mb-1 py-1 text-truncate">
           {title}
         </h3>
-        <div className="">{roomTypeDesc}</div>
+        <div className="mb-2">{roomTypeDesc}</div>
         <div className="text-sm text-gray-600 mb-2">
           {area && maxOccupancy
             ? `${area}m² | ${maxOccupancy} người tối đa`

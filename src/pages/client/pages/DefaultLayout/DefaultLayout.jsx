@@ -1,4 +1,4 @@
-import ModalChangePassword from "@/components/admin/components/ModalChangePassword/ModalChangePassword";
+import ModalAddIssueClient from "@/components/admin/components/AdminIssue/ModalAddIssue/ModalAddIssueClient";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -12,22 +12,30 @@ import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import { SiGooglecampaignmanager360 } from "react-icons/si";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import ModalLogin from "../Login/ModalLogin";
-import ModalAddIssue from "@/components/admin/components/AdminIssue/ModalAddIssue/ModalAddIssue";
-import ModalAddIssueClient from "@/components/admin/components/AdminIssue/ModalAddIssue/ModalAddIssueClient";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "@/redux/slices/accountSlice";
+import ModalChangePassword from "../Login/ModalChangePassword";
 
 const DefaultLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [isOpenIssue, setIsOpenIssue] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const isLoggedIn = useSelector((state) => state.account.isLoggedIn);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-  const navigate = useNavigate();
-
-  const isLogin = true;
 
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
 
   useEffect(() => {
     const originalStyle = {
@@ -107,7 +115,9 @@ const DefaultLayout = () => {
               <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center">
                 <SiGooglecampaignmanager360 className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-800">Tro247</span>
+              <span className="text-xl font-bold text-gray-800 fontFamily">
+                Tro247
+              </span>
             </div>
             <nav className="hidden md:flex space-x-8">
               <Link
@@ -152,7 +162,7 @@ const DefaultLayout = () => {
               </Link>
             </nav>
             <div className="flex items-center space-x-4">
-              {isLogin ? (
+              {isLoggedIn ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger className="outline-none rounded-full cursor-pointer">
                     <Avatar>
@@ -176,11 +186,15 @@ const DefaultLayout = () => {
                       <Settings className="h-4 w-4" /> Báo cáo sự cố
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      className="cursor-pointer"
                       onClick={() => setIsChangePasswordOpen(true)}
                     >
                       <KeyRound className="h-4 w-4" /> Đổi mật khẩu
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive cursor-pointer">
+                    <DropdownMenuItem
+                      className="text-destructive cursor-pointer"
+                      onClick={handleLogout}
+                    >
                       <LogOut className="h-4 w-4" /> Đăng xuất
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -293,9 +307,9 @@ const DefaultLayout = () => {
               <div>
                 <h4 className="font-semibold mb-2">Địa chỉ:</h4>
                 <p className="text-gray-300 text-sm">
-                  58A Trung Kính, Trung Hòa,
+                  Ov3.33 Khu đô thị Xuân Phương,
                   <br />
-                  Cầu Giấy, Hà Nội.
+                  Nam Từ Liêm, Hà Nội.
                 </p>
               </div>
 

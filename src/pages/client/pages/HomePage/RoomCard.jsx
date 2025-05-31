@@ -11,7 +11,7 @@ const RoomCard = ({
     <>
       <div
         className={
-          "bg-white rounded shadow-md overflow-hidden hover:shadow-lg transition-shadow h-[400px] cursor-pointer"
+          "bg-white rounded shadow-md overflow-hidden hover:shadow-lg transition-shadow h-[420px] cursor-pointer"
         }
       >
         <div className="relative">

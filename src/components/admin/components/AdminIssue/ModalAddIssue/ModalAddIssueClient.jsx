@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -33,7 +32,6 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
     MoTa: "",
   });
 
-  // Lấy danh sách nhà
   const { data: houseData, isLoading: houseLoading } = useQuery({
     queryKey: ["houses"],
     queryFn: () => getAllHouseService(),
@@ -44,7 +42,6 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
     },
   });
 
-  // Lấy danh sách phòng dựa trên mã nhà
   const {
     data: roomData,
     isLoading: roomLoading,
@@ -59,7 +56,6 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
     },
   });
 
-  // Đặt nhà mặc định là nhà đầu tiên khi dữ liệu nhà được tải
   useEffect(() => {
     if (!houseLoading && houseData?.DT?.length > 0 && !selectedHouse) {
       const firstHouse = houseData.DT[0].MaNha.toString();
@@ -170,13 +166,12 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
   const isFormDisabled = mutationCreateReport.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-3/5 max-w-2xl rounded transition-all duration-300 ease-in-out">
-        <DialogHeader>
-          <DialogTitle>Thêm báo cáo sự cố</DialogTitle>
-          <DialogDescription>
-            Vui lòng nhập đầy đủ thông tin để thêm báo cáo sự cố mới.
-          </DialogDescription>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="w-3/5 max-w-2xl rounded-2xl transition-all duration-300 ease-in-out">
+        <DialogHeader className="flex items-center justify-center">
+          <DialogTitle className="text-3xl font-semibold">
+            Báo cáo sự cố
+          </DialogTitle>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -270,7 +265,7 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
           <DialogFooter>
             <Button
               type="submit"
-              className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              className="rounded-full cursor-pointer flex items-center gap-2 bg-blue-600 w-full py-6 "
               disabled={isFormDisabled}
               aria-label="Thêm báo cáo sự cố mới"
             >
@@ -280,18 +275,8 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
                   Đang xử lý...
                 </>
               ) : (
-                "Lưu"
+                "Gửi"
               )}
-            </Button>
-            <Button
-              type="button"
-              className="rounded cursor-pointer"
-              onClick={handleClose}
-              disabled={isFormDisabled}
-              variant="destructive"
-              aria-label="Hủy thêm báo cáo sự cố"
-            >
-              Đóng
             </Button>
           </DialogFooter>
         </form>

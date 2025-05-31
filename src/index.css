@@ -129,3 +129,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.fontFamily {
+  font-family: "Redressed", cursive;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -6,39 +6,58 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import ModalViewInvoice from "@/components/admin/components/AdminInvoice/ModalViewInvoice/ModalViewInvoice";
+import { Badge } from "@/components/ui/badge";
 
 const TableInvoice = ({ invoices, isLoading }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     );
   }
 
   return (
-    <div className="rounded overflow-hidden border mb-10">
+    <div className="rounded border shadow-sm mb-10 bg-white">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50/50">
-            <TableHead>Mã hóa đơn</TableHead>
-            <TableHead>Mã hợp đồng</TableHead>
-            <TableHead>Tên nhà</TableHead>
-            <TableHead>Tên phòng</TableHead>
-            <TableHead>Ngày lập</TableHead>
-            <TableHead>Tổng tiền</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead className="text-center pr-10">Hành động</TableHead>
+          <TableRow className="bg-blue-50 hover:bg-blue-50">
+            <TableHead className="font-semibold text-blue-700">
+              Mã hóa đơn
+            </TableHead>
+            <TableHead className="font-semibold text-blue-700">
+              Mã hợp đồng
+            </TableHead>
+            <TableHead className="font-semibold text-blue-700">
+              Tên nhà
+            </TableHead>
+            <TableHead className="font-semibold text-blue-700">
+              Tên phòng
+            </TableHead>
+            <TableHead className="font-semibold text-blue-700">
+              Ngày lập
+            </TableHead>
+            <TableHead className="font-semibold text-blue-700">
+              Tổng tiền
+            </TableHead>
+            <TableHead className="font-semibold text-blue-700">
+              Trạng thái
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {invoices.length > 0 ? (
-            invoices.map((invoice) => (
-              <TableRow key={invoice.MaHD}>
-                <TableCell>{invoice.MaHD}</TableCell>
+            invoices.map((invoice, index) => (
+              <TableRow
+                key={invoice.MaHD}
+                className={
+                  index % 2 === 0 ? "bg-gray-50" : "bg-white hover:bg-gray-100"
+                }
+              >
+                <TableCell className="font-medium">{invoice.MaHD}</TableCell>
                 <TableCell>{invoice.MaTP}</TableCell>
                 <TableCell>
                   {invoice.ThuePhong?.PhongTro?.Nha?.TenNha || "-"}
@@ -55,9 +74,20 @@ const TableInvoice = ({ invoices, isLoading }) => {
                   {invoice.TongTien?.toLocaleString("vi-VN") || 0} VNĐ
                 </TableCell>
                 <TableCell>
-                  {invoice.TrangThai === 0
-                    ? "Chưa thanh toán"
-                    : "Đã thanh toán"}
+                  <Badge
+                    variant={
+                      invoice.TrangThai === 0 ? "destructive" : "success"
+                    }
+                    className={
+                      invoice.TrangThai === 0
+                        ? "bg-red-100 text-red-700"
+                        : "bg-green-100 text-green-700"
+                    }
+                  >
+                    {invoice.TrangThai === 0
+                      ? "Chưa thanh toán"
+                      : "Đã thanh toán"}
+                  </Badge>
                 </TableCell>
                 <TableCell className="flex items-center justify-center gap-2">
                   <ModalViewInvoice invoiceId={invoice.MaHD} />
@@ -66,11 +96,11 @@ const TableInvoice = ({ invoices, isLoading }) => {
             ))
           ) : (
             <TableRow>
-              <TableCell
-                colSpan={8}
-                className="text-center text-gray-500 italic py-6"
-              >
-                Không có hoá đơn
+              <TableCell colSpan={8} className="text-center py-10">
+                <div className="flex flex-col items-center gap-2">
+                  <AlertCircle className="h-8 w-8 text-gray-400" />
+                  <p className="text-gray-500 italic">Không có hóa đơn</p>
+                </div>
               </TableCell>
             </TableRow>
           )}

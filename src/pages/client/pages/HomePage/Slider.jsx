@@ -6,39 +6,11 @@ import {
 } from "@/components/ui/carousel";
 import { Home, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-
-const CarouselDots = ({ emblaApi }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState([]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => {
-      setSelectedIndex(emblaApi.selectedScrollSnap());
-    };
-    setScrollSnaps(emblaApi.scrollSnapList());
-    onSelect();
-    emblaApi.on("select", onSelect);
-    return () => emblaApi.off("select", onSelect);
-  }, [emblaApi]);
-
-  return (
-    <div className="flex justify-center mt-4 space-x-2">
-      {scrollSnaps.map((_, index) => (
-        <button
-          key={index}
-          className={`w-2 h-2 rounded-full border border-yellow-400 ${
-            index === selectedIndex ? "bg-yellow-400" : "bg-white/50"
-          }`}
-          onClick={() => emblaApi && emblaApi.scrollTo(index)}
-        />
-      ))}
-    </div>
-  );
-};
+import { useNavigate } from "react-router-dom";
 
 const Slider = () => {
   const [emblaApi, setEmblaApi] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -124,6 +96,7 @@ const Slider = () => {
                   <Button
                     size="lg"
                     className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 text-base font-semibold border-2 border-yellow-400 hover:border-yellow-500 hover:scale-105 hover:shadow-md transition-all duration-200"
+                    onClick={() => navigate("/rooms")}
                   >
                     Tìm ngay
                   </Button>

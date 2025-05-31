@@ -16,7 +16,6 @@ const HomePage = () => {
     queryFn: () => getAllAvailableRoomsService(),
   });
 
-  // Tạo Map để lưu dữ liệu phòng, tối ưu truy xuất
   const roomMap = useMemo(() => {
     const map = new Map();
     roomData?.DT?.forEach((room) => {
@@ -26,7 +25,6 @@ const HomePage = () => {
   }, [roomData]);
 
   const handleRoomClick = (roomId) => {
-    // Kiểm tra phòng có tồn tại trong Map không
     const room = roomMap.get(roomId);
     if (!room) {
       console.error(`Room with MaPT ${roomId} not found in roomMap`);
@@ -101,7 +99,7 @@ const HomePage = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {roomData?.DT?.map((room) => (
+              {roomData?.DT?.slice(0, 4).map((room) => (
                 <div onClick={() => handleRoomClick(room.MaPT)} key={room.MaPT}>
                   <RoomCard
                     image={room.HinhAnh?.[0]?.Url || "default-image.jpg"}
@@ -120,7 +118,7 @@ const HomePage = () => {
             <div className="text-center mt-8">
               <Button
                 size="lg"
-                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded outline-none cursor-pointer hover:scale-105 hover:shadow-md transition-all duration-200"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-xs outline-none cursor-pointer hover:scale-105 hover:shadow-md transition-all duration-200"
                 onClick={() => navigate("/rooms")}
               >
                 Xem thêm phòng trọ
