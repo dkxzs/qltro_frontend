@@ -21,3 +21,8 @@ export const invoiceByMonthYearService = async (month, year) => {
   );
   return res.data;
 };
+
+export const getInvoiceByAccountIdService = async (id) => {
+  const res = await axios.get(`/invoice/get-invoice-by-accountId/${id}`);
+  return res.data;
+};

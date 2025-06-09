@@ -6,39 +6,38 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
+import { getAllIssueStatusService } from "@/services/issueService";
+import { useQuery } from "@tanstack/react-query";
 import { Bell, CircleUser } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IoKeyOutline } from "react-icons/io5";
 import ModalChangePassword from "../ModalChangePassword/ModalChangePassword";
 
 const NavUser = () => {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
-  const [unreadNotifications] = useState(3);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  const { data: issueData } = useQuery({
+    queryKey: ["issue"],
+    queryFn: () => getAllIssueStatusService(),
+  });
+
+  useEffect(() => {
+    setUnreadNotifications(issueData?.DT.length);
+  }, [issueData]);
 
   return (
     <>
       <SidebarMenu>
         <SidebarMenuItem className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="cursor-pointer relative">
-              <div className="relative">
-                <Bell />
-                {unreadNotifications > 0 && (
-                  <span className="absolute -top-2 -right-1 size-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                    {unreadNotifications}
-                  </span>
-                )}
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded">
-              <DropdownMenuItem className="cursor-pointer rounded">
-                <span className="flex items-center gap-2">
-                  <Bell />
-                  Thông báo
-                </span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="relative">
+            <Bell />
+            {unreadNotifications > 0 && (
+              <span className="absolute -top-2 -right-1 size-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                {unreadNotifications}
+              </span>
+            )}
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

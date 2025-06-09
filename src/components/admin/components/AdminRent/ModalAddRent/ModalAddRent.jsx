@@ -298,7 +298,7 @@ const ModalAddRent = ({ showText }) => {
       }
 
       const payload = {
-        maKH: data.maKH,
+        maKT: data.maKT,
         newCustomer: data.newCustomer
           ? {
               HoTen: data.newCustomer.HoTen,
@@ -414,7 +414,7 @@ const ModalAddRent = ({ showText }) => {
         : formData.datCoc || 0;
 
     const rentData = {
-      maKH: selectedCustomerOption === "existing" ? selectedCustomer : null,
+      maKT: selectedCustomerOption === "existing" ? selectedCustomer : null,
       newCustomer:
         selectedCustomerOption === "new"
           ? {
@@ -681,8 +681,8 @@ const ModalAddRent = ({ showText }) => {
                           <SelectContent className="max-h-60 overflow-y-auto rounded">
                             {customersData?.DT?.map((customer) => (
                               <SelectItem
-                                key={customer.MaKH}
-                                value={customer.MaKH.toString()}
+                                key={customer.MaKT}
+                                value={customer.MaKT.toString()}
                                 className="cursor-pointer"
                               >
                                 {customer.HoTen} - {customer.CCCD}

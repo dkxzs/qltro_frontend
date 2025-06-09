@@ -64,8 +64,8 @@ const AdminViewInfo = () => {
               <Avatar className="h-24 w-24 border-2 border-purple-100">
                 <AvatarImage src="/placeholder.svg" alt="Avatar" />
                 <AvatarFallback className="bg-purple-100 text-purple-600 text-xl">
-                  {rentData.KhachHang?.HoTen
-                    ? rentData.KhachHang.HoTen.split(" ")
+                  {rentData.KhachTro?.HoTen
+                    ? rentData.KhachTro.HoTen.split(" ")
                         .map((n) => n[0])
                         .join("")
                     : "BON"}
@@ -74,12 +74,12 @@ const AdminViewInfo = () => {
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-bold">
-                {rentData.KhachHang?.HoTen || "Chưa cập nhật"}
+                {rentData.KhachTro?.HoTen || "Chưa cập nhật"}
               </h2>
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
                 <div className="flex items-center">
                   <span className="text-gray-500 mr-2">ID Khách:</span>
-                  <span>{rentData.KhachHang?.MaKH || "Chưa cập nhật"}</span>
+                  <span>{rentData.KhachTro?.MaKT || "Chưa cập nhật"}</span>
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-500 mr-2">Trạng thái:</span>
@@ -92,12 +92,12 @@ const AdminViewInfo = () => {
                 <div className="flex items-center gap-2">
                   <Phone className="size-4" />
                   <span>
-                    {rentData.KhachHang?.DienThoaiChinh || "Chưa cập nhật"}
+                    {rentData.KhachTro?.DienThoaiChinh || "Chưa cập nhật"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="size-4" />
-                  <span>{rentData.KhachHang?.Email || "Chưa cập nhật"}</span>
+                  <span>{rentData.KhachTro?.Email || "Chưa cập nhật"}</span>
                 </div>
               </div>
             </div>
@@ -109,14 +109,14 @@ const AdminViewInfo = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-6">
               <div>
                 <p className="text-gray-500 mb-1">Họ Tên</p>
-                <p>{rentData.KhachHang?.HoTen || "Chưa cập nhật"}</p>
+                <p>{rentData.KhachTro?.HoTen || "Chưa cập nhật"}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Ngày Sinh</p>
                 <p>
-                  {rentData.KhachHang?.NgaySinh
+                  {rentData.KhachTro?.NgaySinh
                     ? format(
-                        new Date(rentData.KhachHang.NgaySinh),
+                        new Date(rentData.KhachTro.NgaySinh),
                         "dd/MM/yyyy"
                       )
                     : "Chưa cập nhật"}
@@ -124,23 +124,23 @@ const AdminViewInfo = () => {
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Giới Tính</p>
-                <p>{rentData.KhachHang?.GioiTinh || "Chưa cập nhật"}</p>
+                <p>{rentData.KhachTro?.GioiTinh || "Chưa cập nhật"}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Số CMND/CCCD</p>
-                <p>{rentData.KhachHang?.CCCD || "Chưa cập nhật"}</p>
+                <p>{rentData.KhachTro?.CCCD || "Chưa cập nhật"}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Ngày Cấp</p>
                 <p>
-                  {rentData.KhachHang?.NgayCap
-                    ? format(new Date(rentData.KhachHang.NgayCap), "dd/MM/yyyy")
+                  {rentData.KhachTro?.NgayCap
+                    ? format(new Date(rentData.KhachTro.NgayCap), "dd/MM/yyyy")
                     : "Chưa cập nhật"}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Nơi Cấp</p>
-                <p>{rentData.KhachHang?.NoiCap || "Chưa cập nhật"}</p>
+                <p>{rentData.KhachTro?.NoiCap || "Chưa cập nhật"}</p>
               </div>
             </div>
           </div>
@@ -153,27 +153,27 @@ const AdminViewInfo = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-6">
               <div>
                 <p className="text-gray-500 mb-1">Số Điện Thoại</p>
-                <p>{rentData.KhachHang?.DienThoaiChinh || "Chưa cập nhật"}</p>
+                <p>{rentData.KhachTro?.DienThoaiChinh || "Chưa cập nhật"}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Email</p>
-                <p>{rentData.KhachHang?.Email || "Chưa cập nhật"}</p>
+                <p>{rentData.KhachTro?.Email || "Chưa cập nhật"}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Nghề Nghiệp</p>
                 <p>
-                  {rentData.KhachHang?.NgheNghiep === "null"
+                  {rentData.KhachTro?.NgheNghiep === "null"
                     ? "Chưa cập nhật"
-                    : rentData.KhachHang?.NgheNghiep}
+                    : rentData.KhachTro?.NgheNghiep}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Địa chỉ thường trú</p>
-                <p>{rentData.KhachHang?.DiaChi || "Chưa cập nhật"}</p>
+                <p>{rentData.KhachTro?.DiaChi || "Chưa cập nhật"}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Thông Tin Xe</p>
-                <p>{rentData.KhachHang?.SoXe || "Chưa cập nhật"}</p>
+                <p>{rentData.KhachTro?.SoXe || "Chưa cập nhật"}</p>
               </div>
             </div>
           </div>
@@ -183,7 +183,7 @@ const AdminViewInfo = () => {
             <div>
               <Zoom>
                 <img
-                  src={rentData?.KhachHang?.HinhAnh?.Url}
+                  src={rentData?.KhachTro?.HinhAnh?.Url}
                   alt="Hình ảnh đính kèm"
                   className="w-64 h-48 rounded object-contain "
                 />

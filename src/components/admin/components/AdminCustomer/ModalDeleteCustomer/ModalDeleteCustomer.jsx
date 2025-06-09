@@ -41,7 +41,7 @@ const ModalDeleteCustomer = ({ dataDelete, refetch }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutationDeleteCustomer.mutate({ id: dataDelete?.MaKH });
+    mutationDeleteCustomer.mutate({ id: dataDelete?.MaKT });
   };
 
   const handleClose = () => {

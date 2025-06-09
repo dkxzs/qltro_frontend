@@ -67,6 +67,11 @@ const getCustomerByRoomIdService = async (id) => {
   return res.data;
 };
 
+const getCustomerByAccountService = async (MaTK) => {
+  const res = await axios.get(`/customer/get-customer-by-account/${MaTK}`);
+  return res.data;
+};
+
 export {
   checkCustomerHasRentService,
   createCustomerService,
@@ -76,4 +81,5 @@ export {
   historyCustomerRentService,
   paymentHistoryService,
   updateCustomerService,
+  getCustomerByAccountService,
 };

@@ -206,8 +206,8 @@ const AdminInvoice = () => {
     const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
     const allowedMonths = [
-      `${currentYear}-${currentMonth.toString().padStart(2, "0")}`, // 2025-05
-      `${previousYear}-${previousMonth.toString().padStart(2, "0")}`, // 2025-04
+      `${currentYear}-${currentMonth.toString().padStart(2, "0")}`,
+      `${previousYear}-${previousMonth.toString().padStart(2, "0")}`,
     ];
 
     if (!allowedMonths.includes(selectedMonthYear)) {

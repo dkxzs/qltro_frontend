@@ -1,3 +1,5 @@
+import ModalViewInvoice from "@/components/admin/components/AdminInvoice/ModalViewInvoice/ModalViewInvoice";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -6,10 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
-import ModalViewInvoice from "@/components/admin/components/AdminInvoice/ModalViewInvoice/ModalViewInvoice";
-import { Badge } from "@/components/ui/badge";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 const TableInvoice = ({ invoices, isLoading }) => {
   if (isLoading) {
@@ -46,11 +46,14 @@ const TableInvoice = ({ invoices, isLoading }) => {
             <TableHead className="font-semibold text-blue-700">
               Trạng thái
             </TableHead>
+            <TableHead className="font-semibold text-blue-700">
+              Hành động
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.length > 0 ? (
-            invoices.map((invoice, index) => (
+          {invoices?.DT.length > 0 ? (
+            invoices?.DT.map((invoice, index) => (
               <TableRow
                 key={invoice.MaHD}
                 className={

@@ -30,9 +30,9 @@ const ModalRentHistory = ({ dataHistory }) => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["history", dataHistory?.MaKH],
-    queryFn: () => historyCustomerRentService(dataHistory?.MaKH),
-    enabled: dataHistory?.MaKH !== undefined,
+    queryKey: ["history", dataHistory?.MaKT],
+    queryFn: () => historyCustomerRentService(dataHistory?.MaKT),
+    enabled: dataHistory?.MaKT !== undefined,
   });
 
   const handleClose = () => {

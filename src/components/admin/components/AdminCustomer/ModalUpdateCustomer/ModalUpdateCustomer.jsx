@@ -77,10 +77,10 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
   }, [dataUpdate, open]);
 
   useEffect(() => {
-    if (open && dataUpdate?.MaKH) {
+    if (open && dataUpdate?.MaKT) {
       const checkHasRent = async () => {
         try {
-          const response = await checkCustomerHasRentService(dataUpdate.MaKH);
+          const response = await checkCustomerHasRentService(dataUpdate.MaKT);
           if (response.EC === 0) {
             setHasRent(response.DT);
           }
@@ -91,7 +91,7 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
       };
       checkHasRent();
     }
-  }, [open, dataUpdate?.MaKH]);
+  }, [open, dataUpdate?.MaKT]);
 
   useEffect(() => {
     return () => {
@@ -352,7 +352,7 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
     }
     if (validateForm()) {
       mutationUpdateCustomer.mutate({
-        id: dataUpdate?.MaKH,
+        id: dataUpdate?.MaKT,
         data: formData,
         file: tempFile,
       });
@@ -582,16 +582,19 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                   disabled={isFormLocked}
                 />
               </div>
-              <Input
-                email="Nhập email"
-                id="email"
-                name="email"
-                placeholder="abc@gmail.com"
-                className="rounded mt-2 shadow-none"
-                value={formData.email}
-                onChange={handleChange}
-                disabled={isFormLocked}
-              />
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  email="Nhập email"
+                  id="email"
+                  name="email"
+                  placeholder="abc@gmail.com"
+                  className="rounded mt-2 shadow-none"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={isFormLocked}
+                />
+              </div>
               <div>
                 <Label htmlFor="address">Địa chỉ</Label>
                 <Input
@@ -618,7 +621,7 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                   disabled={isFormLocked}
                 />
                 <div
-                  className={`mt-2 w-40 h-40 border-2 border-dashed rounded-lg p-4 flex items-center justify-center ${
+                  className={`mt-2 w-40 h-40 border-2 border-dashed rounded p-4 flex items-center justify-center ${
                     isFormLocked
                       ? "cursor-not-allowed opacity-50"
                       : "cursor-pointer"

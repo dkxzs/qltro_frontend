@@ -28,25 +28,25 @@ const ContractView = ({ template = {}, rentData }) => {
   const replacePlaceholders = (text) => {
     if (!rentData) return text;
     return text
-      .replace("[HoTen]", rentData.KhachHang?.HoTen || "[Tên khách hàng]")
+      .replace("[HoTen]", rentData.KhachTro?.HoTen || "[Tên khách hàng]")
       .replace(
         "[NgaySinh]",
-        rentData.KhachHang?.NgaySinh
-          ? format(new Date(rentData.KhachHang.NgaySinh), "yyyy")
+        rentData.KhachTro?.NgaySinh
+          ? format(new Date(rentData.KhachTro.NgaySinh), "yyyy")
           : "[Năm sinh]"
       )
-      .replace("[CCCD]", rentData.KhachHang?.CCCD || "[Số CCCD]")
+      .replace("[CCCD]", rentData.KhachTro?.CCCD || "[Số CCCD]")
       .replace(
         "[NgayCap]",
-        rentData.KhachHang?.NgayCap
-          ? formatDate(rentData.KhachHang.NgayCap)
+        rentData.KhachTro?.NgayCap
+          ? formatDate(rentData.KhachTro.NgayCap)
           : "[Ngày cấp]"
       )
-      .replace("[NoiCap]", rentData.KhachHang?.NoiCap || "[Nơi cấp]")
-      .replace("[DiaChi]", rentData.KhachHang?.DiaChi || "[Địa chỉ khách hàng]")
+      .replace("[NoiCap]", rentData.KhachTro?.NoiCap || "[Nơi cấp]")
+      .replace("[DiaChi]", rentData.KhachTro?.DiaChi || "[Địa chỉ khách hàng]")
       .replace(
         "[DienThoai]",
-        rentData.KhachHang?.DienThoai || "[Số điện thoại]"
+        rentData.KhachTro?.DienThoai || "[Số điện thoại]"
       )
       .replace("[TenPhong]", rentData.PhongTro?.TenPhong || "[Tên phòng]")
       .replace("[TenNha]", rentData.PhongTro?.Nha?.TenNha || "[Tên nhà]")

@@ -31,9 +31,9 @@ const ModalPaymentHistory = ({ dataPayment }) => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["paymentHistory", dataPayment?.MaKH],
-    queryFn: () => paymentHistoryService(dataPayment?.MaKH),
-    enabled: open && dataPayment?.MaKH !== undefined,
+    queryKey: ["paymentHistory", dataPayment?.MaKT],
+    queryFn: () => paymentHistoryService(dataPayment?.MaKT),
+    enabled: open && dataPayment?.MaKT !== undefined,
   });
 
   const handleClose = () => {

@@ -1,4 +1,4 @@
-import ModalAddIssueClient from "@/components/admin/components/AdminIssue/ModalAddIssue/ModalAddIssueClient";
+import ModalAddIssueClient from "@/pages/client/pages/HomePage/ModalAddIssueClient";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -115,7 +115,7 @@ const DefaultLayout = () => {
               <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center">
                 <SiGooglecampaignmanager360 className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-800 fontFamily">
+              <span className="text-2xl font-bold text-gray-800 fontFamily">
                 Tro247
               </span>
             </div>
@@ -172,6 +172,12 @@ const DefaultLayout = () => {
                     </Avatar>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => navigate("/profile")}
+                    >
+                      <User className="h-4 w-4" /> Thống tin cá nhân
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       className="cursor-pointer"
                       onClick={() => navigate("/invoice")}

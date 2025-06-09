@@ -1,3 +1,5 @@
+import AdminAccount from "@/components/admin/components/AdminAccount/AdminAccount";
+import AdminAsset from "@/components/admin/components/AdminAsset/AdminAsset";
 import AdminConfig from "@/components/admin/components/AdminConfig/AdminConfig";
 import AdminUser from "@/components/admin/components/AdminCustomer/AdminCustomer";
 import AdminViewCustomer from "@/components/admin/components/AdminCustomer/AdminViewCustomer";
@@ -90,5 +92,13 @@ export const adminRoutes = [
   {
     path: "staffs",
     page: AdminStaff,
+  },
+  {
+    path: "accounts",
+    page: AdminAccount,
+  },
+  {
+    path: "assets",
+    page: AdminAsset,
   },
 ];

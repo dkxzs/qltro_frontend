@@ -96,8 +96,8 @@ const TableIssue = ({ reportData, refetch }) => {
           ) : (
             <TableRow>
               <TableCell
-                colSpan={7}
-                className="text-center py-4 font-semibold text-lg text-gray-500"
+                colSpan={8}
+                className="text-center py-4 font-semibold text-gray-500"
               >
                 Không có báo cáo sự cố
               </TableCell>

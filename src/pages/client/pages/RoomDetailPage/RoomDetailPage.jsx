@@ -5,10 +5,59 @@ import { ChevronLeft, ChevronRight, MessageCircle, Phone } from "lucide-react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getRoomByRoomIdService } from "@/services/roomServices";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  getRoomByRoomIdService,
+  getAllAvailableRoomsService,
+} from "@/services/roomServices";
 import zalo from "@/assets/images/zalo_icon.png";
+import { useQuery } from "@tanstack/react-query";
+
+// Component RoomCard
+const RoomCard = ({
+  roomId,
+  image,
+  title,
+  area,
+  roomTypeDesc,
+  maxOccupancy,
+  price,
+  location,
+}) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/room/${roomId}`);
+  };
+
+  return (
+    <div
+      className="bg-white rounded shadow-md overflow-hidden hover:shadow-lg transition-shadow h-[420px] cursor-pointer flex-shrink-0 w-72"
+      onClick={handleClick}
+    >
+      <div className="relative">
+        <img
+          src={image || "/placeholder.svg"}
+          alt={title}
+          className="w-full h-48 object-cover"
+        />
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 mb-2 py-1 text-truncate">
+          {title}
+        </h3>
+        <div className="mb-2 text-gray-600 text-sm">{roomTypeDesc}</div>
+        <div className="text-sm text-gray-600 mb-2">
+          {area && maxOccupancy
+            ? `${area} | ${maxOccupancy} người tối đa`
+            : "Thông tin không có sẵn"}
+        </div>
+        <div className="text-lg font-bold text-blue-500 mb-2">{price}</div>
+        <div className="text-sm text-gray-500">{location}</div>
+      </div>
+    </div>
+  );
+};
 
 const RoomDetailPage = () => {
   const { id } = useParams();
@@ -25,6 +74,12 @@ const RoomDetailPage = () => {
     queryKey: ["room", id],
     queryFn: () => getRoomByRoomIdService(id),
     enabled: !!id,
+  });
+
+  const { data: relatedRoomsData, isLoading: relatedLoading } = useQuery({
+    queryKey: ["available-rooms"],
+    queryFn: getAllAvailableRoomsService,
+    enabled: true,
   });
 
   const room = roomData?.DT || null;
@@ -44,7 +99,22 @@ const RoomDetailPage = () => {
   const roomTypeDesc = room?.LoaiPhong?.MoTa || "Không có mô tả";
 
   const desc = description.split("-");
-  console.log(desc);
+
+  // Ánh xạ dữ liệu phòng trọ còn trống thành cấu trúc cần thiết
+  const relatedRooms = (relatedRoomsData?.DT || []).map((room) => ({
+    roomId: room.MaPT,
+    title:
+      room.TieuDe ||
+      `${room.Nha?.TenNha || "Phòng trọ"} - ${room.Nha?.DiaChi || ""}`,
+    image: room.HinhAnh?.[0]?.Url || "https://via.placeholder.com/300x200",
+    price: room.LoaiPhong?.DonGia
+      ? `${(room.LoaiPhong.DonGia / 1000000).toFixed(1)} triệu/tháng`
+      : "Không có giá",
+    area: `${room.DienTich || 0} m²`,
+    roomTypeDesc: room.LoaiPhong?.MoTa || "Không có mô tả",
+    maxOccupancy: room.SoLuongNguoiToiDa || 0,
+    location: room.Nha?.DiaChi || "Không có địa chỉ",
+  }));
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -194,9 +264,7 @@ const RoomDetailPage = () => {
                 {desc.map((item, index) => (
                   <p key={index}>{item}</p>
                 ))}
-                {/* <p>{description}</p> */}
               </div>
-
               <p className="text-gray-700">
                 Số người tối đa: {maxOccupancy} người
               </p>
@@ -227,10 +295,61 @@ const RoomDetailPage = () => {
                 <p className="text-gray-600 mt-2">Đang tải bản đồ...</p>
               )}
             </div>
+
+            {/* Danh sách phòng trọ liên quan */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4">Các phòng trọ khác</h2>
+              <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4 min-w-max">
+                {relatedLoading ? (
+                  <div className="flex justify-center items-center w-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  </div>
+                ) : relatedRooms.length > 0 ? (
+                  relatedRooms
+                    .filter((room) => room.roomId !== id) // Loại bỏ phòng hiện tại khỏi danh sách liên quan
+                    .map((relatedRoom) => (
+                      <RoomCard
+                        key={relatedRoom.roomId}
+                        roomId={relatedRoom.roomId}
+                        image={relatedRoom.image}
+                        title={relatedRoom.title}
+                        area={relatedRoom.area}
+                        roomTypeDesc={relatedRoom.roomTypeDesc}
+                        maxOccupancy={relatedRoom.maxOccupancy}
+                        price={relatedRoom.price}
+                        location={relatedRoom.location}
+                      />
+                    ))
+                ) : (
+                  <p className="text-gray-600 italic">
+                    Không có phòng trọ nào khác.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <style>
+              {`
+                /* Ẩn scrollbar trên các trình duyệt Webkit (Chrome, Edge, Safari) */
+                .hide-scrollbar::-webkit-scrollbar {
+                  display: none;
+                }
+                /* Ẩn scrollbar trên Firefox */
+                .hide-scrollbar {
+                  scrollbar-width: none;
+                }
+                /* Đảm bảo vẫn có thể cuộn */
+                .hide-scrollbar {
+                  -ms-overflow-style: none; /* IE và Edge */
+                }
+              `}
+            </style>
           </div>
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4 rounded-lg">
+            <Card className="rounded-lg">
+              {" "}
+              {/* Bỏ sticky top-4 */}
               <CardContent className="p-6">
                 <div className="space-y-3 mb-6 flex flex-col">
                   <a

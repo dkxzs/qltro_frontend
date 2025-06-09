@@ -2,10 +2,10 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Eye } from "lucide-react";
 import { useState } from "react";
@@ -45,7 +45,6 @@ const ModalViewIssue = ({ dataView }) => {
           </DialogHeader>
           <div className="p-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Tên nhà */}
               <div className="flex flex-col">
                 <span className="font-semibold text-gray-700">Nhà:</span>
                 <span className="text-gray-600">
@@ -53,7 +52,6 @@ const ModalViewIssue = ({ dataView }) => {
                 </span>
               </div>
 
-              {/* Tên phòng */}
               <div className="flex flex-col">
                 <span className="font-semibold text-gray-700">Phòng:</span>
                 <span className="text-gray-600">
@@ -61,7 +59,6 @@ const ModalViewIssue = ({ dataView }) => {
                 </span>
               </div>
 
-              {/* Ngày báo cáo */}
               <div className="flex flex-col">
                 <span className="font-semibold text-gray-700">
                   Ngày báo cáo:
@@ -71,7 +68,6 @@ const ModalViewIssue = ({ dataView }) => {
                 </span>
               </div>
 
-              {/* Trạng thái */}
               <div className="flex flex-col">
                 <span className="font-semibold text-gray-700">Trạng thái:</span>
                 <span
@@ -86,10 +82,9 @@ const ModalViewIssue = ({ dataView }) => {
               </div>
             </div>
 
-            {/* Mô tả */}
             <div className="flex flex-col">
               <span className="font-semibold text-gray-700">Mô tả:</span>
-              <p className="text-gray-600 mt-1 p-2 bg-gray-50 rounded border border-gray-200 min-h-[100px]">
+              <p className="text-gray-600 mt-1 min-h-[100px]">
                 {dataView?.MoTa || "Không có mô tả"}
               </p>
             </div>

@@ -15,4 +15,14 @@ const updateIssueService = async (id, data) => {
   return res.data;
 };
 
-export { getAllIssueService, createIssueService, updateIssueService };
+const getAllIssueStatusService = async () => {
+  const res = await axios.get(`/issue/get-all-issues-status`);
+  return res.data;
+};
+
+export {
+  getAllIssueService,
+  createIssueService,
+  updateIssueService,
+  getAllIssueStatusService,
+};

@@ -74,7 +74,7 @@ const AdminRent = () => {
     const headers = [
       { key: "MaTP", label: "Mã hợp đồng" },
       {
-        path: "KhachHang.HoTen",
+        path: "KhachTro.HoTen",
         label: "Tên khách hàng",
         format: (value) => value || "N/A",
       },
@@ -172,7 +172,7 @@ const AdminRent = () => {
 
           {isFilterExpanded && (
             <>
-              <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <label className="block text-md font-medium mb-1 mr-5">
@@ -204,6 +204,15 @@ const AdminRent = () => {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center">
+                    <label className="w-24 text-sm">Tháng/Năm:</label>
+                    <Input
+                      type="month"
+                      className="flex-1 rounded outline-none shadow-none"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center">
                     <label className="block text-md font-medium mb-1 mr-5">
                       Phòng
                     </label>
@@ -228,7 +237,7 @@ const AdminRent = () => {
           <ModalAddRent showText={true} />
           <Button
             className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
-            onClick={handleExportExcel} // Gắn hàm xuất Excel vào nút
+            onClick={handleExportExcel}
           >
             <Download className="h-4 w-4 mr-2" />
             Xuất dữ liệu

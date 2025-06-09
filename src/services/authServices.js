@@ -26,4 +26,20 @@ const changePassword = async (TenTK, currentPassword, newPassword) => {
   return res.data;
 };
 
-export { SignIn, changePassword };
+const requestPasswordReset = async (TenTK) => {
+  const res = await axios.post("/auth/request-password-reset", {
+    TenTK,
+  });
+  return res.data;
+};
+
+const confirmPasswordReset = async (TenTK, otp, newPassword) => {
+  const res = await axios.post("/auth/confirm-password-reset", {
+    TenTK,
+    otp,
+    newPassword,
+  });
+  return res.data;
+};
+
+export { SignIn, changePassword, requestPasswordReset, confirmPasswordReset };

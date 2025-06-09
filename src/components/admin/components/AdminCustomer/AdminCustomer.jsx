@@ -55,7 +55,7 @@ const AdminCustomer = () => {
     }
 
     const headers = [
-      { key: "MaKH", label: "Mã khách hàng" },
+      { key: "MaKT", label: "Mã khách hàng" },
       { key: "HoTen", label: "Họ và tên" },
       { key: "DienThoai", label: "Số điện thoại" },
       { key: "CCCD", label: "Căn cước công dân" },

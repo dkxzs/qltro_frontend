@@ -60,25 +60,15 @@ const data = {
     },
     {
       title: "Khách trọ",
-      url: "",
+      url: "/admin/guests",
       icon: UserCog,
-      items: [
-        {
-          title: "Quản lý khách trọ",
-          url: "/admin/guests",
-        },
-      ],
+      items: [],
     },
     {
       title: "Dịch vụ",
-      url: "",
+      url: "/admin/services",
       icon: MdOutlineMiscellaneousServices,
-      items: [
-        {
-          title: "Quản lý dịch vụ",
-          url: "/admin/services",
-        },
-      ],
+      items: [],
     },
     {
       title: "Chỉ số điện",
@@ -117,15 +107,27 @@ const data = {
       items: [],
     },
     {
+      title: "Báo cáo sự cố",
+      url: "/admin/issues",
+      icon: TriangleAlert,
+      items: [],
+    },
+    {
+      title: "Tài sản",
+      url: "/admin/assets",
+      icon: LiaFileInvoiceDollarSolid,
+      items: [],
+    },
+    {
       title: "Nhân viên",
       url: "/admin/staffs",
       icon: Users,
       items: [],
     },
     {
-      title: "Báo cáo sự cố",
-      url: "/admin/issues",
-      icon: TriangleAlert,
+      title: "Tài khoản",
+      url: "/admin/accounts",
+      icon: TbReport,
       items: [],
     },
     {

@@ -41,8 +41,8 @@ const ModalAddCustomer = ({ refetch }) => {
     dateOfIssue: "",
     placeOfIssue: "",
   });
-  const [tempFile, setTempFile] = useState(null); // Lưu file ảnh tạm
-  const [previewImage, setPreviewImage] = useState(null); // Preview ảnh
+  const [tempFile, setTempFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null); 
   const fileInputRef = useRef(null);
   const [open, setOpen] = useState(false);
 
@@ -292,7 +292,7 @@ const ModalAddCustomer = ({ refetch }) => {
             className="flex items-center cursor-pointer bg-green-700 hover:bg-green-800 rounded text-white"
             aria-label="Thêm khách trọ mới"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="size-4" />
             Thêm khách trọ
           </Button>
         </DialogTrigger>
@@ -552,11 +552,11 @@ const ModalAddCustomer = ({ refetch }) => {
                         type="button"
                         variant="destructive"
                         size="sm"
-                        className="absolute top-2 right-2 rounded-full p-1"
+                        className="absolute top-2 right-2 rounded-full cursor-pointer"
                         onClick={handleRemoveImage}
                         disabled={isFormDisabled}
                       >
-                        <X className="h-4 w-4" />
+                        <X className="size-3" />
                       </Button>
                     </div>
                   ) : (

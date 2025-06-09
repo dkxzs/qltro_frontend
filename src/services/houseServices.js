@@ -26,10 +26,16 @@ const checkHouseHasRentService = async (id) => {
   return res.data;
 };
 
+const getHouseByAccountIdService = async (id) => {
+  const res = await axios.get(`/house/get-house-by-id/${id}`);
+  return res.data;
+};
+
 export {
-  getAllHouseService,
+  checkHouseHasRentService,
   createHouseService,
-  updateHouseService,
   deleteHouseService,
-  checkHouseHasRentService, 
+  getAllHouseService,
+  getHouseByAccountIdService,
+  updateHouseService,
 };

@@ -82,25 +82,25 @@ const TableRent = ({ filteredData }) => {
       .replace("[NoiCapCT]", personalInfo?.NoiCap || "[Nơi cấp]")
       .replace("[DiaChiCT]", personalInfo?.DiaChi || "[Địa chỉ chủ trọ]")
       .replace("[DienThoaiCT]", personalInfo?.DienThoai || "[Số điện thoại]")
-      .replace("[HoTen]", rentData.KhachHang?.HoTen || "[Tên khách hàng]")
+      .replace("[HoTen]", rentData.KhachTro?.HoTen || "[Tên khách hàng]")
       .replace(
         "[NgaySinh]",
-        rentData.KhachHang?.NgaySinh
-          ? format(new Date(rentData.KhachHang.NgaySinh), "yyyy")
+        rentData.KhachTro?.NgaySinh
+          ? format(new Date(rentData.KhachTro.NgaySinh), "yyyy")
           : "[Năm sinh]"
       )
-      .replace("[CCCD]", rentData.KhachHang?.CCCD || "[Số CCCD]")
+      .replace("[CCCD]", rentData.KhachTro?.CCCD || "[Số CCCD]")
       .replace(
         "[NgayCap]",
-        rentData.KhachHang?.NgayCap
-          ? formatDate(rentData.KhachHang.NgayCap)
+        rentData.KhachTro?.NgayCap
+          ? formatDate(rentData.KhachTro.NgayCap)
           : "[Ngày cấp]"
       )
-      .replace("[NoiCap]", rentData.KhachHang?.NoiCap || "[Nơi cấp]")
-      .replace("[DiaChi]", rentData.KhachHang?.DiaChi || "[Địa chỉ khách hàng]")
+      .replace("[NoiCap]", rentData.KhachTro?.NoiCap || "[Nơi cấp]")
+      .replace("[DiaChi]", rentData.KhachTro?.DiaChi || "[Địa chỉ khách hàng]")
       .replace(
         "[DienThoai]",
-        rentData.KhachHang?.DienThoaiChinh || "[Số điện thoại]"
+        rentData.KhachTro?.DienThoaiChinh || "[Số điện thoại]"
       )
       .replace("[TenPhong]", rentData.PhongTro?.TenPhong || "[Tên phòng]")
       .replace("[TenNha]", rentData.PhongTro?.Nha?.TenNha || "[Tên nhà]")
@@ -330,7 +330,7 @@ const TableRent = ({ filteredData }) => {
   };
 
   const checkInfo = (rentData) => {
-    if (!rentData?.KhachHang?.HoTen) {
+    if (!rentData?.KhachTro?.HoTen) {
       toast.error("Khách hàng chưa có thông tin!");
       return;
     }
@@ -386,7 +386,7 @@ const TableRent = ({ filteredData }) => {
                     className="text-left py-2 cursor-pointer"
                     onClick={() => checkInfo(rent)}
                   >
-                    {rent.KhachHang?.HoTen || "-"}
+                    {rent.KhachTro?.HoTen || "-"}
                   </TableCell>
                   <TableCell className="text-left py-2">
                     {rent.PhongTro?.Nha?.TenNha || "-"}

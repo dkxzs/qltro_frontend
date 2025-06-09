@@ -274,7 +274,7 @@ const TableInvoice = ({ invoices, isLoading }) => {
               <div class="mb-6">
                 <p>
                   <span class="font-medium">Họ và tên:</span>
-                  ${invoiceData?.ThuePhong?.KhachHang?.HoTen || "-"}
+                  ${invoiceData?.ThuePhong?.KhachTro?.HoTen || "-"}
                 </p>
                 <p>
                   <span class="font-medium">Phòng:</span>

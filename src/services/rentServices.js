@@ -7,7 +7,7 @@ export const getAllRentService = async () => {
 
 export const createRentService = async (data) => {
   const payload = {
-    maKH: data.maKH,
+    maKT: data.maKT,
     newCustomer: data.newCustomer
       ? {
           HoTen: data.newCustomer.HoTen,

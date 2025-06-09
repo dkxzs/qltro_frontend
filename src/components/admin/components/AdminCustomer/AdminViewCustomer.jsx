@@ -66,7 +66,7 @@ const AdminViewCustomer = () => {
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
                 <div className="flex items-center">
                   <span className="text-gray-500 mr-2">ID Khách:</span>
-                  <span>{userData?.MaKH || "Chưa cập nhật"}</span>
+                  <span>{userData?.MaKT || "Chưa cập nhật"}</span>
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-500 mr-2">Trạng thái:</span>

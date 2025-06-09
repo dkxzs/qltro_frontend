@@ -456,7 +456,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
               <td style="padding-bottom: 30px;">
                 <p style="margin: 0 0 5px 0;">
                   <span style="font-weight: 500;">Họ và tên:</span> 
-                  ${invoiceData?.ThuePhong?.KhachHang?.HoTen}
+                  ${invoiceData?.ThuePhong?.KhachTro?.HoTen}
                 </p>
                 <p style="margin: 0 0 5px 0;">
                   <span style="font-weight: 500;">Phòng:</span> 
@@ -619,7 +619,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
             <div className="mb-6">
               <p>
                 <span className="font-medium">Họ và tên:</span>{" "}
-                {invoiceData?.ThuePhong?.KhachHang?.HoTen}
+                {invoiceData?.ThuePhong?.KhachTro?.HoTen}
               </p>
               <p>
                 <span className="font-medium">Phòng:</span>{" "}

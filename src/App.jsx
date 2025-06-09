@@ -12,6 +12,7 @@ import RoomPage from "@/pages/client/pages/RoomPage/RoomPage";
 import AdminPage from "./pages/admin/pages/AdminPage/AdminPage";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 import { adminRoutes } from "@/routes";
+import UserProfilePage from "./pages/client/pages/UserProfilePage/UserProfilePage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/rooms" element={<RoomPage />} />
             <Route path="/room/:id" element={<RoomDetailPage />} />
+            <Route path="/profile" element={<UserProfilePage />} />
             <Route path="/invoice" element={<InvoicePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
