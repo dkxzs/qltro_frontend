@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // Thêm useEffect
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { changePassword } from "@/services/authServices";
@@ -41,7 +41,6 @@ const ModalChangePassword = ({ open, onOpenChange }) => {
   const accessToken = user?.accessToken;
   const TenTK = accessToken ? jwtDecode(accessToken).TenTK : null;
 
-  // Hook useMutation được gọi ở cấp cao nhất
   const mutationChangePassword = useMutation({
     mutationFn: async (data) => {
       if (!TenTK) {
@@ -78,7 +77,6 @@ const ModalChangePassword = ({ open, onOpenChange }) => {
     },
   });
 
-  // Sử dụng useEffect để xử lý chuyển hướng
   useEffect(() => {
     if (!TenTK) {
       toast.error(

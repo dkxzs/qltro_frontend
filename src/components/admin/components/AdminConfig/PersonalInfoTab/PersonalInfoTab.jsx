@@ -1,17 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getAdminService, updateAdminService } from "@/services/adminServices";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setPersonalInfo } from "@/redux/slices/inforSlice.js";
 import { toast } from "react-toastify";
 
 const PersonalInfoTab = () => {
-  const dispatch = useDispatch();
-  const personalInfoState = useSelector(
-    (state) => state.inforConfig.personalInfo
-  );
-
   const [personalInfo, setPersonalInfoLocal] = useState({
     HoTen: "",
     CCCD: "",
@@ -22,19 +17,28 @@ const PersonalInfoTab = () => {
     DiaChi: "",
   });
 
+  const { data: adminData } = useQuery({
+    queryKey: ["admin"],
+    queryFn: () => getAdminService(),
+  });
+
   useEffect(() => {
-    if (personalInfoState) {
+    if (adminData) {
       setPersonalInfoLocal({
-        HoTen: personalInfoState.HoTen || "",
-        CCCD: personalInfoState.CCCD || "",
-        NgayCap: personalInfoState.NgayCap || "",
-        NoiCap: personalInfoState.NoiCap || "",
-        NgaySinh: personalInfoState.NgaySinh || "",
-        DienThoai: personalInfoState.DienThoai || "",
-        DiaChi: personalInfoState.DiaChi || "",
+        HoTen: adminData?.DT.HoTen || "",
+        CCCD: adminData?.DT.CCCD || "",
+        NgayCap: adminData?.DT.NgayCap
+          ? new Date(adminData.DT.NgayCap).toISOString().split("T")[0]
+          : "",
+        NoiCap: adminData?.DT.NoiCap || "",
+        NgaySinh: adminData?.DT.NgaySinh
+          ? new Date(adminData.DT.NgaySinh).toISOString().split("T")[0]
+          : "",
+        DienThoai: adminData?.DT.DienThoai || "",
+        DiaChi: adminData?.DT.DiaChi || "",
       });
     }
-  }, [personalInfoState]);
+  }, [adminData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,14 +63,26 @@ const PersonalInfoTab = () => {
       toast.error("Số điện thoại phải có 10 chữ số");
       return false;
     }
-
     return true;
   };
 
+  const adminInfoMutation = useMutation({
+    mutationFn: (data) => updateAdminService(data),
+    onSuccess: (data) => {
+      if (data.EC === 0) {
+        toast.success(data.EM);
+      } else {
+        toast.error(data.EM);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const handleSaveChanges = () => {
     if (validateForm()) {
-      dispatch(setPersonalInfo(personalInfo));
-      toast.success("Đã lưu thông tin cá nhân thành công");
+      adminInfoMutation.mutate(personalInfo);
     }
   };
 

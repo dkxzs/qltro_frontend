@@ -1,12 +1,8 @@
-import React from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "react-toastify";
-import { Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRoomStatusSummaryService } from "@/services/reportServices";
+import { useQuery } from "@tanstack/react-query";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 const COLORS = ["#36A2EB", "#f0b520"];
 
@@ -42,7 +38,6 @@ const DashboardRoomStatus = () => {
     queryFn: () => getRoomStatusSummaryService(),
   });
 
-  // Xử lý dữ liệu từ API
   const processedRoomStatus = roomStatusData?.DT
     ? [
         {
@@ -56,7 +51,6 @@ const DashboardRoomStatus = () => {
       ]
     : [];
 
-  // Kiểm tra không có dữ liệu
   const hasData =
     roomStatusData?.DT &&
     (roomStatusData.DT.totalRooms > 0 ||
@@ -69,14 +63,6 @@ const DashboardRoomStatus = () => {
         <CardTitle className="text-lg font-semibold text-black">
           Trạng thái phòng
         </CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="cursor-pointer rounded"
-          onClick={() => toast.info("Xuất dữ liệu trạng thái phòng")}
-        >
-          <Download className="h-4 w-4 text-gray-500" />
-        </Button>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center">

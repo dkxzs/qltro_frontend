@@ -1,14 +1,15 @@
-import { useSelector, useDispatch } from "react-redux";
-import { setPersonalInfo } from "@/redux/slices/inforSlice";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/utils/formatCurrency";
-import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ImageKitProvider, upload } from "@imagekit/react";
-import { Plus } from "lucide-react";
+import { getAdminService, updateAdminService } from "@/services/adminServices";
 import { deleteImageService } from "@/services/imageServices";
 import axios from "@/utils/axiosCustomize";
+import { formatCurrency } from "@/utils/formatCurrency";
+import { ImageKitProvider, upload } from "@imagekit/react";
+import { useQuery } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
 const imagekitConfig = {
   publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
@@ -17,19 +18,43 @@ const imagekitConfig = {
 };
 
 const InvoiceTemplateTab = () => {
-  const dispatch = useDispatch();
-  const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
+  const [personalInfo, setPersonalInfoLocal] = useState({
+    TenNganHang: "",
+    SoTaiKhoan: "",
+    DienThoai: "",
+    qrCodeUrl: "",
+    qrCodeFileId: "",
+  });
   const [isEditing, setIsEditing] = useState(false);
-  const [previewQrCode, setPreviewQrCode] = useState(
-    personalInfo.qrCodeUrl || ""
-  );
+  const [previewQrCode, setPreviewQrCode] = useState("");
   const [tempFile, setTempFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const imgRef = useRef(null);
 
+  const { data: adminData, refetch } = useQuery({
+    queryKey: ["invoiceConfig"],
+    queryFn: () => getAdminService(),
+  });
+
+  useEffect(() => {
+    if (adminData?.DT) {
+      setPersonalInfoLocal({
+        TenNganHang: adminData.DT.TenNganHang || "",
+        SoTaiKhoan: adminData.DT.SoTaiKhoan || "",
+        DienThoai: adminData.DT.DienThoai || "",
+        qrCodeUrl: adminData.DT.HinhAnh?.Url || "",
+        qrCodeFileId: adminData.DT.HinhAnh?.FileId || "",
+      });
+      setPreviewQrCode(adminData.DT.HinhAnh?.Url || "");
+    }
+  }, [adminData]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    dispatch(setPersonalInfo({ [name]: value }));
+    setPersonalInfoLocal((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const toggleEdit = () => {
@@ -40,13 +65,11 @@ const InvoiceTemplateTab = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Kiểm tra định dạng file
     if (!file.type.startsWith("image/")) {
-      alert("Vui lòng chọn file ảnh!");
+      toast.error("Vui lòng chọn file ảnh!");
       return;
     }
 
-    // Lưu file tạm thời và hiển thị preview
     setTempFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -57,7 +80,7 @@ const InvoiceTemplateTab = () => {
 
   const handleSaveQrCode = async () => {
     if (!tempFile) {
-      alert("Vui lòng chọn ảnh trước khi lưu!");
+      toast.error("Vui lòng chọn ảnh trước khi lưu!");
       return;
     }
 
@@ -72,18 +95,16 @@ const InvoiceTemplateTab = () => {
         throw new Error("Thông tin xác thực không hợp lệ từ backend");
       }
 
-      // Xóa ảnh cũ nếu có
       const fileId = personalInfo.qrCodeFileId;
       if (fileId) {
         await deleteImageService(fileId);
       }
 
-      // Upload ảnh mới lên ImageKit
       const response = await upload({
         file: tempFile,
         fileName: `qr-code-${Date.now()}.${tempFile.name.split(".").pop()}`,
-        publicKey: imagekitConfig.publicKey, // Truyền publicKey trực tiếp
-        ...authParams, // Truyền signature, token, expire
+        publicKey: imagekitConfig.publicKey,
+        ...authParams,
       });
 
       if (!response.url || !response.fileId) {
@@ -92,22 +113,57 @@ const InvoiceTemplateTab = () => {
         );
       }
 
-      // Lưu URL và fileId vào Redux
-      dispatch(
-        setPersonalInfo({
+      const updateData = {
+        QrCodeUrl: response.url,
+        QrCodeFileId: response.fileId,
+        DienThoai: personalInfo.DienThoai,
+        SoTaiKhoan: personalInfo.SoTaiKhoan,
+        TenNganHang: personalInfo.TenNganHang,
+      };
+      const updateResponse = await updateAdminService(updateData);
+      if (updateResponse.EC === 0) {
+        setPersonalInfoLocal((prev) => ({
+          ...prev,
           qrCodeUrl: response.url,
           qrCodeFileId: response.fileId,
-        })
-      );
-
-      // Reset tempFile sau khi lưu
-      setTempFile(null);
-      alert("Upload mã QR thành công!");
+          DienThoai: updateResponse.DT.DienThoai,
+          SoTaiKhoan: updateResponse.DT.SoTaiKhoan,
+          TenNganHang: updateResponse.DT.TenNganHang,
+        }));
+        setPreviewQrCode(response.url);
+        toast.success("Upload mã QR và thông tin thành công!");
+        refetch();
+      } else {
+        throw new Error(updateResponse.EM);
+      }
     } catch (error) {
       console.error("Lỗi khi xử lý mã QR:", error);
-      alert("Có lỗi xảy ra khi upload hoặc xóa mã QR: " + error.message);
+      toast.error("Có lỗi xảy ra khi upload hoặc xóa mã QR: " + error.message);
     } finally {
       setIsUploading(false);
+      setTempFile(null);
+    }
+  };
+
+  const handleSaveBankInfo = async () => {
+    const updateData = {
+      DienThoai: personalInfo.DienThoai,
+      SoTaiKhoan: personalInfo.SoTaiKhoan,
+      TenNganHang: personalInfo.TenNganHang,
+    };
+    const updateResponse = await updateAdminService(updateData);
+    if (updateResponse.EC === 0) {
+      setPersonalInfoLocal((prev) => ({
+        ...prev,
+        DienThoai: updateResponse.DT.DienThoai,
+        SoTaiKhoan: updateResponse.DT.SoTaiKhoan,
+        TenNganHang: updateResponse.DT.TenNganHang,
+      }));
+      setIsEditing(false);
+      toast.success("Lưu thông tin ngân hàng thành công!");
+      refetch();
+    } else {
+      toast.error(updateResponse.EM);
     }
   };
 
@@ -154,14 +210,9 @@ const InvoiceTemplateTab = () => {
     },
   };
 
-  const displayBank =
-    personalInfo.TenNganHang !== undefined
-      ? personalInfo.TenNganHang
-      : receiptData.bankInfo.bank;
+  const displayBank = personalInfo.TenNganHang || receiptData.bankInfo.bank;
   const displayAccountNumber =
-    personalInfo.SoTaiKhoan !== undefined
-      ? personalInfo.SoTaiKhoan
-      : receiptData.bankInfo.accountNumber;
+    personalInfo.SoTaiKhoan || receiptData.bankInfo.accountNumber;
 
   const totalAmount = receiptData.charges.reduce(
     (sum, item) => sum + item.amount,
@@ -175,7 +226,6 @@ const InvoiceTemplateTab = () => {
   return (
     <ImageKitProvider config={imagekitConfig}>
       <div className="max-w-3xl mx-auto p-4 bg-white">
-        {/* Header */}
         <div className="flex justify-between mb-4">
           <div className="text-sm">
             <p className="font-semibold">Nhà: {receiptData.property.name}</p>
@@ -184,12 +234,10 @@ const InvoiceTemplateTab = () => {
           <div className="text-sm text-right">{receiptData.property.date}</div>
         </div>
 
-        {/* Title */}
         <h1 className="text-2xl font-bold text-center text-[#003366] mb-2">
           HÓA ĐƠN TIỀN NHÀ
         </h1>
 
-        {/* Period */}
         <div className="text-center mb-4">
           <p className="font-medium">{receiptData.period.month}</p>
           <p className="text-sm">
@@ -197,7 +245,6 @@ const InvoiceTemplateTab = () => {
           </p>
         </div>
 
-        {/* Tenant Info */}
         <div className="mb-6">
           <p>
             <span className="font-medium">Họ và tên:</span>{" "}
@@ -213,7 +260,6 @@ const InvoiceTemplateTab = () => {
           </p>
         </div>
 
-        {/* Charges */}
         <div className="mb-6">
           {receiptData.charges.map((item) => (
             <div
@@ -230,7 +276,6 @@ const InvoiceTemplateTab = () => {
           ))}
         </div>
 
-        {/* Total */}
         <div className="mb-6">
           <div className="flex justify-between py-2 font-bold text-lg border-t-2 border-gray-800">
             <div className="text-[#003366]">TỔNG CỘNG</div>
@@ -241,7 +286,6 @@ const InvoiceTemplateTab = () => {
           </div>
         </div>
 
-        {/* Bank Info */}
         <div className="bg-gray-100 p-3 rounded-md">
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-bold">Thông tin số tài khoản</h3>
@@ -249,7 +293,7 @@ const InvoiceTemplateTab = () => {
               onClick={toggleEdit}
               className="rounded cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
             >
-              {isEditing ? "Lưu" : "Chỉnh sửa"}
+              {isEditing ? "Huỷ" : "Chỉnh sửa"}
             </Button>
           </div>
           {isEditing ? (
@@ -260,11 +304,7 @@ const InvoiceTemplateTab = () => {
                   <Input
                     id="TenNganHang"
                     name="TenNganHang"
-                    value={
-                      personalInfo.TenNganHang !== undefined
-                        ? personalInfo.TenNganHang
-                        : receiptData.bankInfo.bank
-                    }
+                    value={personalInfo.TenNganHang}
                     onChange={handleChange}
                     className="rounded shadow-none"
                   />
@@ -274,19 +314,28 @@ const InvoiceTemplateTab = () => {
                   <Input
                     id="SoTaiKhoan"
                     name="SoTaiKhoan"
-                    value={
-                      personalInfo.SoTaiKhoan !== undefined
-                        ? personalInfo.SoTaiKhoan
-                        : receiptData.bankInfo.accountNumber
-                    }
+                    value={personalInfo.SoTaiKhoan}
                     onChange={handleChange}
                     className="rounded shadow-none"
                   />
                 </div>
-                <p>
-                  <span className="font-medium">Số điện thoại liên hệ:</span>{" "}
-                  {personalInfo.DienThoai}
-                </p>
+                <div>
+                  <Label htmlFor="DienThoai">Số điện thoại</Label>
+                  <Input
+                    id="DienThoai"
+                    name="DienThoai"
+                    value={personalInfo.DienThoai}
+                    onChange={handleChange}
+                    className="rounded shadow-none"
+                  />
+                </div>
+                <Button
+                  onClick={handleSaveBankInfo}
+                  className="mt-2 rounded cursor-pointer bg-blue-600 text-white hover:bg-blue-700 px-6"
+                  disabled={isUploading}
+                >
+                  Lưu
+                </Button>
               </div>
             </>
           ) : (
@@ -297,7 +346,7 @@ const InvoiceTemplateTab = () => {
               </p>
               <p>
                 <span className="font-medium">Số tài khoản:</span>{" "}
-                {displayAccountNumber || "Chưa nhập"} - [{personalInfo.HoTen}]
+                {displayAccountNumber || "Chưa nhập"} - [{adminData?.DT.HoTen}]
               </p>
               <p>
                 <span className="font-medium">Số điện thoại liên hệ:</span>{" "}
@@ -307,7 +356,6 @@ const InvoiceTemplateTab = () => {
           )}
         </div>
 
-        {/* QR Code Upload and Preview */}
         <div className="mt-4 p-3">
           <h3 className="font-bold mb-2">Mã QR Thanh Toán</h3>
           <Input
@@ -322,7 +370,7 @@ const InvoiceTemplateTab = () => {
           <div className="flex items-center gap-4">
             {previewQrCode ? (
               <div
-                className="flex items-center w-40 h-40 justify-center border-2 border-dashed border-gray-300 rounded p-4 cursor-pointer oveflow-hidden"
+                className="flex items-center w-40 h-40 justify-center border-2 border-dashed border-gray-300 rounded p-4 cursor-pointer overflow-hidden"
                 onClick={() => !isUploading && imgRef.current.click()}
               >
                 <img

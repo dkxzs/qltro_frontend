@@ -13,4 +13,13 @@ const updateAccountStatusService = async (MaTK, TrangThai) => {
   return res.data;
 };
 
-export { getAllAccountService, updateAccountStatusService };
+const logoutAccountService = async () => {
+  const res = await axios.post("/auth/logout-account");
+  return res.data;
+};
+
+export {
+  getAllAccountService,
+  updateAccountStatusService,
+  logoutAccountService,
+};

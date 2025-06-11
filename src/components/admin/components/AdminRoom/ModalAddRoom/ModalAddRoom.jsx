@@ -144,9 +144,7 @@ const ModalAddRoom = ({ refetch }) => {
     mutationFn: async ({ data, files }) => {
       const images = [];
       if (files.length > 0) {
-        // Upload từng ảnh với authParams riêng
         for (const file of files) {
-          // Gọi API xác thực cho mỗi ảnh
           const authResponse = await axios.get(
             "http://localhost:8000/api/image/auth"
           );
@@ -474,11 +472,11 @@ const ModalAddRoom = ({ refetch }) => {
                           type="button"
                           variant="destructive"
                           size="sm"
-                          className="absolute top-0 right-0 rounded-full p-1"
+                          className="absolute top-0 right-0 rounded-full cursor-pointer"
                           onClick={() => handleRemoveImage(index)}
                           disabled={isFormDisabled}
                         >
-                          <X className="h-4 w-4" />
+                          <X className="size-3" />
                         </Button>
                       </div>
                     ))}

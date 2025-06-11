@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getAllHouseService } from "@/services/houseServices";
-import { getAvailableRoomsByHouseService } from "@/services/roomServices";
+import { getRoomsByHouseService } from "@/services/roomServices";
 import { createAssetService } from "@/services/assetServices";
 
 const ModalAddAsset = ({ refetch }) => {
@@ -38,7 +38,6 @@ const ModalAddAsset = ({ refetch }) => {
     MoTa: "",
   });
 
-  // Lấy danh sách nhà
   const { data: houseData, isLoading: houseLoading } = useQuery({
     queryKey: ["houseData"],
     queryFn: () => getAllHouseService(),
@@ -51,11 +50,10 @@ const ModalAddAsset = ({ refetch }) => {
     refetch: refetchRooms,
   } = useQuery({
     queryKey: ["availableRooms", selectedHouse],
-    queryFn: () => getAvailableRoomsByHouseService(selectedHouse),
+    queryFn: () => getRoomsByHouseService(selectedHouse),
     enabled: !!selectedHouse && open,
   });
 
-  // Mutation để tạo tài sản
   const mutationCreateAsset = useMutation({
     mutationFn: async (data) => {
       const res = await createAssetService(data);

@@ -23,18 +23,26 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
     MaPT: "",
     MoTa: "",
   });
-  const token = useSelector((state) => state.account.account.accessToken);
-  const decode = jwtDecode(token);
+  const token = useSelector((state) => state.account?.account?.accessToken);
+  let decode = null;
+  if (token && typeof token === "string" && token.split(".").length === 3) {
+    try {
+      decode = jwtDecode(token);
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      decode = null;
+    }
+  }
 
   const { data: houseData } = useQuery({
     queryKey: ["houseClient"],
-    queryFn: () => getHouseByAccountIdService(decode.MaTK),
+    queryFn: () => getHouseByAccountIdService(decode?.MaTK),
     enabled: !!decode?.MaTK,
   });
 
   const { data: roomData } = useQuery({
     queryKey: ["roomClient"],
-    queryFn: () => getRoomByAccountIdService(decode.MaTK),
+    queryFn: () => getRoomByAccountIdService(decode?.MaTK),
     enabled: !!decode?.MaTK,
   });
 
@@ -93,6 +101,10 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
   });
 
   const validateForm = () => {
+    if (!decode) {
+      toast.error("Vui lòng đăng nhập để báo cáo sự cố");
+      return false;
+    }
     if (!formData.MoTa.trim()) {
       toast.error("Mô tả không được để trống");
       return false;
@@ -101,7 +113,6 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
       toast.error("Phòng không được để trống");
       return false;
     }
-    // Kiểm tra nếu không có nhà hoặc phòng
     if (!houseData?.DT && !roomData?.DT) {
       toast.error("Không hợp lệ: Bạn không đang thuê nhà hoặc phòng");
       return false;

@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -19,52 +18,60 @@ import { toast } from "react-toastify";
 
 const ModalDeleteHouse = ({ dataDelete, refetch }) => {
   const [open, setOpen] = useState(false);
-  const [hasRent, setHasRent] = useState(false);
+  const [hasTenant, setHasTenant] = useState(false);
 
   useEffect(() => {
     if (open && dataDelete?.MaNha) {
-      const checkHasRent = async () => {
+      const checkTenants = async () => {
         try {
           const res = await checkHouseHasRentService(dataDelete.MaNha);
           if (res?.EC === 0) {
-            setHasRent(res.DT);
+            setHasTenant(res.DT);
+          } else {
+            toast.error(res.EM || "Không thể kiểm tra trạng thái thuê nhà");
           }
         } catch (error) {
-          console.error("Error checking rent status:", error);
+          console.error("Error checking tenant status:", error);
           toast.error(
             "Không thể kiểm tra trạng thái thuê nhà. Vui lòng thử lại."
           );
         }
       };
-      checkHasRent();
+      checkTenants();
     }
   }, [open, dataDelete?.MaNha]);
 
   const mutationDeleteHouse = useMutation({
     mutationFn: async ({ id }) => {
       const res = await deleteHouseService(id);
+      console.log("Delete house response:", res);
       if (res.EC !== 0) {
-        throw new Error(res.EM || "Có lỗi xảy ra khi xóa nhà");
+        return { error: true, EC: res.EC, EM: res.EM };
       }
       return res;
     },
     onSuccess: (data) => {
-      toast.success(data.EM);
-      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
-      refetch();
+      if (data.error) {
+        toast.error(data.EM || "Lỗi không xác định từ server");
+      } else {
+        toast.success(data.EM || "Xóa nhà thành công");
+        setTimeout(() => setOpen(false), 300);
+        refetch();
+      }
     },
     onError: (error) => {
-      console.error("Delete house error:", error);
-      const errorMessage = error.message.includes("foreign key constraint")
-        ? "Xóa nhà thất bại: Nhà đang có phòng hoặc dữ liệu liên quan (hợp đồng, điện nước, v.v.). Vui lòng kiểm tra lại."
-        : error.message || "Đã có lỗi xảy ra khi xóa nhà";
-      toast.error(errorMessage);
+      console.error("Delete house error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      toast.error("Có lỗi mạng hoặc hệ thống. Vui lòng thử lại.");
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (hasRent) {
+    if (hasTenant) {
       toast.error("Không thể xóa nhà đang có phòng được thuê");
       return;
     }
@@ -75,13 +82,13 @@ const ModalDeleteHouse = ({ dataDelete, refetch }) => {
     setOpen(false);
   };
 
-  const isFormDisabled = mutationDeleteHouse.isPending || hasRent;
+  const isFormDisabled = mutationDeleteHouse.isPending || hasTenant;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          className=" bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer text-white"
+          className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer text-white"
           aria-label="Xóa nhà"
         >
           <Trash2 className="size-4 text-red-600" />
@@ -89,9 +96,7 @@ const ModalDeleteHouse = ({ dataDelete, refetch }) => {
       </DialogTrigger>
       <DialogContent
         className="sm:max-w-md rounded transition-all duration-300 ease-in-out"
-        onInteractOutside={(event) => {
-          event.preventDefault();
-        }}
+        aria-describedby={undefined}
       >
         <DialogHeader>
           <DialogTitle>Xóa nhà</DialogTitle>
@@ -106,7 +111,7 @@ const ModalDeleteHouse = ({ dataDelete, refetch }) => {
               Lưu ý: Hành động này không thể hoàn tác. Vui lòng đảm bảo nhà
               không có phòng đang được thuê.
             </p>
-            {hasRent && (
+            {hasTenant && (
               <p className="text-red-500 font-medium mt-2">
                 Không thể xóa vì nhà này đang có phòng được thuê.
               </p>

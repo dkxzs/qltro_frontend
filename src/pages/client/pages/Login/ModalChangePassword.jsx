@@ -8,13 +8,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { logout } from "@/redux/slices/userSlice";
+import { logout } from "@/redux/slices/accountSlice";
 import { changePassword } from "@/services/authServices";
 import { useMutation } from "@tanstack/react-query";
 import { jwtDecode } from "jwt-decode";
 import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -23,6 +23,7 @@ const ModalChangePassword = ({ open, onOpenChange }) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -34,11 +35,22 @@ const ModalChangePassword = ({ open, onOpenChange }) => {
     confirmPassword: "",
   });
 
-  const navigate = useNavigate();
-
-  const user = JSON.parse(localStorage.getItem("user"));
-  const accessToken = user?.accessToken;
-  const TenTK = accessToken ? jwtDecode(accessToken).TenTK : null;
+  const accessToken = useSelector(
+    (state) => state.account?.account?.accessToken
+  );
+  let TenTK = null;
+  if (
+    accessToken &&
+    typeof accessToken === "string" &&
+    accessToken.split(".").length === 3
+  ) {
+    try {
+      const decoded = jwtDecode(accessToken);
+      TenTK = decoded.TenTK;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+    }
+  }
 
   const mutationChangePassword = useMutation({
     mutationFn: async (data) => {
@@ -51,7 +63,7 @@ const ModalChangePassword = ({ open, onOpenChange }) => {
         data.newPassword
       );
       if (res.EC !== 0) {
-        throw new Error("Mật khẩu hiện tại không khớp");
+        throw new Error(res.EM || "Mật khẩu hiện tại không khớp");
       }
       return res;
     },
@@ -60,22 +72,12 @@ const ModalChangePassword = ({ open, onOpenChange }) => {
       resetForm();
       onOpenChange(false);
       dispatch(logout());
-      navigate("/admin/login");
+      navigate("/");
     },
-    onError: () => {
-      toast.error("Mật khẩu hiện tại không khớp");
+    onError: (error) => {
+      toast.error(error.message || "Mật khẩu hiện tại không khớp");
     },
   });
-
-  useEffect(() => {
-    if (!TenTK) {
-      toast.error(
-        "Không tìm thấy thông tin tài khoản. Vui lòng đăng nhập lại."
-      );
-      navigate("/admin/login");
-      onOpenChange(false);
-    }
-  }, [TenTK, navigate, onOpenChange]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

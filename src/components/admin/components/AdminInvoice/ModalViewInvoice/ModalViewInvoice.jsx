@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getAdminService } from "@/services/adminServices";
 import { sendInvoiceService } from "@/services/emailServices";
 import { generateImageService } from "@/services/imageServices";
 import { getInvoiceByIdService } from "@/services/invoiceServices";
@@ -22,7 +23,6 @@ import jsPDF from "jspdf";
 import { Eye, Loader2, Send } from "lucide-react";
 import { useRef, useState } from "react";
 import { IoIosArrowDown } from "react-icons/io";
-import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 const ModalViewInvoice = ({ invoiceId }) => {
@@ -38,12 +38,15 @@ const ModalViewInvoice = ({ invoiceId }) => {
     enabled: open && !!invoiceId,
   });
 
-  const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
-  const emailConfig = useSelector((state) => state.inforConfig.email);
-
   const invoiceData = data?.DT?.invoice || {};
   const invoiceDetails = data?.DT?.invoiceDetails || [];
   const dienNuoc = data?.DT?.dienNuoc || [];
+
+  const { data: adminData } = useQuery({
+    queryKey: ["adminInfo"],
+    queryFn: () => getAdminService(),
+    enabled: open && !!invoiceId,
+  });
 
   const defaultBankInfo = {
     bank: "MB Bank",
@@ -52,14 +55,15 @@ const ModalViewInvoice = ({ invoiceId }) => {
   };
 
   const displayBank =
-    personalInfo.TenNganHang !== undefined
-      ? personalInfo.TenNganHang
+    adminData?.DT.TenNganHang !== undefined
+      ? adminData?.DT.TenNganHang
       : defaultBankInfo.bank;
   const displayAccountNumber =
-    personalInfo.SoTaiKhoan !== undefined
-      ? personalInfo.SoTaiKhoan
+    adminData?.DT.SoTaiKhoan !== undefined
+      ? adminData?.DT.SoTaiKhoan
       : defaultBankInfo.accountNumber;
-  const displayPhone = personalInfo.DienThoai;
+  const displayAccountName = adminData?.DT.HoTen;
+  const displayPhone = adminData?.DT.DienThoai;
 
   const invoiceDate = invoiceData?.NgayLap
     ? new Date(invoiceData.NgayLap)
@@ -387,21 +391,6 @@ const ModalViewInvoice = ({ invoiceId }) => {
       return;
     }
 
-    const fromEmail = emailConfig?.systemEmail;
-    const encryptedPassword = emailConfig?.systemPassword;
-
-    if (!fromEmail || !encryptedPassword) {
-      toast.warning("Thiếu thông tin email gửi. Vui lòng kiểm tra cấu hình.");
-      return;
-    }
-
-    const bankInfo = {
-      bank: displayBank,
-      accountNumber: displayAccountNumber,
-      phone: displayPhone,
-      qrCodeUrl: personalInfo.qrCodeUrl, // Thêm URL mã QR từ Redux
-    };
-
     const htmlContent = `
       <html>
         <head>
@@ -541,9 +530,6 @@ const ModalViewInvoice = ({ invoiceId }) => {
       await sendInvoiceService({
         invoiceId,
         htmlContent,
-        fromEmail,
-        encryptedPassword,
-        bankInfo,
       });
       setLoading(false);
       toast.success("Hóa đơn đã được gửi thành công!");
@@ -672,7 +658,7 @@ const ModalViewInvoice = ({ invoiceId }) => {
               </p>
               <p>
                 <span className="font-medium">Số tài khoản:</span>{" "}
-                {displayAccountNumber || "Chưa nhập"}
+                {displayAccountNumber || "Chưa nhập"} - [{displayAccountName}]
               </p>
               <p>
                 <span className="font-medium">Số điện thoại liên hệ:</span>{" "}

@@ -16,11 +16,14 @@ const updateHouseService = async (id, data) => {
 };
 
 const deleteHouseService = async (id) => {
-  const res = await axios.delete(`/house/delete-house/${id}`);
-  return res.data;
+  try {
+    const res = await axios.delete(`/house/delete-house/${id}`);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi xóa nhà" };
+  }
 };
 
-// Thêm hàm kiểm tra nhà có phòng đang được thuê không
 const checkHouseHasRentService = async (id) => {
   const res = await axios.get(`/house/check-has-rent/${id}`);
   return res.data;

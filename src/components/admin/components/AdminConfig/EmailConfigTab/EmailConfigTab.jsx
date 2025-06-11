@@ -1,29 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setEmailConfig } from "@/redux/slices/inforSlice";
-import { toast } from "react-toastify";
+import { getAdminService, updateAdminService } from "@/services/adminServices";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import CryptoJS from "crypto-js";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const EmailConfigTab = () => {
-  const dispatch = useDispatch();
-  const emailState = useSelector((state) => state.inforConfig.email);
-
   const [emailConfig, setEmailConfigLocal] = useState({
     systemEmail: "",
     systemPassword: "",
     personalEmail: "",
   });
 
+  const { data: adminData } = useQuery({
+    queryKey: ["emailConfig"],
+    queryFn: () => getAdminService(),
+  });
+
   useEffect(() => {
     setEmailConfigLocal({
-      systemEmail: emailState?.systemEmail || "",
+      systemEmail: adminData?.DT.SystemEmail || "",
       systemPassword: "",
-      personalEmail: emailState?.personalEmail || "",
+      personalEmail: adminData?.DT.PersonalEmail || "",
     });
-  }, [emailState]);
+  }, [adminData]);
 
   const handleEmailChange = (e) => {
     const { name, value } = e.target;
@@ -32,6 +34,34 @@ const EmailConfigTab = () => {
       [name]: value,
     }));
   };
+
+  const emailMutation = useMutation({
+    mutationFn: async (data) => {
+      const secretKey = import.meta.env.VITE_ENCRYPTION_SECRET || "sudodev";
+      console.log("Encryption key:", secretKey); // Debug key
+      const encryptedPassword = data.systemPassword
+        ? CryptoJS.AES.encrypt(data.systemPassword, secretKey).toString()
+        : undefined;
+
+      const payload = {
+        ...data,
+        systemPassword: encryptedPassword,
+      };
+      console.log("Payload sent to server:", payload); // Debug payload
+      return updateAdminService(payload);
+    },
+    onSuccess: (data) => {
+      if (data.EC === 0) {
+        toast.success(data.EM);
+      } else {
+        toast.error(data.EM);
+      }
+    },
+    onError: (err) => {
+      console.log("Error in email mutation:", err);
+      toast.error("Có lỗi xảy ra");
+    },
+  });
 
   const handleSaveChanges = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,27 +78,12 @@ const EmailConfigTab = () => {
       return;
     }
 
-    const secretKey =
-      import.meta.env.VITE_ENCRYPTION_SECRET ||
-      "your-32-character-secret-key-here123456";
-    const encryptedPassword = emailConfig.systemPassword
-      ? CryptoJS.AES.encrypt(emailConfig.systemPassword, secretKey).toString()
-      : "";
+    if (emailConfig.systemPassword && emailConfig.systemPassword.length < 6) {
+      toast.error("Mật khẩu phải có ít nhất 6 ký tự");
+      return;
+    }
 
-    dispatch(
-      setEmailConfig({
-        systemEmail: emailConfig.systemEmail,
-        systemPassword: encryptedPassword,
-        personalEmail: emailConfig.personalEmail,
-      })
-    );
-
-    setEmailConfigLocal((prev) => ({
-      ...prev,
-      systemPassword: "",
-    }));
-
-    toast.success("Đã lưu cấu hình email thành công");
+    emailMutation.mutate(emailConfig);
   };
 
   return (

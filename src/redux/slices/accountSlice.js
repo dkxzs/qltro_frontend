@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   account: {
-    isAdmin: false,
+    LoaiTaiKhoan: "",
     accessToken: "",
   },
   isLoggedIn: false,
@@ -14,7 +14,7 @@ export const accountSlice = createSlice({
   reducers: {
     login: (state, action) => {
       state.account = {
-        isAdmin: action.payload?.DT?.LoaiTaiKhoan === "admin",
+        LoaiTaiKhoan: action.payload?.DT?.LoaiTaiKhoan,
         accessToken: action.payload?.DT?.accessToken,
       };
       state.isLoggedIn = true;

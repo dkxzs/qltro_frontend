@@ -16,14 +16,19 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ModalViewRent from "../ModalViewRent/ModalViewRent";
+import { useQuery } from "@tanstack/react-query";
+import { getAdminService } from "@/services/adminServices";
 
 const TableRent = ({ filteredData }) => {
   const [printLoading, setPrintLoading] = useState(null);
   const navigate = useNavigate();
   const template = useSelector((state) => state.contractConfig.template);
-  const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
 
-  // Hàm trích xuất tỉnh/thành phố từ địa chỉ
+  const { data: adminData } = useQuery({
+    queryKey: ["adminView"],
+    queryFn: () => getAdminService(),
+  });
+
   const extractProvince = (address) => {
     if (!address) return "Tp. Hà Nội";
     const parts = address.split(",").map((part) => part.trim());
@@ -52,7 +57,6 @@ const TableRent = ({ filteredData }) => {
     return months;
   };
 
-  // Hàm thay thế placeholder
   const replacePlaceholders = (text, rentData) => {
     if (!rentData) return text;
     return text
@@ -65,23 +69,23 @@ const TableRent = ({ filteredData }) => {
       .replace("[nam]", format(rentData.NgayBatDau, "yyyy") || "[Năm]")
       .replace("[DiaChiPT]", rentData.PhongTro?.Nha?.DiaChi || "[Địa chỉ]")
       .replace("[SoHD]", rentData.MaTP || "[Số hợp đồng]")
-      .replace("[HoTenCT]", personalInfo?.HoTen || "[Họ tên chủ trọ]")
+      .replace("[HoTenCT]", adminData?.DT.HoTen || "[Họ tên chủ trọ]")
       .replace(
         "[NgaySinhCT]",
-        personalInfo?.NgaySinh
-          ? format(new Date(personalInfo.NgaySinh), "yyyy")
+        adminData?.DT.NgaySinh
+          ? format(new Date(adminData?.DT.NgaySinh), "yyyy")
           : "[Năm sinh]"
       )
-      .replace("[CCCDCT]", personalInfo?.CCCD || "[Số CCCD]")
+      .replace("[CCCDCT]", adminData?.DT.CCCD || "[Số CCCD]")
       .replace(
         "[NgayCapCT]",
-        personalInfo?.NgayCap
-          ? format(new Date(personalInfo.NgayCap), "dd/MM/yyyy")
+        adminData?.DT.NgayCap
+          ? format(new Date(adminData?.DT.NgayCap), "dd/MM/yyyy")
           : "[Ngày cấp]"
       )
-      .replace("[NoiCapCT]", personalInfo?.NoiCap || "[Nơi cấp]")
-      .replace("[DiaChiCT]", personalInfo?.DiaChi || "[Địa chỉ chủ trọ]")
-      .replace("[DienThoaiCT]", personalInfo?.DienThoai || "[Số điện thoại]")
+      .replace("[NoiCapCT]", adminData?.DT.NoiCap || "[Nơi cấp]")
+      .replace("[DiaChiCT]", adminData?.DT.DiaChi || "[Địa chỉ chủ trọ]")
+      .replace("[DienThoaiCT]", adminData?.DT.DienThoai || "[Số điện thoại]")
       .replace("[HoTen]", rentData.KhachTro?.HoTen || "[Tên khách hàng]")
       .replace(
         "[NgaySinh]",

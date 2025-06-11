@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -9,44 +8,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getContractReportService } from "@/services/reportServices";
-import { exportToExcel } from "@/utils/exportToExcel";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Download, Loader2 } from "lucide-react";
-import { toast } from "react-toastify";
+import { Loader2 } from "lucide-react";
 
 const DashboardContractExpiring = () => {
-  // Lấy dữ liệu hợp đồng sắp hết hạn
   const { data: contractData, isLoading: contractLoading } = useQuery({
     queryKey: ["contractReport"],
     queryFn: () => getContractReportService(),
   });
 
   const processedContracts = contractData?.DT?.contracts || [];
-
-  const handleExportContracts = async () => {
-    if (!processedContracts.length) {
-      toast.warning("Không có dữ liệu hợp đồng để xuất");
-      return;
-    }
-    const headers = [
-      { key: "contractId", label: "Mã hợp đồng" },
-      { key: "customerName", label: "Khách thuê" },
-      { key: "roomName", label: "Phòng" },
-      {
-        key: "endDate",
-        label: "Ngày hết hạn",
-        format: (value) => format(new Date(value), "dd/MM/yyyy"),
-      },
-    ];
-    await exportToExcel(
-      processedContracts,
-      headers,
-      `Hop_dong_sap_het_han`,
-      "Hợp đồng sắp hết hạn"
-    );
-    toast.success("Xuất danh sách hợp đồng thành công");
-  };
 
   return (
     <>
@@ -62,13 +34,6 @@ const DashboardContractExpiring = () => {
               <CardTitle className="text-lg font-semibold text-black">
                 Khách hàng sắp hết hạn hợp đồng
               </CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleExportContracts}
-              >
-                <Download className="h-4 w-4 text-gray-500" />
-              </Button>
             </CardHeader>
             <CardContent className="px-2">
               <div className="rounded border">

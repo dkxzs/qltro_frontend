@@ -19,24 +19,37 @@ const TableAccount = ({ accountData, refetch }) => {
     setIsModalOpen(true);
   };
 
+  const checkText = (text) => {
+    switch (text) {
+      case "nhanvien":
+        return "Nhân viên";
+      case "khachtro":
+        return "Khách trọ";
+      case "admin":
+        return "Quản trị";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="w-full overflow-x-auto">
       <Table className="table-auto min-w-full">
         <TableHeader>
           <TableRow className="bg-gray-50 border-b">
-            <TableHead className="py-2 px-4 text-center shrink-0 font-medium w-12">
+            <TableHead className="py-3 px-4 text-center shrink-0 font-medium w-12">
               STT
             </TableHead>
-            <TableHead className="py-2 px-4 text-left font-medium">
+            <TableHead className="py-3 px-4 text-left font-medium">
               Tên tài khoản
             </TableHead>
-            <TableHead className="py-2 px-4 text-left font-medium">
+            <TableHead className="py-3 px-4 text-left font-medium">
               Loại tài khoản
             </TableHead>
-            <TableHead className="py-2 px-4 text-left font-medium">
+            <TableHead className="py-3 px-4 text-left font-medium">
               Trạng thái
             </TableHead>
-            <TableHead className="py-2 px-4 text-center shrink-0 font-medium w-32">
+            <TableHead className="py-3 px-4 text-center shrink-0 font-medium w-32">
               Hành động
             </TableHead>
           </TableRow>
@@ -51,21 +64,19 @@ const TableAccount = ({ accountData, refetch }) => {
                   : "border-b hover:bg-gray-50"
               }
             >
-              <TableCell className="py-2 px-4 text-center shrink-0 w-12">
+              <TableCell className="py-3 px-4 text-center shrink-0 w-12">
                 {index + 1}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[200px]">
+              <TableCell className="py-3 px-4 truncate max-w-[200px]">
                 {account.TenTK}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[150px]">
-                {account.LoaiTaiKhoan === "nhanvien"
-                  ? "Nhân viên"
-                  : "Khách hàng"}
+              <TableCell className="py-3 px-4 truncate max-w-[150px]">
+                {checkText(account.LoaiTaiKhoan)}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[150px]">
+              <TableCell className="py-3 px-4 truncate max-w-[150px]">
                 {account.TrangThai ? "Kích hoạt" : "Khóa"}
               </TableCell>
-              <TableCell className="py-2 px-4 text-center shrink-0 w-32">
+              <TableCell className="py-3 px-4 text-center shrink-0 w-32">
                 <div className="flex justify-center">
                   <Switch
                     checked={account.TrangThai}

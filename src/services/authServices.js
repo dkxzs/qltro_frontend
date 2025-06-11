@@ -10,7 +10,7 @@ const SignIn = async (email, password) => {
       "user",
       JSON.stringify({
         accessToken: res.data.DT.accessToken,
-        isAdmin: res.data.DT.VaiTro === 1,
+        LoaiTaiKhoan: res.data.DT.LoaiTaiKhoan,
       })
     );
   }

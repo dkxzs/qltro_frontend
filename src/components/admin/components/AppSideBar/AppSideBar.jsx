@@ -28,6 +28,7 @@ import { TbReport } from "react-icons/tb";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import TeamSwitcher from "../TeamSwitcher/TeamSwitcher";
+import { logoutAccountService } from "@/services/accountServices";
 
 const data = {
   navMain: [
@@ -144,6 +145,7 @@ export function AppSidebar({ ...props }) {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
+    logoutAccountService();
     dispatch(logout());
     navigate("/admin/login");
   };

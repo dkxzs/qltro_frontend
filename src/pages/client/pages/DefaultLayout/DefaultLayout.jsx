@@ -15,6 +15,7 @@ import ModalLogin from "../Login/ModalLogin";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/redux/slices/accountSlice";
 import ModalChangePassword from "../Login/ModalChangePassword";
+import { logoutAccountService } from "@/services/accountServices";
 
 const DefaultLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,7 +33,8 @@ const DefaultLayout = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutAccountService();
     dispatch(logout());
     navigate("/");
   };

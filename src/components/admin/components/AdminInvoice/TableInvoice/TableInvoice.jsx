@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -6,20 +7,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Printer } from "lucide-react";
-import { format } from "date-fns";
-import ModalViewInvoice from "../ModalViewInvoice/ModalViewInvoice";
-import ModalPayment from "../ModalPayment/ModalPayment";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { getAdminService } from "@/services/adminServices";
 import { getInvoiceByIdService } from "@/services/invoiceServices";
-import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 import { numberToText } from "@/utils/formatCurrency";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Loader2, Printer } from "lucide-react";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import ModalPayment from "../ModalPayment/ModalPayment";
+import ModalViewInvoice from "../ModalViewInvoice/ModalViewInvoice";
 
 const TableInvoice = ({ invoices, isLoading }) => {
   const [printLoading, setPrintLoading] = useState(null);
-  const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
+
+  const { data: adminData } = useQuery({
+    queryKey: ["adminInfo"],
+    queryFn: () => getAdminService(),
+  });
 
   const printInvoice = async (invoiceId) => {
     setPrintLoading(invoiceId);
@@ -49,14 +54,15 @@ const TableInvoice = ({ invoices, isLoading }) => {
       };
 
       const displayBank =
-        personalInfo?.TenNganHang !== undefined
-          ? personalInfo.TenNganHang
+        adminData?.DT.TenNganHang !== undefined
+          ? adminData?.DT.TenNganHang
           : defaultBankInfo.bank;
       const displayAccountNumber =
-        personalInfo?.SoTaiKhoan !== undefined
-          ? personalInfo.SoTaiKhoan
+        adminData?.DT.SoTaiKhoan !== undefined
+          ? adminData?.DT.SoTaiKhoan
           : defaultBankInfo.accountNumber;
-      const displayPhone = personalInfo?.DienThoai;
+      const displayAccountName = adminData?.DT.HoTen;
+      const displayPhone = adminData?.DT.DienThoai;
 
       const invoiceDate = invoiceData?.NgayLap
         ? new Date(invoiceData.NgayLap)
@@ -330,7 +336,9 @@ const TableInvoice = ({ invoices, isLoading }) => {
                 </p>
                 <p>
                   <span class="font-medium">Số tài khoản:</span>
-                  ${displayAccountNumber || "Chưa nhập"}
+                  ${
+                    displayAccountNumber || "Chưa nhập"
+                  } - [${displayAccountName}]
                 </p>
                 <p>
                   <span class="font-medium">Số điện thoại liên hệ:</span>

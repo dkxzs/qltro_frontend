@@ -31,6 +31,7 @@ const AdminRent = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [selectedHouse, setSelectedHouse] = useState("all");
   const [roomName, setRoomName] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(""); // Thêm state cho tháng/năm
   const [filteredRentData, setFilteredRentData] = useState([]);
 
   const { data: housesData } = useQuery({
@@ -57,12 +58,18 @@ const AdminRent = () => {
               roomName.toLowerCase()
             ));
 
-        return matchesRoomName && matchesHouse;
+        const matchesMonth =
+          selectedMonth === "" ||
+          (rent.NgayBatDau &&
+            new Date(rent.NgayBatDau).toISOString().slice(0, 7) ===
+              selectedMonth);
+
+        return matchesHouse && matchesRoomName && matchesMonth;
       });
 
       setFilteredRentData(filtered);
     }
-  }, [rentData, selectedHouse, roomName]);
+  }, [rentData, selectedHouse, roomName, selectedMonth]);
 
   // Hàm xử lý xuất Excel
   const handleExportExcel = async () => {
@@ -208,6 +215,8 @@ const AdminRent = () => {
                     <Input
                       type="month"
                       className="flex-1 rounded outline-none shadow-none"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
                     />
                   </div>
                 </div>

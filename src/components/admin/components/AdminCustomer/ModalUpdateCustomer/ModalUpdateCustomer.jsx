@@ -169,7 +169,6 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
       if (file) {
         setIsUploading(true);
         try {
-          // Lấy thông tin xác thực ImageKit
           const authResponse = await axios.get(
             "http://localhost:8000/api/image/auth"
           );
@@ -183,7 +182,6 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
             throw new Error("Thông tin xác thực không hợp lệ từ backend");
           }
 
-          // Xóa ảnh cũ nếu có
           if (dataUpdate?.Anh?.FileId) {
             try {
               const deleteResult = await deleteImageService(
@@ -198,7 +196,6 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
             }
           }
 
-          // Upload ảnh mới
           const response = await upload({
             file,
             fileName: `customer-avatar-${Date.now()}-${file.name}`,
@@ -221,7 +218,6 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
         }
       }
 
-      // Gửi dữ liệu khách hàng và thông tin ảnh
       const payload = {
         HoTen: data.name,
         CCCD: data.cardId,
@@ -238,7 +234,7 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
         ...imageData,
       };
 
-      console.log("Payload sent:", payload); // Debug payload
+      console.log("Payload sent:", payload);
 
       return updateCustomerService(id, payload);
     },
@@ -373,6 +369,8 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
   const isFormLocked =
     hasRent || mutationUpdateCustomer.isPending || isUploading;
 
+  const locked = mutationUpdateCustomer.isPending || isUploading;
+
   return (
     <ImageKitProvider config={imagekitConfig}>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -391,8 +389,8 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
           <DialogHeader>
             <DialogTitle>Cập nhật thông tin khách trọ</DialogTitle>
             <DialogDescription>
-              Cập nhật thông tin khách trọ. Một số trường có thể bị khóa nếu
-              khách trọ đang thuê phòng.
+              Cập nhật thông tin khách trọ. Một số trường sẽ bị khóa nếu khách
+              đang thuê phòng.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -475,7 +473,7 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                       .slice(0, 12);
                     setFormData((prev) => ({ ...prev, cardId: value }));
                   }}
-                  disabled={true}
+                  disabled={isFormLocked}
                 />
               </div>
               <div>
@@ -535,7 +533,6 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                       phoneNumberMain: value,
                     }));
                   }}
-                  disabled={isFormLocked}
                 />
               </div>
               <div>
@@ -553,7 +550,6 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                       .slice(0, 10);
                     setFormData((prev) => ({ ...prev, phoneNumberSub: value }));
                   }}
-                  disabled={isFormLocked}
                 />
               </div>
               <div>
@@ -585,14 +581,13 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
-                  email="Nhập email"
+                  type="email"
                   id="email"
                   name="email"
                   placeholder="abc@gmail.com"
                   className="rounded mt-2 shadow-none"
                   value={formData.email}
                   onChange={handleChange}
-                  disabled={isFormLocked}
                 />
               </div>
               <div>
@@ -605,7 +600,6 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                   className="rounded mt-2 shadow-none"
                   value={formData.address}
                   onChange={handleChange}
-                  disabled={isFormLocked}
                 />
               </div>
               <div>
@@ -618,19 +612,10 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                   accept="image/*"
                   onChange={handleImageSelect}
                   ref={fileInputRef}
-                  disabled={isFormLocked}
                 />
                 <div
-                  className={`mt-2 w-40 h-40 border-2 border-dashed rounded p-4 flex items-center justify-center ${
-                    isFormLocked
-                      ? "cursor-not-allowed opacity-50"
-                      : "cursor-pointer"
-                  }`}
-                  onClick={
-                    isFormLocked
-                      ? undefined
-                      : () => fileInputRef.current.click()
-                  }
+                  className="mt-2 w-40 h-40 border-2 border-dashed rounded p-4 flex items-center justify-center cursor-pointer"
+                  onClick={() => fileInputRef.current.click()}
                 >
                   {previewImage ? (
                     <div className="relative">
@@ -643,11 +628,10 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                         type="button"
                         variant="destructive"
                         size="sm"
-                        className="absolute top-2 right-2 rounded-full p-1"
+                        className="absolute top-2 right-2 rounded-full p-1 cursor-pointer"
                         onClick={handleRemoveImage}
-                        disabled={isFormLocked}
                       >
-                        <X className="h-4 w-4" />
+                        <X className="size-3" />
                       </Button>
                     </div>
                   ) : (
@@ -662,10 +646,9 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
               <Button
                 type="submit"
                 className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
-                disabled={isFormLocked}
                 aria-label="Cập nhật thông tin khách trọ"
               >
-                {isFormLocked ? (
+                {locked ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Đang xử lý...

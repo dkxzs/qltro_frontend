@@ -97,6 +97,11 @@ const getRoomByAccountIdService = async (MaTK) => {
   return res.data;
 };
 
+const getRoomsByHouseService = async (houseId) => {
+  const res = await axios.get(`/room/get-rooms-by-house/${houseId}`);
+  return res.data;
+};
+
 export {
   getAllRoomService,
   getRoomByIdService,
@@ -110,4 +115,5 @@ export {
   getAvailableRoomsByHouseService,
   getAllAvailableRoomsService,
   getRoomByAccountIdService,
+  getRoomsByHouseService,
 };

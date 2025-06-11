@@ -2,8 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   account: {
-    isAdmin: false,
     access_token: "",
+    LoaiTaiKhoan: "",
+    ChucVu: "",
   },
   isLogin: false,
 };
@@ -14,8 +15,9 @@ export const userSlice = createSlice({
   reducers: {
     login: (state, action) => {
       state.account = {
-        ...state.account,
-        isAdmin: action.payload?.DT?.LoaiTaiKhoan === "admin",
+        access_token: action.payload?.DT?.accessToken,
+        LoaiTaiKhoan: action.payload?.DT?.LoaiTaiKhoan,
+        ChucVu: action.payload?.DT?.ChucVu,
       };
       state.isLogin = true;
     },

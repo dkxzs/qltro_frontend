@@ -32,8 +32,6 @@ const DashboardExpense = () => {
     queryFn: () => getExpenseReportService(timeRange),
   });
 
-  console.log("Expense Data:", expenseData);
-
   const processedExpense = expenseLoading ? [] : expenseData?.DT || [];
 
   const hasData =

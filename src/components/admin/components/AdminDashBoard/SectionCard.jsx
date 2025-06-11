@@ -9,6 +9,7 @@ import { getAllCustomerService } from "@/services/customerServices";
 import { getAllExpensesService } from "@/services/expenseServices";
 import { getAllHouseService } from "@/services/houseServices";
 import { getAllInvoiceService } from "@/services/invoiceServices";
+import { getAllMembersService } from "@/services/memberServices";
 import { getAllPaymentService } from "@/services/paymentServices";
 import { getAllRoomService } from "@/services/roomServices";
 import { formatCurrency } from "@/utils/formatCurrency";
@@ -41,8 +42,19 @@ const SectionCards = () => {
     queryFn: () => getAllCustomerService(false),
   });
 
+  const { data: dataMember } = useQuery({
+    queryKey: ["get-member"],
+    queryFn: () => getAllMembersService(),
+  });
+
   let totalCustomer = 0;
   dataUser?.DT.forEach((item) => {
+    if (item.TrangThai) {
+      totalCustomer++;
+    }
+  });
+
+  dataMember?.DT.forEach((item) => {
     if (item.TrangThai) {
       totalCustomer++;
     }

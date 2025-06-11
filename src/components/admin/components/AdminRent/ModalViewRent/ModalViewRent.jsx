@@ -7,7 +7,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getAdminService } from "@/services/adminServices";
 import { formatCurrency, numberToText } from "@/utils/formatCurrency";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
@@ -32,9 +34,20 @@ const ModalViewRent = ({ rentData }) => {
   const [open, setOpen] = useState(false);
   const contractRef = useRef(null);
   const template = useSelector((state) => state.contractConfig.template);
-  const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
 
-  // Hàm trích xuất tỉnh/thành phố từ địa chỉ
+  const {
+    data: adminData,
+    isLoading,
+    isSuccess,
+  } = useQuery({
+    queryKey: ["adminView"],
+    queryFn: () => getAdminService(),
+    enabled: open,
+  });
+
+  console.log("adminData: ", adminData);
+  console.log("isLoading: ", isLoading, "isSuccess: ", isSuccess);
+
   const extractProvince = (address) => {
     if (!address) return "Tp. Hà Nội";
     const parts = address.split(",").map((part) => part.trim());
@@ -42,12 +55,12 @@ const ModalViewRent = ({ rentData }) => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "[Ngày]";
+    if (!dateString || isNaN(new Date(dateString).getTime())) return "[Ngày]";
     return format(new Date(dateString), "dd/MM/yyyy", { locale: vi });
   };
 
   const formatContractDate = (dateString) => {
-    if (!dateString) return "[Ngày]";
+    if (!dateString || isNaN(new Date(dateString).getTime())) return "[Ngày]";
     return format(new Date(dateString), "dd 'tháng' MM 'năm' yyyy", {
       locale: vi,
     });
@@ -63,7 +76,6 @@ const ModalViewRent = ({ rentData }) => {
     return months;
   };
 
-  // Hàm thay thế placeholder
   const replacePlaceholders = (text) => {
     if (!rentData) return text;
     return text
@@ -76,19 +88,21 @@ const ModalViewRent = ({ rentData }) => {
       .replace("[nam]", format(rentData.NgayBatDau, "yyyy") || "[Năm]")
       .replace("[DiaChiPT]", rentData.PhongTro?.Nha?.DiaChi || "[Địa chỉ]")
       .replace("[SoHD]", rentData.MaTP || "[Số hợp đồng]")
-      .replace("[HoTenCT]", personalInfo?.HoTen || "[Họ tên chủ trọ]")
+      .replace("[HoTenCT]", adminData?.DT?.HoTen || "[Họ tên chủ trọ]")
       .replace(
         "[NgaySinhCT]",
-        format(personalInfo.NgaySinh, "yyyy") || "[Năm sinh]"
+        adminData?.DT?.NgaySinh
+          ? format(new Date(adminData.DT.NgaySinh), "yyyy")
+          : "[Năm sinh]"
       )
-      .replace("[CCCDCT]", personalInfo.CCCD || "[Số CCCD]")
+      .replace("[CCCDCT]", adminData?.DT?.CCCD || "[Số CCCD]")
       .replace(
         "[NgayCapCT]",
-        format(personalInfo.NgayCap, "dd/MM/yyyy") || "[Ngày cấp]"
+        adminData?.DT?.NgayCap ? formatDate(adminData.DT.NgayCap) : "[Ngày cấp]"
       )
-      .replace("[NoiCapCT]", personalInfo.NoiCap || "[Nơi cấp]")
-      .replace("[DiaChiCT]", personalInfo.DiaChi || "[Địa chỉ chủ trọ]")
-      .replace("[DienThoaiCT]", personalInfo.DienThoai || "[Số điện thoại]")
+      .replace("[NoiCapCT]", adminData?.DT?.NoiCap || "[Nơi cấp]")
+      .replace("[DiaChiCT]", adminData?.DT?.DiaChi || "[Địa chỉ chủ trọ]")
+      .replace("[DienThoaiCT]", adminData?.DT?.DienThoai || "[Số điện thoại]")
       .replace("[HoTen]", rentData.KhachTro?.HoTen || "[Tên khách hàng]")
       .replace(
         "[NgaySinh]",
@@ -377,9 +391,6 @@ const ModalViewRent = ({ rentData }) => {
     }
   };
 
-  if (!rentData) return null;
-
-  // Lấy tỉnh/thành phố từ địa chỉ nhà
   const province = extractProvince(rentData.PhongTro?.Nha?.DiaChi);
 
   return (

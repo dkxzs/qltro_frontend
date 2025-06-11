@@ -178,7 +178,7 @@ const ModalAddService = ({ refetch }) => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="w-3/5 rounded transition-all duration-300 ease-in-out"
+        className="w-6/12 rounded transition-all duration-300 ease-in-out"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
@@ -212,7 +212,7 @@ const ModalAddService = ({ refetch }) => {
                 id="dongia"
                 name="DonGia"
                 placeholder="3.000"
-                className="rounded mt-2 shadow-none"
+                className="rounded mt-2 shadow-none text-right"
                 value={formData.DonGia}
                 onChange={handleChange}
                 disabled={isFormDisabled}

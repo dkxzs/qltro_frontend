@@ -45,6 +45,7 @@ const ModalLogin = () => {
   const mutationLogin = useMutation({
     mutationFn: async ({ data }) => SignIn(data.username, data.password),
     onSuccess: (data) => {
+      console.log("data", data);
       toast.success(data.EM);
       dispatch(login(data));
       resetForm();
@@ -75,7 +76,6 @@ const ModalLogin = () => {
   };
 
   const handleClose = (newOpen) => {
-    console.log("ModalLogin onOpenChange called, newOpen:", newOpen); // Debug
     if (!newOpen) {
       const hasUnsavedChanges = formData.username || formData.password;
       if (
@@ -90,8 +90,8 @@ const ModalLogin = () => {
   };
 
   const handleForgotPasswordClick = () => {
-    setOpen(false); // Đóng ModalLogin
-    setTimeout(() => setOpenForgotPassword(true), 0); // Mở ForgotPasswordModal
+    setOpen(false);
+    setTimeout(() => setOpenForgotPassword(true), 0);
   };
 
   const isFormDisabled = mutationLogin.isPending;
@@ -103,7 +103,6 @@ const ModalLogin = () => {
           <Button
             className="bg-transparent shadow-none text-black hover:bg-blue-500 hover:text-white px-4 py-2 font-semibold border-2 rounded cursor-pointer hover:scale-105 hover:shadow-md transition-all duration-200 flex items-center"
             onClick={() => {
-              console.log("DialogTrigger clicked, opening modal..."); // Debug
               setOpen(true);
             }}
           >
