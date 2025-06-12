@@ -1,4 +1,4 @@
-import axios from "../utils/axiosCustomize";
+import axios from "../utils/axiosCustomize.js";
 
 const getAllCustomerService = async (onlyAvailable = false) => {
   const url = onlyAvailable
@@ -25,11 +25,10 @@ const createCustomerService = async (data) => {
       NoiCap: data.placeOfIssue,
       image: data.image,
     };
-
     const res = await axios.post("/customer/create-customer", payload);
     return res.data;
   } catch (error) {
-    throw new Error(error.response?.data?.EM || "Lỗi khi thêm khách hàng");
+    return error.response?.data || { EC: -1, EM: "Lỗi khi thêm khách hàng" };
   }
 };
 
@@ -38,13 +37,19 @@ const updateCustomerService = async (id, data) => {
     const res = await axios.put(`/customer/update-customer/${id}`, data);
     return res.data;
   } catch (error) {
-    throw new Error(error.response?.data?.EM || "Lỗi khi cập nhật khách hàng");
+    return (
+      error.response?.data || { EC: -1, EM: "Lỗi khi cập nhật khách hàng" }
+    );
   }
 };
 
 const deleteCustomerService = async (id) => {
-  const res = await axios.delete(`/customer/delete-customer/${id}`);
-  return res.data;
+  try {
+    const res = await axios.delete(`/customer/delete-customer/${id}`);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi xóa khách hàng" };
+  }
 };
 
 const checkCustomerHasRentService = async (id) => {

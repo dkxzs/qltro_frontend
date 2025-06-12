@@ -1,27 +1,37 @@
-import axios from "../utils/axiosCustomize";
+import axios from "../utils/axiosCustomize.js";
 
-// Lấy tất cả thành viên
 const getAllMembersService = async () => {
   const res = await axios.get("/member/get-all-member");
   return res.data;
 };
 
-// Tạo nhiều thành viên cùng lúc
 const createMembersService = async (membersData) => {
-  const res = await axios.post("/member/create-member", membersData);
-  return res.data;
+  try {
+    const res = await axios.post("/member/create-member", membersData);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi tạo thành viên" };
+  }
 };
 
-// Cập nhật thành viên
 const updateMembersService = async (membersData) => {
-  const res = await axios.put("/member/update-member", membersData);
-  return res.data;
+  try {
+    const res = await axios.put("/member/update-member", membersData);
+    return res.data;
+  } catch (error) {
+    return (
+      error.response?.data || { EC: -1, EM: "Lỗi khi cập nhật thành viên" }
+    );
+  }
 };
 
-// Xóa thành viên
 const deleteMemberService = async (id) => {
-  const res = await axios.delete(`/member/delete-member/${id}`);
-  return res.data;
+  try {
+    const res = await axios.delete(`/member/delete-member/${id}`);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi xóa thành viên" };
+  }
 };
 
 const getMemberByRoomIdService = async (id) => {

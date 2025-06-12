@@ -21,21 +21,21 @@ const ModalDeleteRoomType = ({ dataDelete, refetch }) => {
     mutationFn: async ({ id }) => {
       const res = await deleteRoomTypeService(id);
       if (res.EC !== 0) {
-        throw new Error(res.EM || "Có lỗi xảy ra khi xóa loại phòng");
+        return { error: true, EC: res.EC, EM: res.EM };
       }
       return res;
     },
     onSuccess: (data) => {
-      toast.success(data.EM);
-      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
-      refetch();
+      if (data.error) {
+        toast.error(data.EM || "Lỗi không xác định từ server");
+      } else {
+        toast.success(data.EM || "Xóa loại phòng thành công");
+        setTimeout(() => setOpen(false), 300);
+        refetch();
+      }
     },
-    onError: (error) => {
-      console.error("Delete room type error:", error);
-      const errorMessage = error.message.includes("foreign key constraint")
-        ? "Xóa loại phòng thất bại: Loại phòng đang được sử dụng bởi các phòng hoặc dữ liệu liên quan. Vui lòng kiểm tra lại."
-        : error.message || "Đã có lỗi xảy ra khi xóa loại phòng";
-      toast.error(errorMessage);
+    onError: () => {
+      toast.error("Có lỗi, vui lòng thử lại.");
     },
   });
 

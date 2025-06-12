@@ -1,8 +1,12 @@
-import axios from "../utils/axiosCustomize";
+import axios from "../utils/axiosCustomize.js";
 
 export const createInvoiceService = async (data) => {
-  const res = await axios.post("/invoice/create-invoice", data);
-  return res.data;
+  try {
+    const res = await axios.post("/invoice/create-invoice", data);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi tạo hóa đơn" };
+  }
 };
 
 export const getAllInvoiceService = async () => {

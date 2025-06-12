@@ -51,26 +51,22 @@ const ModalAddRoomType = ({ refetch }) => {
   };
 
   const mutationCreateRoomType = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async ({ data }) => {
       const res = await createRoomTypeService(data);
       return res;
     },
     onSuccess: (data) => {
       if (+data.EC === 0) {
-        toast.success(data.EM);
+        toast.success(data.EM || "Thêm loại phòng thành công");
         resetForm();
         setTimeout(() => setOpen(false), 300);
         refetch();
       } else {
-        toast.error(data.EM);
+        toast.error(data.EM || "Lỗi không xác định từ server");
       }
     },
-    onError: (error) => {
-      console.error("Add room type error:", error);
-      const errorMessage = error.message.includes("foreign key constraint")
-        ? "Thêm loại phòng thất bại: Có dữ liệu liên quan không hợp lệ. Vui lòng kiểm tra lại."
-        : error.response?.data?.EM || "Đã có lỗi xảy ra khi thêm loại phòng";
-      toast.error(errorMessage);
+    onError: () => {
+      toast.error("Có lỗi, vui lòng thử lại.");
     },
   });
 

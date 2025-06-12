@@ -1,4 +1,4 @@
-import axios from "../utils/axiosCustomize";
+import axios from "../utils/axiosCustomize.js";
 
 const getAllRoomService = async () => {
   const res = await axios.get(`/room/get-all-room`);
@@ -25,11 +25,10 @@ const createRoomService = async (data) => {
       chiSoNuoc: data.chiSoNuoc,
       images: data.images || [],
     };
-
     const res = await axios.post("/room/create-room", payload);
     return res.data;
   } catch (error) {
-    throw new Error(error.response?.data?.EM || "Lỗi khi tạo phòng");
+    return error.response?.data || { EC: -1, EM: "Lỗi khi tạo phòng" };
   }
 };
 
@@ -47,17 +46,20 @@ const updateRoomService = async (data) => {
       images: data.images || [],
       imagesToDelete: data.imagesToDelete || [],
     };
-
     const res = await axios.put(`/room/update-room/${data.maPT}`, payload);
     return res.data;
   } catch (error) {
-    throw new Error(error.response?.data?.EM || "Lỗi khi cập nhật phòng");
+    return error.response?.data || { EC: -1, EM: "Lỗi khi cập nhật phòng" };
   }
 };
 
 const deleteRoomService = async (id) => {
-  const res = await axios.delete(`/room/delete-room/${id}`);
-  return res.data;
+  try {
+    const res = await axios.delete(`/room/delete-room/${id}`);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi xóa phòng" };
+  }
 };
 
 const checkRoomHasRentService = async (id) => {
@@ -66,10 +68,16 @@ const checkRoomHasRentService = async (id) => {
 };
 
 const updateRoomServicesService = async (id, services) => {
-  const res = await axios.post(`/room/update-room-services/${id}`, {
-    services,
-  });
-  return res.data;
+  try {
+    const res = await axios.post(`/room/update-room-services/${id}`, {
+      services,
+    });
+    return res.data;
+  } catch (error) {
+    return (
+      error.response?.data || { EC: -1, EM: "Lỗi khi cập nhật dịch vụ phòng" }
+    );
+  }
 };
 
 const getRoomServicesService = async (roomId) => {

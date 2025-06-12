@@ -1,4 +1,4 @@
-import axios from "../utils/axiosCustomize";
+import axios from "../utils/axiosCustomize.js";
 
 const getAllHouseService = async () => {
   const res = await axios.get("/house/get-all-house");
@@ -6,13 +6,21 @@ const getAllHouseService = async () => {
 };
 
 const createHouseService = async (data) => {
-  const res = await axios.post("/house/create-house", data);
-  return res.data;
+  try {
+    const res = await axios.post("/house/create-house", data);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi tạo nhà" };
+  }
 };
 
 const updateHouseService = async (id, data) => {
-  const res = await axios.put(`/house/update-house/${id}`, data);
-  return res.data;
+  try {
+    const res = await axios.put(`/house/update-house/${id}`, data);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi cập nhật nhà" };
+  }
 };
 
 const deleteHouseService = async (id) => {

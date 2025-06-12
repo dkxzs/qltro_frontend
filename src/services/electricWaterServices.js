@@ -1,4 +1,4 @@
-import axios from "../utils/axiosCustomize";
+import axios from "../utils/axiosCustomize.js";
 
 export const getAllElectricService = async () => {
   const res = await axios.get("/electric-water/electric/get-all");
@@ -49,18 +49,39 @@ export const getAllRoomsWithWaterService = async (month, year) => {
 };
 
 export const createElectricWaterService = async (data) => {
-  const res = await axios.post("/electric-water/create", data);
-  return res.data;
+  try {
+    const res = await axios.post("/electric-water/create", data);
+    return res.data;
+  } catch (error) {
+    return (
+      error.response?.data || { EC: -1, EM: "Lỗi khi tạo chỉ số điện nước" }
+    );
+  }
 };
 
 export const updateElectricWaterService = async (id, data) => {
-  const res = await axios.put(`/electric-water/update/${id}`, data);
-  return res.data;
+  try {
+    const res = await axios.put(`/electric-water/update/${id}`, data);
+    return res.data;
+  } catch (error) {
+    return (
+      error.response?.data || {
+        EC: -1,
+        EM: "Lỗi khi cập nhật chỉ số điện nước",
+      }
+    );
+  }
 };
 
 export const deleteElectricWaterService = async (id) => {
-  const res = await axios.delete(`/electric-water/delete/${id}`);
-  return res.data;
+  try {
+    const res = await axios.delete(`/electric-water/delete/${id}`);
+    return res.data;
+  } catch (error) {
+    return (
+      error.response?.data || { EC: -1, EM: "Lỗi khi xóa chỉ số điện nước" }
+    );
+  }
 };
 
 export const getElectricWaterHistoryByRoomService = async (MaPT, MaDV) => {
@@ -110,7 +131,11 @@ export const checkPreviousMonthHasReadingService = async (
   }
 };
 
-export const checkElectricWaterInvoiceStatusService = async (MaPT, Thang, Nam) => {
+export const checkElectricWaterInvoiceStatusService = async (
+  MaPT,
+  Thang,
+  Nam
+) => {
   const res = await axios.get(`/electric-water/check-invoice-status`, {
     params: { MaPT, Thang, Nam },
   });

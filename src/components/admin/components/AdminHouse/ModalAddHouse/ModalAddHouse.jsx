@@ -45,22 +45,22 @@ const ModalAddHouse = ({ refetch }) => {
     mutationFn: async ({ data }) => {
       const res = await createHouseService(data);
       if (res.EC !== 0) {
-        throw new Error(res.EM || "Có lỗi xảy ra khi thêm nhà");
+        return { error: true, EC: res.EC, EM: res.EM };
       }
       return res;
     },
     onSuccess: (data) => {
-      toast.success(data.EM);
-      resetForm();
-      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
-      refetch();
+      if (data.error) {
+        toast.error(data.EM || "Lỗi không xác định từ server");
+      } else {
+        toast.success(data.EM || "Thêm nhà thành công");
+        resetForm();
+        setTimeout(() => setOpen(false), 300);
+        refetch();
+      }
     },
-    onError: (error) => {
-      console.error("Add house error:", error);
-      const errorMessage = error.message.includes("foreign key constraint")
-        ? "Thêm nhà thất bại: Có dữ liệu liên quan không hợp lệ. Vui lòng kiểm tra lại."
-        : error.message || "Đã có lỗi xảy ra khi thêm nhà";
-      toast.error(errorMessage);
+    onError: () => {
+      toast.error("Có lỗi, vui lòng thử lại.");
     },
   });
 
@@ -84,13 +84,6 @@ const ModalAddHouse = ({ refetch }) => {
   };
 
   const handleClose = () => {
-    const hasUnsavedChanges = formData.TenNha || formData.DiaChi || formData.MoTa;
-    if (
-      hasUnsavedChanges &&
-      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
-    ) {
-      return;
-    }
     setOpen(false);
     resetForm();
   };

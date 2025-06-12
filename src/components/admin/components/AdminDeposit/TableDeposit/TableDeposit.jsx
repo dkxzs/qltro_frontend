@@ -58,7 +58,7 @@ const TableDeposit = ({ depositData, refetch }) => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={9} className="text-center">
+              <TableCell colSpan={10} className="text-center">
                 Không có dữ liệu
               </TableCell>
             </TableRow>

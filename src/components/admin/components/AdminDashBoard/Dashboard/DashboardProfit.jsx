@@ -15,20 +15,21 @@ import {
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { getProfitReportService } from "@/services/reportServices";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 const mockProfitData = [
-  { name: "Tháng 1", "Nhà Q7": 10000000, "Nhà Nhà Bè": 4000000 },
-  { name: "Tháng 2", "Nhà Q7": 11000000, "Nhà Nhà Bè": 4500000 },
-  { name: "Tháng 3", "Nhà Q7": 12500000, "Nhà Nhà Bè": 5200000 },
-  { name: "Tháng 4", "Nhà Q7": 14000000, "Nhà Nhà Bè": 6000000 },
-  { name: "Tháng 5", "Nhà Q7": 15000000, "Nhà Nhà Bè": 7000000 },
-  { name: "Tháng 6", "Nhà Q7": 14500000, "Nhà Nhà Bè": 6500000 },
-  { name: "Tháng 7", "Nhà Q7": 13000000, "Nhà Nhà Bè": 5800000 },
-  { name: "Tháng 8", "Nhà Q7": 12000000, "Nhà Nhà Bè": 5000000 },
-  { name: "Tháng 9", "Nhà Q7": 11500000, "Nhà Nhà Bè": 4800000 },
-  { name: "Tháng 10", "Nhà Q7": 11000000, "Nhà Nhà Bè": 4500000 },
-  { name: "Tháng 11", "Nhà Q7": 10500000, "Nhà Nhà Bè": 4300000 },
-  { name: "Tháng 12", "Nhà Q7": 9000000, "Nhà Nhà Bè": 4000000 },
+  { name: "Tháng 1", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 2", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 3", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 4", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 5", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 6", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 7", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 8", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 9", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 10", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 11", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 12", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
 ];
 
 const DashboardProfit = ({ customTooltip }) => {
@@ -36,7 +37,6 @@ const DashboardProfit = ({ customTooltip }) => {
     queryKey: ["profitReport"],
     queryFn: () => getProfitReportService(),
   });
-
 
   const houses =
     profitData?.DT?.length > 0
@@ -50,6 +50,38 @@ const DashboardProfit = ({ customTooltip }) => {
       Object.values(item).every((value) => value === 0 || value === "0")
     );
 
+  const handleExportExcel = () => {
+    if (!processedProfit || processedProfit.length === 0 || hasNoData) {
+      toast.warning("Không có dữ liệu lợi nhuận để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "name", label: "Tháng" },
+      ...houses.map((house) => ({
+        key: house,
+        label: `Lợi nhuận ${house} (VND)`,
+        format: (value) => value.toLocaleString("vi-VN"),
+      })),
+    ];
+
+    const success = exportToExcel(
+      processedProfit,
+      headers,
+      `Bao_cao_loi_nhuan_${new Date().toISOString().split("T")[0]}`,
+      "Báo cáo lợi nhuận",
+      { title: "BÁO CÁO LỢI NHIỆN" }
+    );
+
+    if (success) {
+      toast.success("Xuất dữ liệu lợi nhuận thành công");
+    } else {
+      toast.error(
+        "Xuất dữ liệu thất bại. Vui lòng kiểm tra console để biết thêm chi tiết."
+      );
+    }
+  };
+
   return (
     <Card className="rounded border border-gray-200 shadow-none px-2">
       <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-gray-200">
@@ -60,7 +92,7 @@ const DashboardProfit = ({ customTooltip }) => {
           variant="ghost"
           size="icon"
           className="cursor-pointer rounded"
-          onClick={() => toast.info("Xuất dữ liệu lợi nhuận")}
+          onClick={handleExportExcel}
         >
           <Download className="h-4 w-4 text-gray-500" />
         </Button>

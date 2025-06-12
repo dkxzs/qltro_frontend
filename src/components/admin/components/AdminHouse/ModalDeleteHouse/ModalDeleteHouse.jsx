@@ -13,38 +13,15 @@ import {
 } from "@/services/houseServices";
 import { useMutation } from "@tanstack/react-query";
 import { Trash2, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 
 const ModalDeleteHouse = ({ dataDelete, refetch }) => {
   const [open, setOpen] = useState(false);
-  const [hasTenant, setHasTenant] = useState(false);
-
-  useEffect(() => {
-    if (open && dataDelete?.MaNha) {
-      const checkTenants = async () => {
-        try {
-          const res = await checkHouseHasRentService(dataDelete.MaNha);
-          if (res?.EC === 0) {
-            setHasTenant(res.DT);
-          } else {
-            toast.error(res.EM || "Không thể kiểm tra trạng thái thuê nhà");
-          }
-        } catch (error) {
-          console.error("Error checking tenant status:", error);
-          toast.error(
-            "Không thể kiểm tra trạng thái thuê nhà. Vui lòng thử lại."
-          );
-        }
-      };
-      checkTenants();
-    }
-  }, [open, dataDelete?.MaNha]);
 
   const mutationDeleteHouse = useMutation({
     mutationFn: async ({ id }) => {
       const res = await deleteHouseService(id);
-      console.log("Delete house response:", res);
       if (res.EC !== 0) {
         return { error: true, EC: res.EC, EM: res.EM };
       }
@@ -59,30 +36,35 @@ const ModalDeleteHouse = ({ dataDelete, refetch }) => {
         refetch();
       }
     },
-    onError: (error) => {
-      console.error("Delete house error:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-      toast.error("Có lỗi mạng hoặc hệ thống. Vui lòng thử lại.");
+    onError: () => {
+      toast.error("Có lỗi, vui lòng thử lại.");
     },
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (hasTenant) {
-      toast.error("Không thể xóa nhà đang có phòng được thuê");
-      return;
+    try {
+      const res = await checkHouseHasRentService(dataDelete?.MaNha);
+      if (res.EC === 0 && res.DT) {
+        toast.error("Không thể xóa nhà đang có phòng được thuê");
+        return;
+      }
+      if (res.EC !== 0) {
+        toast.error(res.EM || "Không thể kiểm tra trạng thái thuê nhà");
+        return;
+      }
+      mutationDeleteHouse.mutate({ id: dataDelete?.MaNha });
+    } catch (error) {
+      console.error("Error checking tenant status:", error);
+      toast.error("Không thể kiểm tra trạng thái thuê nhà. Vui lòng thử lại.");
     }
-    mutationDeleteHouse.mutate({ id: dataDelete?.MaNha });
   };
 
   const handleClose = () => {
     setOpen(false);
   };
 
-  const isFormDisabled = mutationDeleteHouse.isPending || hasTenant;
+  const isFormDisabled = mutationDeleteHouse.isPending;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -111,11 +93,6 @@ const ModalDeleteHouse = ({ dataDelete, refetch }) => {
               Lưu ý: Hành động này không thể hoàn tác. Vui lòng đảm bảo nhà
               không có phòng đang được thuê.
             </p>
-            {hasTenant && (
-              <p className="text-red-500 font-medium mt-2">
-                Không thể xóa vì nhà này đang có phòng được thuê.
-              </p>
-            )}
           </div>
           <DialogFooter className="pt-4">
             <Button

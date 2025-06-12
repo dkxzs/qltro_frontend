@@ -15,10 +15,11 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 const mockRevenueData = [
-  { name: "Tháng 1", "Nhà Q7": 10, "Nhà Nhà Bè": 0 },
-  { name: "Tháng 2", "Nhà Q7": 10, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 1", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
+  { name: "Tháng 2", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
   { name: "Tháng 3", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
   { name: "Tháng 4", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
   { name: "Tháng 5", "Nhà Q7": 0, "Nhà Nhà Bè": 0 },
@@ -49,6 +50,38 @@ const DashboardRevenue = ({ customTooltip }) => {
       Object.values(item).every((value) => value === 0 || value === "0")
     );
 
+  const handleExportExcel = () => {
+    if (!processedRevenue || processedRevenue.length === 0 || hasNoData) {
+      toast.warning("Không có dữ liệu doanh thu để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "name", label: "Tháng" },
+      ...houses.map((house) => ({
+        key: house,
+        label: `Doanh thu ${house} (VND)`,
+        format: (value) => value.toLocaleString("vi-VN"),
+      })),
+    ];
+
+    const success = exportToExcel(
+      processedRevenue,
+      headers,
+      `Bao_cao_doanh_thu_${new Date().toISOString().split("T")[0]}`,
+      "Báo cáo doanh thu",
+      { title: "BÁO CÁO DOANH THU" }
+    );
+
+    if (success) {
+      toast.success("Xuất dữ liệu doanh thu thành công");
+    } else {
+      toast.error(
+        "Xuất dữ liệu thất bại. Vui lòng kiểm tra console để biết thêm chi tiết."
+      );
+    }
+  };
+
   return (
     <Card className="rounded border border-gray-200 shadow-none px-2">
       <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-gray-200">
@@ -59,7 +92,7 @@ const DashboardRevenue = ({ customTooltip }) => {
           variant="ghost"
           size="icon"
           className="rounded cursor-pointer"
-          onClick={() => toast.info("Xuất dữ liệu doanh thu")}
+          onClick={handleExportExcel}
         >
           <Download className="h-4 w-4 text-gray-500" />
         </Button>

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { getExpenseReportService } from "@/services/reportServices";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 const DashboardExpense = () => {
   const [timeRange, setTimeRange] = useState("current-month");
@@ -39,6 +40,40 @@ const DashboardExpense = () => {
     Object.keys(processedExpense[0] || {}).some(
       (key) => key !== "name" && processedExpense[0][key] > 0
     );
+
+  const handleExportExcel = () => {
+    if (!processedExpense || processedExpense.length === 0 || !hasData) {
+      toast.warning("Không có dữ liệu chi phí để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "name", label: "Tháng" },
+      ...Object.keys(processedExpense[0] || {})
+        .filter((key) => key !== "name")
+        .map((house) => ({
+          key: house,
+          label: `Chi phí ${house} (VND)`,
+          format: (value) => value.toLocaleString("vi-VN"),
+        })),
+    ];
+
+    const success = exportToExcel(
+      processedExpense,
+      headers,
+      `Bao_cao_chi_phi_${new Date().toISOString().split("T")[0]}`,
+      "Báo cáo chi phí",
+      { title: "BÁO CÁO CHI PHÍ" }
+    );
+
+    if (success) {
+      toast.success("Xuất dữ liệu chi phí thành công");
+    } else {
+      toast.error(
+        "Xuất dữ liệu thất bại. Vui lòng kiểm tra console để biết thêm chi tiết."
+      );
+    }
+  };
 
   return (
     <Card className="rounded border border-gray-200 shadow-none px-2">
@@ -62,7 +97,8 @@ const DashboardExpense = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => toast.info("Xuất dữ liệu chi phí")}
+            className="cursor-pointer rounded"
+            onClick={handleExportExcel}
           >
             <Download className="h-4 w-4 text-gray-500" />
           </Button>

@@ -1,4 +1,4 @@
-import axios from "../utils/axiosCustomize";
+import axios from "../utils/axiosCustomize.js";
 
 export const getAllServiceService = async () => {
   const res = await axios.get("/service/get-all-service");
@@ -6,21 +6,32 @@ export const getAllServiceService = async () => {
 };
 
 export const createServiceService = async (data) => {
-  const res = await axios.post("/service/create-service", data);
-  return res.data;
+  try {
+    const res = await axios.post("/service/create-service", data);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi tạo dịch vụ" };
+  }
 };
 
 export const updateServiceService = async (id, data) => {
-  const res = await axios.put(`/service/update-service/${id}`, data);
-  return res.data;
+  try {
+    const res = await axios.put(`/service/update-service/${id}`, data);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi cập nhật dịch vụ" };
+  }
 };
 
 export const deleteServiceService = async (id) => {
-  const res = await axios.delete(`/service/delete-service/${id}`);
-  return res.data;
+  try {
+    const res = await axios.delete(`/service/delete-service/${id}`);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { EC: -1, EM: "Lỗi khi xóa dịch vụ" };
+  }
 };
 
-// Thêm hàm kiểm tra dịch vụ có đang được sử dụng không
 export const checkServiceInUseService = async (id) => {
   const res = await axios.get(`/service/check-in-use/${id}`);
   return res.data;

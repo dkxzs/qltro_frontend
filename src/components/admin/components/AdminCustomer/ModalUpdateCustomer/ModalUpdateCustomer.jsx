@@ -661,7 +661,7 @@ const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
                 type="button"
                 className="rounded cursor-pointer"
                 onClick={handleClose}
-                disabled={isFormLocked}
+                disabled={locked}
                 variant="destructive"
                 aria-label="Hủy cập nhật khách trọ"
               >

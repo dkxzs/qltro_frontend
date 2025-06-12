@@ -1,4 +1,4 @@
-import axios from "../utils/axiosCustomize";
+import axios from "../utils/axiosCustomize.js";
 
 export const sendInvoiceService = async ({
   invoiceId,
@@ -6,13 +6,19 @@ export const sendInvoiceService = async ({
   encryptedPassword,
   bankInfo,
 }) => {
-  const res = await axios.post("/email/send-invoice", {
-    invoiceId,
-    fromEmail,
-    encryptedPassword,
-    bankInfo,
-  });
-  return res.data;
+  try {
+    const res = await axios.post("/email/send-invoice", {
+      invoiceId,
+      fromEmail,
+      encryptedPassword,
+      bankInfo,
+    });
+    return res.data;
+  } catch (error) {
+    return (
+      error.response?.data || { EC: -1, EM: "Lỗi khi gửi hóa đơn qua email" }
+    );
+  }
 };
 
 export const sendBulkInvoiceEmailService = async ({
@@ -21,11 +27,20 @@ export const sendBulkInvoiceEmailService = async ({
   encryptedPassword,
   bankInfo,
 }) => {
-  const res = await axios.post("/email/send-bulk-invoice", {
-    invoiceIds,
-    fromEmail,
-    encryptedPassword,
-    bankInfo,
-  });
-  return res.data;
+  try {
+    const res = await axios.post("/email/send-bulk-invoice", {
+      invoiceIds,
+      fromEmail,
+      encryptedPassword,
+      bankInfo,
+    });
+    return res.data;
+  } catch (error) {
+    return (
+      error.response?.data || {
+        EC: -1,
+        EM: "Lỗi khi gửi hàng loạt hóa đơn qua email",
+      }
+    );
+  }
 };

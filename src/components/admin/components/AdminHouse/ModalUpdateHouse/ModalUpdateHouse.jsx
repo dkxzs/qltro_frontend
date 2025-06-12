@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { updateHouseService } from "@/services/houseServices";
 import { useMutation } from "@tanstack/react-query";
-import { Pencil, Loader2, SquarePen } from "lucide-react";
+import { Loader2, SquarePen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -59,22 +59,22 @@ const ModalUpdateHouse = ({ dataUpdate, refetch }) => {
     mutationFn: async ({ id, data }) => {
       const res = await updateHouseService(id, data);
       if (res.EC !== 0) {
-        throw new Error(res.EM || "Có lỗi xảy ra khi cập nhật nhà");
+        return { error: true, EC: res.EC, EM: res.EM };
       }
       return res;
     },
     onSuccess: (data) => {
-      toast.success(data.EM);
-      resetForm();
-      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
-      refetch();
+      if (data.error) {
+        toast.error(data.EM || "Lỗi không xác định từ server");
+      } else {
+        toast.success(data.EM || "Thêm nhà thành công");
+        resetForm();
+        setTimeout(() => setOpen(false), 300);
+        refetch();
+      }
     },
-    onError: (error) => {
-      console.error("Update house error:", error);
-      const errorMessage = error.message.includes("foreign key constraint")
-        ? "Cập nhật nhà thất bại: Nhà đang có phòng hoặc dữ liệu liên quan. Vui lòng kiểm tra lại."
-        : error.message || "Đã có lỗi xảy ra khi cập nhật nhà";
-      toast.error(errorMessage);
+    onError: () => {
+      toast.error("Có lỗi, vui lòng thử lại.");
     },
   });
 
@@ -116,12 +116,6 @@ const ModalUpdateHouse = ({ dataUpdate, refetch }) => {
   };
 
   const handleClose = () => {
-    if (
-      isFormDataChanged() &&
-      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
-    ) {
-      return;
-    }
     setOpen(false);
     resetForm();
   };

@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { updateRoomTypeService } from "@/services/roomTypeServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation } from "@tanstack/react-query";
-import { Pencil, Loader2, SquarePen } from "lucide-react";
+import { Loader2, SquarePen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -71,21 +71,16 @@ const ModalUpdateRoomType = ({ dataUpdate, refetch }) => {
     },
     onSuccess: (data) => {
       if (+data.EC === 0) {
-        toast.success(data.EM);
+        toast.success(data.EM || "Cập nhật loại phòng thành công");
         resetForm();
-        setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
+        setTimeout(() => setOpen(false), 300);
         refetch();
       } else {
-        toast.error(data.EM);
+        toast.error(data.EM || "Lỗi không xác định từ server");
       }
     },
-    onError: (error) => {
-      console.error("Update room type error:", error);
-      const errorMessage = error.message.includes("foreign key constraint")
-        ? "Cập nhật loại phòng thất bại: Loại phòng đang được sử dụng hoặc có dữ liệu liên quan. Vui lòng kiểm tra lại."
-        : error.response?.data?.EM ||
-          "Đã có lỗi xảy ra khi cập nhật loại phòng";
-      toast.error(errorMessage);
+    onError: () => {
+      toast.error("Có lỗi, vui lòng thử lại.");
     },
   });
 
@@ -137,12 +132,6 @@ const ModalUpdateRoomType = ({ dataUpdate, refetch }) => {
   };
 
   const handleClose = () => {
-    if (
-      isFormDataChanged() &&
-      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
-    ) {
-      return;
-    }
     setOpen(false);
     resetForm();
   };

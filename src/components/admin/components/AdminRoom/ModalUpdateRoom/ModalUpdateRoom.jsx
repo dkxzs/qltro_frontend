@@ -488,7 +488,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     e.preventDefault();
 
     if (!isFormDataChanged() && !isServicesChanged() && !isMembersChanged()) {
-      toast.info("Không có thay đổi ở cả 3 tab để cập nhật");
+      toast.info("Không có thay đổi để cập nhật");
       return;
     }
 

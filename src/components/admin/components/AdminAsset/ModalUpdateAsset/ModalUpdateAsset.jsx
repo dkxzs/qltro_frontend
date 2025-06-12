@@ -10,10 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Pencil, SquarePen } from "lucide-react";
-import { useState } from "react";
-import { toast } from "react-toastify";
 import {
   Select,
   SelectContent,
@@ -21,8 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { updateAssetService } from "@/services/assetServices";
+import { useMutation } from "@tanstack/react-query";
+import { Loader2, SquarePen } from "lucide-react";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
-const ModalUpdateAsset = ({ dataUpdate }) => {
+const ModalUpdateAsset = ({ dataUpdate, refetch }) => {
   const [formData, setFormData] = useState({
     TenTS: dataUpdate.TenTS,
     SoLuong: dataUpdate.SoLuong,
@@ -41,6 +43,22 @@ const ModalUpdateAsset = ({ dataUpdate }) => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
+
+  const updateMutation = useMutation({
+    mutationFn: () => updateAssetService(dataUpdate.ID, formData),
+    onSuccess: (data) => {
+      if (data.EC !== 0) {
+        toast.error(data.EM || "Lỗi không xác định từ server");
+      } else {
+        toast.success(data.EM || "Cập nhật tài sản thành công");
+        setTimeout(() => setOpen(false), 300);
+        refetch();
+      }
+    },
+    onError: () => {
+      toast.error("Có lỗi, vui lòng thử lại.");
+    },
+  });
 
   const resetForm = () => {
     setFormData({
@@ -70,9 +88,7 @@ const ModalUpdateAsset = ({ dataUpdate }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Giả lập cập nhật tài sản (do chưa có API)
-      toast.success("Cập nhật tài sản thành công");
-      setTimeout(() => setOpen(false), 300);
+      updateMutation.mutate();
     }
   };
 
@@ -179,14 +195,23 @@ const ModalUpdateAsset = ({ dataUpdate }) => {
             <Button
               type="submit"
               className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
+              disabled={updateMutation.isPending}
               aria-label="Cập nhật tài sản"
             >
-              Lưu
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Lưu"
+              )}
             </Button>
             <Button
               type="button"
               className="rounded cursor-pointer"
               onClick={handleClose}
+              disabled={updateMutation.isPending}
               variant="destructive"
               aria-label="Hủy chỉnh sửa tài sản"
             >

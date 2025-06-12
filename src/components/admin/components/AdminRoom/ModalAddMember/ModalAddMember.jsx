@@ -65,7 +65,7 @@ const ModalAddMember = ({ room }) => {
     mutationFn: createMembersService,
     onSuccess: (data) => {
       toast.success(data.EM);
-      setTimeout(() => setOpen(false), 300); // Độ trễ để toast hiển thị
+      setTimeout(() => setOpen(false), 300);
       setMembers([
         {
           TenTV: "",
