@@ -1,5 +1,4 @@
 import { ChevronRight } from "lucide-react";
-
 import {
   Collapsible,
   CollapsibleContent,
@@ -15,8 +14,11 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const NavMain = ({ items }) => {
+  const chucVu = useSelector((state) => state.user?.account?.ChucVu);
+
   const getIconColor = (title) => {
     switch (title) {
       case "Tổng quan":
@@ -39,19 +41,33 @@ const NavMain = ({ items }) => {
         return "text-red-500";
       case "Chi phí phát sinh":
         return "text-pink-500";
-      case "Cấu hình":
-        return "text-gray-500";
+      case "Cọc giữ phòng":
+        return "text-teal-500";
       case "Báo cáo sự cố":
         return "text-red-500";
+      case "Tài sản":
+        return "text-teal-500";
+      case "Nhân viên":
+        return "text-gray-500";
+      case "Tài khoản":
+        return "text-gray-500";
+      case "Cấu hình":
+        return "text-gray-500";
       default:
         return "text-gray-400";
     }
   };
 
+  const filteredItems = items.filter(
+    (item) =>
+      chucVu !== "Nhân viên" ||
+      (item.title !== "Nhân viên" && item.title !== "Tài khoản")
+  );
+
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {items.map((item) =>
+        {filteredItems.map((item) =>
           item.items.length === 0 ? (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild tooltip={item.title}>

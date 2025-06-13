@@ -8,6 +8,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { logout } from "@/redux/slices/userSlice";
+import { logoutAccountService } from "@/services/accountServices";
 import {
   LayoutDashboard,
   LogOut,
@@ -28,7 +29,6 @@ import { TbReport } from "react-icons/tb";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import TeamSwitcher from "../TeamSwitcher/TeamSwitcher";
-import { logoutAccountService } from "@/services/accountServices";
 
 const data = {
   navMain: [

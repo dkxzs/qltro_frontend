@@ -223,7 +223,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     }
   }, [membersData]);
 
-  // Xử lý ảnh
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
     if (!files.every((file) => file.type.startsWith("image/"))) {
