@@ -61,7 +61,9 @@ const NavMain = ({ items }) => {
   const filteredItems = items.filter(
     (item) =>
       chucVu !== "Nhân viên" ||
-      (item.title !== "Nhân viên" && item.title !== "Tài khoản")
+      (item.title !== "Nhân viên" &&
+        item.title !== "Tài khoản" &&
+        item.title !== "Cấu hình")
   );
 
   return (

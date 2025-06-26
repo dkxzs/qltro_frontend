@@ -1,6 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, User } from "lucide-react";
-import { useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,17 +6,23 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import Pagination from "@/components/admin/components/Pagination/Pagination";
 import { getAllAccountService } from "@/services/accountServices";
+import { exportToExcel } from "@/utils/exportToExcel";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, Download, User } from "lucide-react";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import Pagination from "@/components/admin/components/Pagination/Pagination";
 import TableAccount from "./TableAccount/TableAccount";
 
 const AdminAccount = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 8; 
 
   const {
     data: accountData,
@@ -31,7 +34,6 @@ const AdminAccount = () => {
     queryFn: getAllAccountService,
   });
 
-  // Xử lý dữ liệu trả về từ API
   const filteredAccountData =
     accountData?.DT && accountData?.EC === 0
       ? accountData.DT.filter((account) =>
@@ -39,16 +41,57 @@ const AdminAccount = () => {
         )
       : [];
 
-  // Phân trang
-  const totalItems = filteredAccountData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // Tính tổng số trang
+  const totalPages = Math.ceil(filteredAccountData.length / itemsPerPage);
+
+  // Lấy dữ liệu cho trang hiện tại
   const paginatedData = filteredAccountData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
+  // Xử lý thay đổi trang
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  // Xử lý xuất dữ liệu
+  const handleExportExcel = async () => {
+    if (!filteredAccountData || filteredAccountData.length === 0) {
+      toast.warning("Không có dữ liệu để xuất");
+      return;
+    }
+
+    const headers = [
+      { key: "MaTK", label: "Mã tài khoản" },
+      { key: "TenTK", label: "Tên tài khoản" },
+      { key: "Email", label: "Email" },
+      {
+        key: "TrangThai",
+        label: "Trạng thái",
+        format: (value) => (value === 1 ? "Hoạt động" : "Ngừng hoạt động"),
+      },
+      { key: "VaiTro", label: "Vai trò" },
+    ];
+
+    try {
+      const success = await exportToExcel(
+        filteredAccountData,
+        headers,
+        `Danh_sach_tai_khoan_${new Date().toISOString().split("T")[0]}`,
+        "Danh sách tài khoản",
+        { title: "DANH SÁCH TÀI KHOẢN" }
+      );
+
+      if (success) {
+        toast.success("Xuất dữ liệu thành công");
+      } else {
+        toast.error("Xuất dữ liệu thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Xuất dữ liệu thất bại");
+    }
   };
 
   return (
@@ -97,7 +140,10 @@ const AdminAccount = () => {
                     placeholder="Nhập tên tài khoản"
                     className="flex-1 rounded outline-none shadow-none"
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+                    }}
                   />
                 </div>
               </div>
@@ -108,6 +154,13 @@ const AdminAccount = () => {
 
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-medium">Danh sách tài khoản</h3>
+        <Button
+          className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
+          onClick={handleExportExcel}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Xuất dữ liệu
+        </Button>
       </div>
 
       <div className="min-h-[400px]">
@@ -121,18 +174,22 @@ const AdminAccount = () => {
           ) : paginatedData.length > 0 ? (
             <TableAccount accountData={paginatedData} refetch={refetch} />
           ) : (
-            <div className="p-4 text-center">Không có dữ liệu tài khoản</div>
+            <div className="p-4 text-center text-gray-500">
+              Không có tài khoản nào khớp với bộ lọc.
+            </div>
           )}
         </div>
       </div>
 
-      <div className="mt-5">
-        <Pagination
-          totalPages={totalPages}
-          currentPage={currentPage}
-          onPageChange={handlePageChange}
-        />
-      </div>
+      {filteredAccountData.length > 0 && (
+        <div className="mt-4 flex justify-center">
+          <Pagination
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

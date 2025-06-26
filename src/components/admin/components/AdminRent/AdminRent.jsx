@@ -26,13 +26,16 @@ import {
 } from "@/components/ui/breadcrumb";
 import { exportToExcel } from "@/utils/exportToExcel";
 import { toast } from "react-toastify";
+import Pagination from "../Pagination/Pagination";
 
 const AdminRent = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [selectedHouse, setSelectedHouse] = useState("all");
   const [roomName, setRoomName] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState(""); // Thêm state cho tháng/năm
+  const [selectedMonth, setSelectedMonth] = useState("");
   const [filteredRentData, setFilteredRentData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const { data: housesData } = useQuery({
     queryKey: ["houses"],
@@ -68,10 +71,21 @@ const AdminRent = () => {
       });
 
       setFilteredRentData(filtered);
+      setCurrentPage(1);
     }
   }, [rentData, selectedHouse, roomName, selectedMonth]);
 
-  // Hàm xử lý xuất Excel
+  const totalPages = Math.ceil(filteredRentData.length / itemsPerPage);
+
+  const paginatedData = filteredRentData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   const handleExportExcel = async () => {
     if (!filteredRentData || filteredRentData.length === 0) {
       toast.warning("Không có dữ liệu để xuất");
@@ -254,9 +268,19 @@ const AdminRent = () => {
         </div>
       </div>
 
-      <div className="rounded overflow-hidden">
-        <TableRent filteredData={filteredRentData} />
+      <div className="rounded overflow-hidden min-h-[400px]">
+        <TableRent filteredData={paginatedData} />
       </div>
+
+      {filteredRentData.length > 0 && (
+        <div className="flex justify-center mt-3">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

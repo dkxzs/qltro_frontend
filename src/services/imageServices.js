@@ -1,6 +1,6 @@
 import axios from "../utils/axiosCustomize";
 
-export const generateImageService = async (htmlContent) => {
+const generateImageService = async (htmlContent) => {
   const res = await axios.post(
     "/image/generate-image",
     { htmlContent },
@@ -9,7 +9,7 @@ export const generateImageService = async (htmlContent) => {
   return res.data;
 };
 
-export const generatePDFService = async (htmlContent, invoiceId) => {
+const generatePDFService = async (htmlContent, invoiceId) => {
   const res = await axios.post(
     "/image/generate-pdf",
     { htmlContent, invoiceId },
@@ -18,7 +18,7 @@ export const generatePDFService = async (htmlContent, invoiceId) => {
   return res.data;
 };
 
-export const deleteImageService = async (fileId) => {
+const deleteImageService = async (fileId) => {
   try {
     const res = await axios.post("/image/delete-image", { fileId });
     if (res.status === 200 && res.data.EC === 0) {
@@ -30,3 +30,5 @@ export const deleteImageService = async (fileId) => {
     throw error;
   }
 };
+
+export { generateImageService, generatePDFService, deleteImageService };

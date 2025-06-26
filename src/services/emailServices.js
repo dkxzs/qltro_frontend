@@ -1,6 +1,6 @@
 import axios from "../utils/axiosCustomize.js";
 
-export const sendInvoiceService = async ({
+const sendInvoiceService = async ({
   invoiceId,
   fromEmail,
   encryptedPassword,
@@ -21,7 +21,7 @@ export const sendInvoiceService = async ({
   }
 };
 
-export const sendBulkInvoiceEmailService = async ({
+const sendBulkInvoiceEmailService = async ({
   invoiceIds,
   fromEmail,
   encryptedPassword,
@@ -44,3 +44,5 @@ export const sendBulkInvoiceEmailService = async ({
     );
   }
 };
+
+export { sendInvoiceService, sendBulkInvoiceEmailService };

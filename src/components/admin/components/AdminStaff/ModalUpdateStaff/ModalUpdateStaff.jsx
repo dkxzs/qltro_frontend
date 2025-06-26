@@ -19,18 +19,13 @@ import {
 } from "@/components/ui/select";
 import { updateStaffService } from "@/services/staffServices";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2, SquarePen } from "lucide-react";
+import { Loader2, Plus, SquarePen, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import { deleteImageService } from "@/services/imageServices";
 import axios from "@/utils/axiosCustomize";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
+import imagekitConfig from "@/utils/imagekit";
 
 const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
   const [formData, setFormData] = useState({
@@ -45,7 +40,8 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
   const [initialFormData, setInitialFormData] = useState(null);
   const [open, setOpen] = useState(false);
   const [tempFile, setTempFile] = useState(null);
-  const [previewImage, setPreviewImage] = useState("");
+  const [previewImage, setPreviewImage] = useState(null);
+  const [isImageRemoved, setIsImageRemoved] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const imgRef = useRef(null);
 
@@ -64,10 +60,19 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
-      // Hiển thị ảnh hiện tại từ HinhAnh.url nếu có
-      setPreviewImage(dataUpdate.HinhAnh?.Url || "");
+      setPreviewImage(dataUpdate.HinhAnh?.Url || null);
+      setIsImageRemoved(false);
+      setTempFile(null);
     }
   }, [dataUpdate, open]);
+
+  useEffect(() => {
+    return () => {
+      if (previewImage && tempFile) {
+        URL.revokeObjectURL(previewImage);
+      }
+    };
+  }, [previewImage, tempFile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,19 +83,35 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Kiểm tra định dạng file
     if (!file.type.startsWith("image/")) {
-      toast.error("Vui lòng chọn file ảnh!");
+      toast.error("Vui lòng chọn file ảnh (JPG, PNG, v.v.)");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ảnh không được vượt quá 5MB!");
       return;
     }
 
-    // Lưu file tạm thời và hiển thị preview
+    if (previewImage && tempFile) {
+      URL.revokeObjectURL(previewImage);
+    }
+    const objectURL = URL.createObjectURL(file);
     setTempFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result);
-    };
-    reader.readAsDataURL(file);
+    setPreviewImage(objectURL);
+    setIsImageRemoved(false);
+  };
+
+  const handleRemoveImage = () => {
+    if (!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
+    if (previewImage && tempFile) {
+      URL.revokeObjectURL(previewImage);
+    }
+    setTempFile(null);
+    setPreviewImage(null);
+    setIsImageRemoved(true);
+    if (imgRef.current) {
+      imgRef.current.value = "";
+    }
   };
 
   const resetForm = () => {
@@ -105,14 +126,17 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
     });
     setInitialFormData(null);
     setTempFile(null);
-    setPreviewImage("");
+    setPreviewImage(null);
+    setIsImageRemoved(false);
+    if (imgRef.current) {
+      imgRef.current.value = "";
+    }
   };
 
   const mutationUpdateEmployee = useMutation({
-    mutationFn: async ({ id, data, file }) => {
+    mutationFn: async ({ id, data, file, removeImage }) => {
       let imageData = {};
       if (file) {
-        // Lấy thông tin xác thực từ ImageKit
         const authResponse = await axios.get(
           "http://localhost:8000/api/image/auth"
         );
@@ -122,12 +146,10 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
           throw new Error("Thông tin xác thực không hợp lệ từ backend");
         }
 
-        // Xóa ảnh cũ nếu có
         if (dataUpdate.HinhAnh?.FileId) {
           await deleteImageService(dataUpdate.HinhAnh.FileId);
         }
 
-        // Upload ảnh mới lên ImageKit
         const response = await upload({
           file,
           fileName: `staff-image-${Date.now()}.${file.name.split(".").pop()}`,
@@ -145,9 +167,11 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
           Url: response.url,
           FileId: response.fileId,
         };
+      } else if (removeImage && dataUpdate.HinhAnh?.FileId) {
+        await deleteImageService(dataUpdate.HinhAnh.FileId);
+        imageData = { Url: null, FileId: null };
       }
 
-      // Gửi dữ liệu nhân viên và thông tin ảnh (nếu có)
       return updateStaffService(id, { ...data, ...imageData });
     },
     onSuccess: (data) => {
@@ -178,7 +202,8 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
       formData.DienThoai !== initialFormData.DienThoai ||
       formData.DiaChi !== initialFormData.DiaChi ||
       formData.ChucVu !== initialFormData.ChucVu ||
-      !!tempFile // Nếu có ảnh mới, coi như có thay đổi
+      !!tempFile ||
+      isImageRemoved
     );
   };
 
@@ -195,6 +220,7 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
           id: dataUpdate.MaNV,
           data: formData,
           file: tempFile,
+          removeImage: isImageRemoved,
         });
       } finally {
         setIsUploading(false);
@@ -206,8 +232,9 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
     if (
       isFormDataChanged() &&
       !window.confirm("Dữ liệu chưa lưu sẽ mất. Tiếp tục?")
-    )
+    ) {
       return;
+    }
     setOpen(false);
     resetForm();
   };
@@ -296,7 +323,6 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
                   name="Email"
                   value={formData.Email}
                   onChange={handleChange}
-                  disabled
                   className="mt-2 rounded shadow-none"
                 />
               </div>
@@ -319,18 +345,42 @@ const ModalUpdateStaff = ({ dataUpdate, refetch }) => {
                   accept="image/*"
                   onChange={handleImageSelect}
                   disabled={isFormDisabled}
-                  className="mt-2 rounded shadow-none"
+                  className="hidden"
                   ref={imgRef}
                 />
-                {previewImage && (
-                  <div className="mt-2">
-                    <img
-                      src={previewImage}
-                      alt="Preview"
-                      className="max-w-[150px] h-auto rounded"
-                    />
-                  </div>
-                )}
+                <div
+                  className={`mt-2 w-56 h-44 border-2 border-dashed rounded p-4 flex items-center justify-center ${
+                    isFormDisabled
+                      ? "cursor-not-allowed opacity-50"
+                      : "cursor-pointer"
+                  }`}
+                  onClick={isFormDisabled ? null : () => imgRef.current.click()}
+                >
+                  {previewImage ? (
+                    <div className="relative">
+                      <img
+                        src={previewImage}
+                        alt="Preview"
+                        className="w-56 h-36 object-contain rounded"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2 rounded-full cursor-pointer p-1"
+                        onClick={handleRemoveImage}
+                        disabled={isFormDisabled}
+                      >
+                        <X className="size-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-1 text-lg font-mono">
+                      <Plus className="size-7 text-black" />
+                      Chọn ảnh
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <Label htmlFor="chucvu">Chức Vụ</Label>

@@ -146,7 +146,6 @@ const ModalAddDeposit = ({ refetch }) => {
     }
   };
 
-  // Hàm formatCurrency để hiển thị trong input
   const formatCurrency = (value) => {
     if (!value && value !== 0) return "";
     return new Intl.NumberFormat("vi-VN").format(value);

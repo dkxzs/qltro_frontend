@@ -24,7 +24,6 @@ export const exportToExcel = async (
     workbook.created = new Date();
     workbook.modified = new Date();
 
-    // Tạo worksheet
     const worksheet = workbook.addWorksheet(sheetName);
 
     // Thêm tiêu đề nếu có
@@ -146,18 +145,13 @@ export const exportToExcel = async (
   }
 };
 
-/**
- * Định dạng dữ liệu cho phù hợp với Excel
- */
 export const excelFormatters = {
-  // Định dạng ngày tháng
   date: (value) => {
     if (!value) return "";
     const date = new Date(value);
     return date.toLocaleDateString("vi-VN");
   },
 
-  // Định dạng tiền tệ
   currency: (value) => {
     if (!value && value !== 0) return "";
     return new Intl.NumberFormat("vi-VN", {
@@ -166,7 +160,6 @@ export const excelFormatters = {
     }).format(value);
   },
 
-  // Định dạng trạng thái
   status: (value) => {
     const statusMap = {
       0: "Còn trống",

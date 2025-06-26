@@ -1,4 +1,3 @@
-import ModalViewInvoice from "@/components/admin/components/AdminInvoice/ModalViewInvoice/ModalViewInvoice";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -10,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { AlertCircle, Loader2 } from "lucide-react";
+import ModalViewInvoice from "./ModalViewInvoice";
 
 const TableInvoice = ({ invoices, isLoading }) => {
   if (isLoading) {

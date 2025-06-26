@@ -38,7 +38,6 @@ const EmailConfigTab = () => {
   const emailMutation = useMutation({
     mutationFn: async (data) => {
       const secretKey = import.meta.env.VITE_ENCRYPTION_SECRET || "sudodev";
-      console.log("Encryption key:", secretKey); // Debug key
       const encryptedPassword = data.systemPassword
         ? CryptoJS.AES.encrypt(data.systemPassword, secretKey).toString()
         : undefined;
@@ -47,7 +46,6 @@ const EmailConfigTab = () => {
         ...data,
         systemPassword: encryptedPassword,
       };
-      console.log("Payload sent to server:", payload); // Debug payload
       return updateAdminService(payload);
     },
     onSuccess: (data) => {

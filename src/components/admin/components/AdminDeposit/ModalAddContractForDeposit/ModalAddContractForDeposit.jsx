@@ -20,17 +20,12 @@ import { getAllServiceService } from "@/services/serviceServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { MdOutlinePostAdd } from "react-icons/md";
 import { toast } from "react-toastify";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import axios from "@/utils/axiosCustomize";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
+import imagekitConfig from "@/utils/imagekit";
+import { useEffect, useRef, useState } from "react";
 
 const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
   const queryClient = useQueryClient();
@@ -125,7 +120,6 @@ const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
   const handleChangeImage = (e) => {
     const file = e.target.files[0];
     if (!file) {
-      console.log("No file selected");
       return;
     }
 
@@ -146,10 +140,6 @@ const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
     setPreviewImage(objectURL);
   };
 
-  // const handleClickImage = () => {
-  //   inputRef.current.click();
-  // };
-
   const handleRemoveImage = () => {
     if (!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
     if (previewImage && previewImage.startsWith("blob:")) {
@@ -161,14 +151,23 @@ const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
   };
 
   const handleServiceChange = (maDV, isChecked) => {
+    console.log("Service change:", { maDV, isChecked }); // Debug
     if (isChecked) {
-      setSelectedServices((prev) => [...prev, maDV]);
+      setSelectedServices((prev) => {
+        const newServices = [...prev, maDV];
+        console.log("New selectedServices:", newServices); // Debug
+        return newServices;
+      });
       setServiceQuantities((prev) => ({
         ...prev,
         [maDV]: prev[maDV] || 1,
       }));
     } else {
-      setSelectedServices((prev) => prev.filter((id) => id !== maDV));
+      setSelectedServices((prev) => {
+        const newServices = prev.filter((id) => id !== maDV);
+        console.log("New selectedServices:", newServices); // Debug
+        return newServices;
+      });
     }
   };
 
@@ -214,11 +213,9 @@ const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
       if (data.newCustomer && tempFile) {
         setIsUploading(true);
         try {
-          console.log("Fetching ImageKit auth...");
           const authResponse = await axios.get(
             "http://localhost:8000/api/image/auth"
           );
-          console.log("Auth response:", authResponse.data);
 
           const authParams = authResponse.data.DT;
           if (
@@ -229,14 +226,12 @@ const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
             throw new Error("Thông tin xác thực không hợp lệ từ backend");
           }
 
-          console.log("Uploading to ImageKit...");
           const response = await upload({
             file: tempFile,
             fileName: `customer-avatar-${Date.now()}-${tempFile.name}`,
             publicKey: imagekitConfig.publicKey,
             ...authParams,
           });
-          console.log("ImageKit response:", response);
 
           if (!response.url || !response.fileId) {
             throw new Error("Upload thất bại: Không nhận được URL hoặc FileId");
@@ -274,7 +269,7 @@ const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
         donGia: data.donGia,
         datCoc: data.datCoc,
         dichVu: data.dichVu,
-        deposit: finalDeposit, // Truyền toàn bộ finalDeposit
+        deposit: finalDeposit,
       };
 
       return createRentFromDepositService(rentData);
@@ -387,6 +382,7 @@ const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
       })),
     };
 
+    console.log("rentData:", JSON.stringify(rentData, null, 2)); // Debug
     createRentMutation.mutate(rentData);
   };
 
@@ -800,19 +796,22 @@ const ModalAddContractForDeposit = ({ deposit, roomId, refetch }) => {
                             <span className="text-sm text-gray-600 w-32 text-right">
                               {formatCurrency(service.DonGia || 0)} VNĐ
                             </span>
-                            <Input
-                              type="number"
-                              value={serviceQuantities[service.MaDV] ?? ""}
-                              onChange={(e) =>
-                                handleQuantityChange(
-                                  service.MaDV,
-                                  e.target.value
-                                )
-                              }
-                              disabled={isElectricityOrWater(service)}
-                              className="w-20 h-8 text-center rounded"
-                              aria-label={`Số lượng dịch vụ ${service.TenDV}`}
-                            />
+                            {service.CachTinhPhi === "SO_LUONG" &&
+                            !isElectricityOrWater(service) ? (
+                              <Input
+                                type="number"
+                                value={serviceQuantities[service.MaDV] ?? ""}
+                                onChange={(e) =>
+                                  handleQuantityChange(
+                                    service.MaDV,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-20 h-8 text-center rounded"
+                                aria-label={`Số lượng dịch vụ ${service.TenDV}`}
+                                min="1"
+                              />
+                            ) : null}
                           </div>
                         </div>
                       ))}

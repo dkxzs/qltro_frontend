@@ -18,12 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import axios from "@/utils/axiosCustomize";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
+import imagekitConfig from "@/utils/imagekit";
 
 const ModalAddCustomer = ({ refetch }) => {
   const date = new Date().toISOString().split("T")[0];
@@ -42,7 +37,7 @@ const ModalAddCustomer = ({ refetch }) => {
     placeOfIssue: "",
   });
   const [tempFile, setTempFile] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null); 
+  const [previewImage, setPreviewImage] = useState(null);
   const fileInputRef = useRef(null);
   const [open, setOpen] = useState(false);
 

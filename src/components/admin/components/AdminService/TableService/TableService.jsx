@@ -26,7 +26,7 @@ const TableService = (props) => {
   };
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto border rounded">
       <Table className="table-auto min-w-full">
         <TableHeader>
           <TableRow className="bg-gray-50 border-b">
@@ -63,25 +63,25 @@ const TableService = (props) => {
                   : "border-b hover:bg-gray-50"
               }
             >
-              <TableCell className="py-2 px-4 text-center shrink-0 w-12">
+              <TableCell className="py-[7px] px-4 text-center shrink-0 w-12">
                 {index + 1}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[250px]">
+              <TableCell className="py-[7px] px-4 truncate max-w-[250px]">
                 {service.TenDV}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[150px]">
+              <TableCell className="py-[7px] px-4 truncate max-w-[150px]">
                 {service.DonGia.toLocaleString()} VNĐ
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[150px]">
+              <TableCell className="py-[7px] px-4 truncate max-w-[150px]">
                 {service.DonViTinh}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[150px]">
+              <TableCell className="py-[7px] px-4 truncate max-w-[150px]">
                 {service.BatBuoc ? "Có" : "Không"}
               </TableCell>
-              <TableCell className="py-2 px-4 truncate max-w-[150px]">
+              <TableCell className="py-[7px] px-4 truncate max-w-[150px]">
                 {getText(service.CachTinhPhi)}
               </TableCell>
-              <TableCell className="py-2 px-4 text-center shrink-0 w-32">
+              <TableCell className="py-[7px] px-4 text-center shrink-0 w-32">
                 <div className="flex space-x-2 justify-center">
                   <ModalUpdateService dataUpdate={service} refetch={refetch} />
                   <ModalDeleteService dataDelete={service} refetch={refetch} />

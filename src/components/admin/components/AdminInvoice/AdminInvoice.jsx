@@ -27,12 +27,15 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import ModalAddInvoice from "./ModalAddInvoice/ModalAddInvoice";
 import TableInvoice from "./TableInvoice/TableInvoice";
+import Pagination from "../Pagination/Pagination";
 
 const AdminInvoice = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedMonthYear, setSelectedMonthYear] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   const emailConfig = useSelector((state) => state.inforConfig.email);
   const personalInfo = useSelector((state) => state.inforConfig.personalInfo);
 
@@ -52,11 +55,10 @@ const AdminInvoice = () => {
       : defaultBankInfo.accountNumber;
   const displayPhone = personalInfo?.DienThoai || defaultBankInfo.phone;
 
-  // Đặt mặc định tháng hiện tại (5/2025)
   useEffect(() => {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // 5
+    const currentMonth = currentDate.getMonth() + 1;
     setSelectedMonthYear(
       `${currentYear}-${currentMonth.toString().padStart(2, "0")}`
     );
@@ -73,20 +75,21 @@ const AdminInvoice = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["invoices", selectedMonthYear],
     queryFn: queryFn,
-    enabled: !!selectedMonthYear, // Chỉ gọi API khi selectedMonthYear có giá trị
+    enabled: !!selectedMonthYear,
   });
 
   useEffect(() => {
     if (isError) {
       toast.error(error?.message || "Có lỗi xảy ra khi tải danh sách hóa đơn", {
-        toastId: "fetch-invoice-error", // Đảm bảo toast không lặp lại
+        toastId: "fetch-invoice-error",
       });
     } else if (data && data.EC !== 0) {
       toast.error(data?.EM || "Có lỗi xảy ra khi tải danh sách hóa đơn", {
-        toastId: "fetch-invoice-error", // Đảm bảo toast không lặp lại
+        toastId: "fetch-invoice-error",
       });
     }
-  }, [data, isError, error]);
+    setCurrentPage(1);
+  }, [data, isError, error, selectedMonthYear]);
 
   const invoices = data?.DT || [];
 
@@ -115,6 +118,17 @@ const AdminInvoice = () => {
       (statusFilter === "Đã thanh toán" && invoice.TrangThai === 1);
     return matchesRoom && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+
+  const paginatedInvoices = filteredInvoices.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleExportExcel = async () => {
     if (!filteredInvoices || filteredInvoices.length === 0) {
@@ -198,10 +212,9 @@ const AdminInvoice = () => {
       return;
     }
 
-    // Kiểm tra tháng được chọn
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // 5
+    const currentMonth = currentDate.getMonth() + 1;
     const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
@@ -347,16 +360,18 @@ const AdminInvoice = () => {
           </Button>
         </div>
       </div>
-      <div className="rounded">
-        {filteredInvoices.length === 0 && !isLoading ? (
-          <p className="text-center text-gray-500 mt-4">
-            Không có hóa đơn nào cho tháng này. Vui lòng chọn tháng khác hoặc
-            tạo hóa đơn mới.
-          </p>
-        ) : (
-          <TableInvoice invoices={filteredInvoices} isLoading={isLoading} />
-        )}
+      <div className="rounded min-h-[410px]">
+        <TableInvoice invoices={paginatedInvoices} isLoading={isLoading} />
       </div>
+      {filteredInvoices.length > 0 && (
+        <div className="flex justify-end mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,11 +1,11 @@
 import axios from "../utils/axiosCustomize.js";
 
-export const getAllRentService = async () => {
+const getAllRentService = async () => {
   const res = await axios.get("/rent/get-all-rent");
   return res.data;
 };
 
-export const createRentService = async (data) => {
+const createRentService = async (data) => {
   try {
     const payload = {
       maKT: data.maKT,
@@ -45,7 +45,7 @@ export const createRentService = async (data) => {
   }
 };
 
-export const createRentFromDepositService = async (data) => {
+const createRentFromDepositService = async (data) => {
   try {
     const payload = {
       newCustomer: data.newCustomer
@@ -93,7 +93,7 @@ export const createRentFromDepositService = async (data) => {
   }
 };
 
-export const updateRentService = async (id, data) => {
+const updateRentService = async (id, data) => {
   try {
     const res = await axios.put(`/rent/update-rent/${id}`, data);
     return res.data;
@@ -104,11 +104,19 @@ export const updateRentService = async (id, data) => {
   }
 };
 
-export const deleteRentService = async (id) => {
+const deleteRentService = async (id) => {
   try {
     const res = await axios.delete(`/rent/delete-rent/${id}`);
     return res.data;
   } catch (error) {
     return error.response?.data || { EC: -1, EM: "Lỗi khi xóa hợp đồng thuê" };
   }
+};
+
+export {
+  getAllRentService,
+  createRentService,
+  createRentFromDepositService,
+  updateRentService,
+  deleteRentService,
 };

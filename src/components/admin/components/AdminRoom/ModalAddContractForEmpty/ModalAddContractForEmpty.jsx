@@ -27,17 +27,12 @@ import { getAllServiceService } from "@/services/serviceServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { MdOutlinePostAdd } from "react-icons/md";
 import { toast } from "react-toastify";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import axios from "@/utils/axiosCustomize";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
+import imagekitConfig from "@/utils/imagekit";
+import { useEffect, useRef, useState } from "react";
 
 const ModalAddContractForEmpty = ({ room, refetch }) => {
   const queryClient = useQueryClient();
@@ -66,7 +61,7 @@ const ModalAddContractForEmpty = ({ room, refetch }) => {
     vehicleNumber: "",
     occupation: "",
   });
-  const [tempFile, setTempFile] = useState(null); // Thêm tempFile
+  const [tempFile, setTempFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef(null);
@@ -141,7 +136,7 @@ const ModalAddContractForEmpty = ({ room, refetch }) => {
       URL.revokeObjectURL(previewImage);
     }
     const objectURL = URL.createObjectURL(file);
-    setTempFile(file); // Lưu file vào tempFile
+    setTempFile(file);
     setPreviewImage(objectURL);
   };
 
@@ -211,11 +206,9 @@ const ModalAddContractForEmpty = ({ room, refetch }) => {
       if (data.newCustomer && tempFile) {
         setIsUploading(true);
         try {
-          console.log("Fetching ImageKit auth...");
           const authResponse = await axios.get(
             "http://localhost:8000/api/image/auth"
           );
-          console.log("Auth response:", authResponse.data);
 
           const authParams = authResponse.data.DT;
           if (
@@ -226,14 +219,12 @@ const ModalAddContractForEmpty = ({ room, refetch }) => {
             throw new Error("Thông tin xác thực không hợp lệ từ backend");
           }
 
-          console.log("Uploading to ImageKit...");
           const response = await upload({
             file: tempFile,
             fileName: `customer-avatar-${Date.now()}-${tempFile.name}`,
             publicKey: imagekitConfig.publicKey,
             ...authParams,
           });
-          console.log("ImageKit response:", response);
 
           if (!response.url || !response.fileId) {
             throw new Error("Upload thất bại: Không nhận được URL hoặc FileId");
@@ -867,19 +858,22 @@ const ModalAddContractForEmpty = ({ room, refetch }) => {
                             <span className="text-sm text-gray-600 w-32 text-right">
                               {formatCurrency(service.DonGia || 0)} VNĐ
                             </span>
-                            <Input
-                              type="number"
-                              value={serviceQuantities[service.MaDV] ?? ""}
-                              onChange={(e) =>
-                                handleQuantityChange(
-                                  service.MaDV,
-                                  e.target.value
-                                )
-                              }
-                              disabled={isElectricityOrWater(service)}
-                              className="w-20 h-8 text-center rounded"
-                              aria-label={`Số lượng dịch vụ ${service.TenDV}`}
-                            />
+                            {service.CachTinhPhi === "SO_LUONG" &&
+                            !isElectricityOrWater(service) ? (
+                              <Input
+                                type="number"
+                                value={serviceQuantities[service.MaDV] ?? ""}
+                                onChange={(e) =>
+                                  handleQuantityChange(
+                                    service.MaDV,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-20 h-8 text-center rounded"
+                                aria-label={`Số lượng dịch vụ ${service.TenDV}`}
+                                min="1"
+                              />
+                            ) : null}
                           </div>
                         </div>
                       ))}

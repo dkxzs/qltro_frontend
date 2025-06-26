@@ -20,7 +20,6 @@ const RoomPage = () => {
     queryFn: () => getAllAvailableRoomsService(),
   });
 
-  // Trạng thái bộ lọc
   const [addressFilter, setAddressFilter] = useState("");
   const [areaFilter, setAreaFilter] = useState("");
   const [roomTypeFilter, setRoomTypeFilter] = useState("");

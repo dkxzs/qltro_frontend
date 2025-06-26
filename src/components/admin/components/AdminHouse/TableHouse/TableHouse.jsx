@@ -13,7 +13,7 @@ const TableHouse = (props) => {
   const { houseData, refetch } = props;
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto border rounded">
       <Table className="table-auto min-w-full">
         <TableHeader>
           <TableRow className="bg-gray-50 border-b">

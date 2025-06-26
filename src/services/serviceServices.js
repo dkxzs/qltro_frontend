@@ -1,11 +1,11 @@
 import axios from "../utils/axiosCustomize.js";
 
-export const getAllServiceService = async () => {
+const getAllServiceService = async () => {
   const res = await axios.get("/service/get-all-service");
   return res.data;
 };
 
-export const createServiceService = async (data) => {
+const createServiceService = async (data) => {
   try {
     const res = await axios.post("/service/create-service", data);
     return res.data;
@@ -14,7 +14,7 @@ export const createServiceService = async (data) => {
   }
 };
 
-export const updateServiceService = async (id, data) => {
+const updateServiceService = async (id, data) => {
   try {
     const res = await axios.put(`/service/update-service/${id}`, data);
     return res.data;
@@ -23,7 +23,7 @@ export const updateServiceService = async (id, data) => {
   }
 };
 
-export const deleteServiceService = async (id) => {
+const deleteServiceService = async (id) => {
   try {
     const res = await axios.delete(`/service/delete-service/${id}`);
     return res.data;
@@ -32,7 +32,15 @@ export const deleteServiceService = async (id) => {
   }
 };
 
-export const checkServiceInUseService = async (id) => {
+const checkServiceInUseService = async (id) => {
   const res = await axios.get(`/service/check-in-use/${id}`);
   return res.data;
+};
+
+export {
+  getAllServiceService,
+  createServiceService,
+  updateServiceService,
+  deleteServiceService,
+  checkServiceInUseService,
 };

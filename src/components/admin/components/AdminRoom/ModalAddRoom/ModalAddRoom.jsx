@@ -22,18 +22,13 @@ import { getAllHouseService } from "@/services/houseServices";
 import { createRoomService } from "@/services/roomServices";
 import { getAllRoomTypeService } from "@/services/roomTypeServices";
 import axios from "@/utils/axiosCustomize";
+import imagekitConfig from "@/utils/imagekit";
 import { ROOM_STATUS_VALUE } from "@/utils/roomStatusUtils";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2, Plus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
 
 const ModalAddRoom = ({ refetch }) => {
   const [open, setOpen] = useState(false);

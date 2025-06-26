@@ -17,16 +17,15 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import ModalAddStaff from "./ModalAddStaff/ModalAddStaff";
 import TableStaff from "./TableStaff/TableStaff";
+import Pagination from "../Pagination/Pagination";
 
 const AdminStaff = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
-  const {
-    data: employeeData,
-    isLoading,
-    refetch,
-  } = useQuery({
+  const { data: employeeData, refetch } = useQuery({
     queryKey: ["employee"],
     queryFn: () => getAllStaffService(),
   });
@@ -36,6 +35,17 @@ const AdminStaff = () => {
         employee.HoTen.toLowerCase().includes(searchText.toLowerCase())
       )
     : [];
+
+  const totalPages = Math.ceil(filteredEmployeeData.length / itemsPerPage);
+
+  const paginatedEmployeeData = filteredEmployeeData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleExportExcel = () => {
     if (!filteredEmployeeData || filteredEmployeeData.length === 0) {
@@ -116,7 +126,10 @@ const AdminStaff = () => {
                     placeholder="Nhập họ tên"
                     className="flex-1 rounded outline-none shadow-none"
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+                    }}
                   />
                 </div>
               </div>
@@ -139,11 +152,16 @@ const AdminStaff = () => {
         </div>
       </div>
 
-      <div className="rounded border overflow-hidden">
-        {isLoading ? (
-          <div className="p-4 text-center">Đang tải dữ liệu...</div>
-        ) : (
-          <TableStaff employeeData={filteredEmployeeData} refetch={refetch} />
+      <div className="rounded overflow-hidden min-h-[400px]">
+        <TableStaff employeeData={paginatedEmployeeData} refetch={refetch} />
+      </div>
+      <div className="mt-4 flex justify-center">
+        {filteredEmployeeData.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         )}
       </div>
     </div>

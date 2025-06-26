@@ -49,7 +49,7 @@ const ModalConfirmWater = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="rounded bg-white shadow-md w-3/5"
+        className="rounded bg-white shadow-md w-2/5"
         aria-describedby="confirm-water-description"
       >
         <DialogHeader>

@@ -1,3 +1,11 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,18 +17,13 @@ import ModalAddHouse from "./ModalAddHouse/ModalAddHouse";
 import TableHouse from "./TableHouse/TableHouse";
 import { exportToExcel } from "@/utils/exportToExcel";
 import { toast } from "react-toastify";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import Pagination from "@/components/admin/components/Pagination/Pagination";
 
 const AdminHouse = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const {
     data: houseData,
@@ -31,13 +34,21 @@ const AdminHouse = () => {
     queryFn: getAllHouseService,
   });
 
-  console.log(houseData);
+  const filteredHouseData =
+    houseData?.DT?.filter((house) =>
+      house.TenNha.toLowerCase().includes(searchText.toLowerCase())
+    ) || [];
 
-  const filteredHouseData = houseData?.DT
-    ? houseData.DT.filter((house) =>
-        house.TenNha.toLowerCase().includes(searchText.toLowerCase())
-      )
-    : [];
+  const totalPages = Math.ceil(filteredHouseData.length / itemsPerPage);
+
+  const paginatedData = filteredHouseData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleExportExcel = () => {
     if (!filteredHouseData || filteredHouseData.length === 0) {
@@ -113,7 +124,10 @@ const AdminHouse = () => {
                     placeholder="Nhập tên nhà"
                     className="flex-1 rounded outline-none shadow-none"
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+                    }}
                   />
                 </div>
               </div>
@@ -136,13 +150,27 @@ const AdminHouse = () => {
         </div>
       </div>
 
-      <div className="rounded border overflow-hidden">
+      <div className="rounded overflow-hidden min-h-[400px]">
         {isLoading ? (
           <div className="p-4 text-center">Đang tải dữ liệu...</div>
+        ) : paginatedData.length === 0 ? (
+          <div className="p-4 text-center text-gray-500">
+            Không có nhà trọ nào khớp với bộ lọc.
+          </div>
         ) : (
-          <TableHouse houseData={filteredHouseData} refetch={refetch} />
+          <TableHouse houseData={paginatedData} refetch={refetch} />
         )}
       </div>
+
+      {filteredHouseData.length > 0 && (
+        <div className="mt-4 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -26,10 +26,10 @@ import { toast } from "react-toastify";
 
 const ModalUpdateAsset = ({ dataUpdate, refetch }) => {
   const [formData, setFormData] = useState({
-    TenTS: dataUpdate.TenTS,
-    SoLuong: dataUpdate.SoLuong,
-    TinhTrang: dataUpdate.TinhTrang,
-    MoTa: dataUpdate.MoTa,
+    TenTS: dataUpdate?.TenTS || "",
+    SoLuong: dataUpdate?.SoLuong ? parseInt(dataUpdate.SoLuong, 10) : 0,
+    TinhTrang: dataUpdate?.TinhTrang || "",
+    MoTa: dataUpdate?.MoTa || "",
   });
   const [open, setOpen] = useState(false);
 
@@ -45,7 +45,12 @@ const ModalUpdateAsset = ({ dataUpdate, refetch }) => {
   };
 
   const updateMutation = useMutation({
-    mutationFn: () => updateAssetService(dataUpdate.ID, formData),
+    mutationFn: () => {
+      if (!dataUpdate?.MaTSPT || isNaN(dataUpdate.MaTSPT)) {
+        throw new Error("Mã tài sản-phòng (MaTSPT) không hợp lệ");
+      }
+      return updateAssetService(dataUpdate.MaTSPT, formData);
+    },
     onSuccess: (data) => {
       if (data.EC !== 0) {
         toast.error(data.EM || "Lỗi không xác định từ server");
@@ -55,17 +60,17 @@ const ModalUpdateAsset = ({ dataUpdate, refetch }) => {
         refetch();
       }
     },
-    onError: () => {
-      toast.error("Có lỗi, vui lòng thử lại.");
+    onError: (error) => {
+      toast.error(error.message || "Có lỗi, vui lòng thử lại.");
     },
   });
 
   const resetForm = () => {
     setFormData({
-      TenTS: dataUpdate.TenTS,
-      SoLuong: dataUpdate.SoLuong,
-      TinhTrang: dataUpdate.TinhTrang,
-      MoTa: dataUpdate.MoTa,
+      TenTS: dataUpdate?.TenTS || "",
+      SoLuong: dataUpdate?.SoLuong ? parseInt(dataUpdate.SoLuong, 10) : 0,
+      TinhTrang: dataUpdate?.TinhTrang || "",
+      MoTa: dataUpdate?.MoTa || "",
     });
   };
 
@@ -74,8 +79,8 @@ const ModalUpdateAsset = ({ dataUpdate, refetch }) => {
       toast.error("Tên tài sản không được để trống");
       return false;
     }
-    if (!formData.SoLuong || formData.SoLuong <= 0) {
-      toast.error("Số lượng phải lớn hơn 0");
+    if (isNaN(formData.SoLuong) || formData.SoLuong <= 0) {
+      toast.error("Số lượng phải là số nguyên lớn hơn 0");
       return false;
     }
     if (!formData.TinhTrang) {
@@ -87,23 +92,18 @@ const ModalUpdateAsset = ({ dataUpdate, refetch }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("formData:", formData);
+    console.log("dataUpdate.MaTSPT:", dataUpdate.MaTSPT);
     if (validateForm()) {
-      updateMutation.mutate();
+      const cleanedFormData = {
+        ...formData,
+        SoLuong: parseInt(formData.SoLuong, 10),
+      };
+      updateMutation.mutate(cleanedFormData);
     }
   };
 
   const handleClose = () => {
-    const hasUnsavedChanges =
-      formData.TenTS !== dataUpdate.TenTS ||
-      formData.SoLuong !== dataUpdate.SoLuong ||
-      formData.TinhTrang !== dataUpdate.TinhTrang ||
-      formData.MoTa !== dataUpdate.MoTa;
-    if (
-      hasUnsavedChanges &&
-      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
-    ) {
-      return;
-    }
     setOpen(false);
     resetForm();
   };

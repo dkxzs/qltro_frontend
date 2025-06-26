@@ -18,19 +18,34 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import ModalAddRoomType from "./ModalAddRoomType/ModalAddRoomType";
 import TableRoomType from "./TableRoomType/TableRoomType";
+import Pagination from "../Pagination/Pagination";
 
 const AdminRoomType = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const { data: roomTypeData, refetch } = useQuery({
     queryKey: ["roomType"],
     queryFn: getAllRoomTypeService,
   });
 
-  const filteredData = roomTypeData?.DT.filter((item) => {
-    return item.TenLoaiPhong.toLowerCase().includes(searchText.toLowerCase());
-  });
+  const filteredData =
+    roomTypeData?.DT?.filter((item) =>
+      item.TenLoaiPhong.toLowerCase().includes(searchText.toLowerCase())
+    ) || [];
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleExportExcel = async () => {
     if (!filteredData || filteredData.length === 0) {
@@ -70,7 +85,7 @@ const AdminRoomType = () => {
   };
 
   return (
-    <div className=" mx-auto p-2">
+    <div className="mx-auto p-2">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-1">
           <VscTypeHierarchySub className="size-6" />
@@ -115,7 +130,10 @@ const AdminRoomType = () => {
                     placeholder="Nhập tên loại phòng"
                     className="flex-1 rounded outline-none shadow-none"
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+                    }}
                   />
                 </div>
               </div>
@@ -138,9 +156,19 @@ const AdminRoomType = () => {
         </div>
       </div>
 
-      <div className="border rounded overflow-x-auto">
-        <TableRoomType roomTypeData={filteredData} refetch={refetch} />
+      <div className=" rounded overflow-x-auto min-h-[400px]">
+        <TableRoomType roomTypeData={paginatedData} refetch={refetch} />
       </div>
+
+      {filteredData.length > 0 && (
+        <div className="mt-4 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

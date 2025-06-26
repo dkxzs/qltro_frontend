@@ -122,9 +122,9 @@ export const checkPreviousMonthHasReadingService = async (
     });
     const result = res.data;
     if (result.EC === 0 && result.DT && result.DT.ChiSoMoi !== null) {
-      return true; // Có ChiSoMoi tháng trước
+      return true;
     }
-    return false; // Không có hoặc ChiSoMoi là null
+    return false;
   } catch (error) {
     console.error("Error checking previous month reading:", error);
     return false;

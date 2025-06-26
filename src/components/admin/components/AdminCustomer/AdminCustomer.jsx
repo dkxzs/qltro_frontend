@@ -24,14 +24,12 @@ const AdminCustomer = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(7);
 
   const { data: userData, refetch } = useQuery({
     queryKey: ["user"],
     queryFn: () => getAllCustomerService(false),
   });
-
-  console.log("Data", userData);
 
   const filteredUserData = userData?.DT.filter((user) =>
     user.HoTen.toLowerCase().includes(searchText.toLowerCase())
@@ -158,14 +156,14 @@ const AdminCustomer = () => {
         </div>
       </div>
 
-      <div className="min-h-[380px] rounded w-full">
+      <div className="min-h-[410px] rounded w-full">
         <div className="rounded border">
           <TableUser userData={paginatedData} refetch={refetch} />
         </div>
       </div>
 
       {filteredUserData?.length > 0 && (
-        <div className="mt-4">
+        <div className="mt-2">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

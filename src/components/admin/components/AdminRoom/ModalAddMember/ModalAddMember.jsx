@@ -64,19 +64,23 @@ const ModalAddMember = ({ room }) => {
   const createMembersMutation = useMutation({
     mutationFn: createMembersService,
     onSuccess: (data) => {
-      toast.success(data.EM);
-      setTimeout(() => setOpen(false), 300);
-      setMembers([
-        {
-          TenTV: "",
-          CCCD: "",
-          NgaySinh: "",
-          DienThoai: "",
-          DiaChi: "",
-          TrangThai: true,
-        },
-      ]);
-      queryClient.invalidateQueries(["members"]);
+      if (data.EC === 0) {
+        toast.success(data.EM);
+        setTimeout(() => setOpen(false), 300);
+        setMembers([
+          {
+            TenTV: "",
+            CCCD: "",
+            NgaySinh: "",
+            DienThoai: "",
+            DiaChi: "",
+            TrangThai: true,
+          },
+        ]);
+        queryClient.invalidateQueries(["members"]);
+      } else {
+        toast.warning(data.EM);
+      }
     },
     onError: (error) => {
       console.error("Add member error:", error);

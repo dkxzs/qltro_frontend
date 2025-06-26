@@ -397,34 +397,34 @@ const TableInvoice = ({ invoices, isLoading }) => {
             {invoices.length > 0 ? (
               invoices.map((invoice) => (
                 <TableRow key={invoice.MaHD}>
-                  <TableCell>{invoice.MaHD}</TableCell>
-                  <TableCell>{invoice.MaTP}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-[9px]">{invoice.MaHD}</TableCell>
+                  <TableCell className="py-[9px]">{invoice.MaTP}</TableCell>
+                  <TableCell className="py-[9px]">
                     {invoice.ThuePhong?.PhongTro?.Nha?.TenNha || "-"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-[9px]">
                     {invoice.ThuePhong?.PhongTro?.TenPhong || "-"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-[9px]">
                     {invoice.NgayLap
                       ? format(new Date(invoice.NgayLap), "dd/MM/yyyy")
                       : "-"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-[9px]">
                     {invoice.TongTien?.toLocaleString("vi-VN") || 0} VNĐ
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-[9px]">
                     {invoice.totalPaid?.toLocaleString("vi-VN") || 0} VNĐ
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-[9px]">
                     {invoice.remaining?.toLocaleString("vi-VN") || 0} VNĐ
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-[9px]">
                     {invoice.TrangThai === 0
                       ? "Chưa thanh toán"
                       : "Đã thanh toán"}
                   </TableCell>
-                  <TableCell className="flex items-center gap-2">
+                  <TableCell className="flex items-center gap-2 py-[9px]">
                     <div className="flex items-center gap-1">
                       <ModalViewInvoice invoiceId={invoice.MaHD} />
                     </div>

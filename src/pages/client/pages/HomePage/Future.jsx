@@ -18,7 +18,6 @@ const Future = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mt-12">
-            {/* Feature 1 */}
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <House className="w-20 h-20 " />
@@ -29,7 +28,6 @@ const Future = () => {
               </p>
             </div>
 
-            {/* Feature 2 */}
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <Zap className="w-20 h-20 text-yellow-500" />
@@ -40,7 +38,6 @@ const Future = () => {
               </p>
             </div>
 
-            {/* Feature 3 */}
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <Droplet className="w-20 h-20 text-blue-500" />
@@ -51,7 +48,6 @@ const Future = () => {
               </p>
             </div>
 
-            {/* Feature 4 */}
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <ShieldCheck className="w-20 h-20 text-green-500" />
@@ -62,7 +58,6 @@ const Future = () => {
               </p>
             </div>
 
-            {/* Feature 5 */}
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <RiCommunityLine className="w-20 h-20 text-pink-500" />
@@ -73,7 +68,6 @@ const Future = () => {
               </p>
             </div>
 
-            {/* Feature 6 */}
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <Headset className="w-20 h-20 text-red-500" />

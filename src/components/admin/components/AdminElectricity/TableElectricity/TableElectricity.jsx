@@ -42,7 +42,6 @@ const TableElectricity = ({ electricData, month, year }) => {
     setIsCurrentMonth(month === currentMonth && year === currentYear);
   }, [month, year]);
 
-  // --- React Query Hooks ---
   const { data: historyData, refetch: fetchHistory } = useQuery({
     queryKey: ["electric-history", selectedRoom?.MaPT, selectedRoom?.MaDV],
     queryFn: () =>
@@ -89,7 +88,6 @@ const TableElectricity = ({ electricData, month, year }) => {
     },
   });
 
-  // --- useEffect Hooks ---
   // Đồng bộ inputValues với prop electricData
   useEffect(() => {
     if (Array.isArray(electricData)) {
@@ -176,14 +174,12 @@ const TableElectricity = ({ electricData, month, year }) => {
     checkRooms();
   }, [inputValues, month, year, electricData]);
 
-  // Refetch lịch sử khi phòng được chọn thay đổi
   useEffect(() => {
     if (selectedRoom?.MaPT && selectedRoom?.MaDV) {
       fetchHistory();
     }
   }, [selectedRoom, fetchHistory]);
 
-  // --- Event Handlers ---
   const handleInputChange = (index, field, value) => {
     const numValue = value.replace(/[^0-9]/g, "");
     setInputValues((prev) => {
@@ -290,7 +286,6 @@ const TableElectricity = ({ electricData, month, year }) => {
     }
   };
 
-  // --- Render Logic ---
   if (
     !Array.isArray(inputValues) ||
     !Array.isArray(electricData) ||
@@ -355,12 +350,18 @@ const TableElectricity = ({ electricData, month, year }) => {
       <Table className="min-w-full table-fixed border border-gray-200">
         <TableHeader className="bg-gray-100">
           <TableRow>
-            <TableHead className="w-[10%] text-center py-3">Phòng</TableHead>
-            <TableHead className="w-[15%] text-center py-3">Nhà</TableHead>
-            <TableHead className="w-[20%] text-center py-3">Chỉ số cũ</TableHead>
-            <TableHead className="w-[25%] text-center py-3">Chỉ số mới</TableHead>
-            <TableHead className="w-[15%] text-center py-3">Tiêu thụ</TableHead>
-            <TableHead className="w-[15%] text-center py-3">Hành động</TableHead>
+            <TableHead className="w-[10%] text-center py-2">Phòng</TableHead>
+            <TableHead className="w-[15%] text-center py-2">Nhà</TableHead>
+            <TableHead className="w-[20%] text-center py-2">
+              Chỉ số cũ
+            </TableHead>
+            <TableHead className="w-[25%] text-center py-2">
+              Chỉ số mới
+            </TableHead>
+            <TableHead className="w-[15%] text-center py-2">Tiêu thụ</TableHead>
+            <TableHead className="w-[15%] text-center py-2">
+              Hành động
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -391,10 +392,10 @@ const TableElectricity = ({ electricData, month, year }) => {
                 }-${month}-${year}-${index}`}
                 className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
               >
-                <TableCell className="text-center truncate">
+                <TableCell className="text-center py-[9px] truncate">
                   {originalItem.PhongTro.TenPhong}
                 </TableCell>
-                <TableCell className="text-center truncate">
+                <TableCell className="text-center py-[9px] truncate">
                   {originalItem.PhongTro.TenNha}
                 </TableCell>
                 <TableCell>
@@ -406,7 +407,7 @@ const TableElectricity = ({ electricData, month, year }) => {
                       handleInputChange(index, "ChiSoCu", e.target.value)
                     }
                     disabled={!canEditChiSoCu}
-                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none ${
+                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none py-[9px] ${
                       !canEditChiSoCu
                         ? "bg-gray-100 cursor-not-allowed"
                         : "bg-white"
@@ -423,14 +424,16 @@ const TableElectricity = ({ electricData, month, year }) => {
                       handleInputChange(index, "ChiSoMoi", e.target.value)
                     }
                     disabled={isDisabled}
-                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none py-2 ${
+                    className={`w-full max-w-[150px] mx-auto text-right rounded shadow-none py-[9px] ${
                       isDisabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                     }`}
                     aria-label="Chỉ số mới"
                   />
                 </TableCell>
-                <TableCell className="text-center">{consumption}</TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center py-[9px]">
+                  {consumption}
+                </TableCell>
+                <TableCell className="text-center py-[9px]">
                   <div className="flex justify-center gap-1">
                     <Button
                       onClick={() => handleSave(index)}

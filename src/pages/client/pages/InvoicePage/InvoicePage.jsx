@@ -18,8 +18,6 @@ const InvoicePage = ({ isLoading }) => {
     enabled: !!decode.MaTK,
   });
 
-  console.log("invoiceData", invoiceData);
-
   return (
     <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-6">

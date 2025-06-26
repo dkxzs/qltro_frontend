@@ -53,7 +53,6 @@ const AdminElectricity = () => {
     enabled: !!monthNum && !!yearNum,
   });
 
-
   const filteredData =
     roomsWithElectricData?.DT?.filter((item) => {
       const matchesHouse =
@@ -271,7 +270,7 @@ const AdminElectricity = () => {
       </div>
 
       {filteredData.length > 0 && (
-        <div className="mt-4 flex justify-center">
+        <div className="mt-3 flex justify-center">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

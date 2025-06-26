@@ -63,39 +63,16 @@ const TableUser = (props) => {
                   <p className="block truncate">{user.HoTen}</p>
                 </TableCell>
                 <TableCell className="w-32">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="block truncate">{user.CCCD}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{user.CCCD}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <p>{user.CCCD}</p>
                 </TableCell>
                 <TableCell className="w-16">
                   {user.GioiTinh === "Nam" ? "Nam" : "Nữ"}
                 </TableCell>
                 <TableCell className="w-32">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="block truncate">{user.Email}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{user.Email}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <p>{user.Email}</p>
                 </TableCell>
                 <TableCell className="w-24">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="block truncate">
-                        {user.DienThoaiChinh}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{user.DienThoaiChinh}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <p>{user.DienThoaiChinh}</p>
                 </TableCell>
                 <TableCell className="w-32 max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
                   <Tooltip>

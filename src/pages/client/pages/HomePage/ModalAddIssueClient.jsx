@@ -19,28 +19,22 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 const ModalAddIssueClient = ({ open, onOpenChange }) => {
-  const [formData, setFormData] = useState({
-    MaPT: "",
-    MoTa: "",
-  });
+  const [formData, setFormData] = useState({ MaPT: "", MoTa: "" });
   const token = useSelector((state) => state.account?.account?.accessToken);
   let decode = null;
-  if (token && typeof token === "string" && token.split(".").length === 3) {
-    try {
-      decode = jwtDecode(token);
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      decode = null;
-    }
+  try {
+    if (token) decode = jwtDecode(token);
+  } catch (error) {
+    console.error("Error decoding token:", error);
   }
 
-  const { data: houseData } = useQuery({
+  const { data: houseData, isLoading: houseLoading } = useQuery({
     queryKey: ["houseClient"],
     queryFn: () => getHouseByAccountIdService(decode?.MaTK),
     enabled: !!decode?.MaTK,
   });
 
-  const { data: roomData } = useQuery({
+  const { data: roomData, isLoading: roomLoading } = useQuery({
     queryKey: ["roomClient"],
     queryFn: () => getRoomByAccountIdService(decode?.MaTK),
     enabled: !!decode?.MaTK,
@@ -49,74 +43,48 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
   const currentDate = new Date();
 
   useEffect(() => {
-    if (roomData?.DT?.MaPT) {
-      setFormData((prev) => ({
-        ...prev,
-        MaPT: roomData.DT.MaPT,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        MaPT: "",
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      MaPT: roomData?.DT?.MaPT || "",
+    }));
   }, [roomData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const resetForm = () => {
-    setFormData({
-      MaPT: roomData?.DT?.MaPT || "",
-      MoTa: "",
-    });
+    setFormData({ MaPT: roomData?.DT?.MaPT || "", MoTa: "" });
   };
 
   const mutationCreateReport = useMutation({
     mutationFn: async ({ data }) => {
       const res = await createIssueService(data);
-      if (res.EC !== 0) {
-        throw new Error(res.EM || "Có lỗi xảy ra khi thêm báo cáo sự cố");
-      }
+      if (res.EC !== 0) throw new Error(res.EM || "Lỗi khi thêm báo cáo sự cố");
       return res;
     },
     onSuccess: (data) => {
       toast.success(data.EM);
       resetForm();
       setTimeout(() => onOpenChange(false), 300);
-      onOpenChange(false);
     },
     onError: (error) => {
       console.error("Add report error:", error);
       const errorMessage = error.message.includes("foreign key constraint")
-        ? "Thêm báo cáo thất bại: Phòng không hợp lệ. Vui lòng kiểm tra lại."
-        : error.message || "Đã có lỗi xảy ra khi thêm báo cáo sự cố";
+        ? "Thêm báo cáo thất bại: Phòng không hợp lệ"
+        : error.message;
       toast.error(errorMessage);
     },
   });
 
   const validateForm = () => {
-    if (!decode) {
-      toast.error("Vui lòng đăng nhập để báo cáo sự cố");
-      return false;
-    }
-    if (!formData.MoTa.trim()) {
-      toast.error("Mô tả không được để trống");
-      return false;
-    }
-    if (!formData.MaPT) {
-      toast.error("Phòng không được để trống");
-      return false;
-    }
-    if (!houseData?.DT && !roomData?.DT) {
-      toast.error("Không hợp lệ: Bạn không đang thuê nhà hoặc phòng");
-      return false;
-    }
+    if (!decode) return toast.error("Vui lòng đăng nhập"), false;
+    if (!formData.MoTa.trim())
+      return toast.error("Mô tả không được để trống"), false;
+    if (!formData.MaPT) return toast.error("Phòng không được để trống"), false;
+    if (!houseData?.DT && !roomData?.DT)
+      return toast.error("Bạn không đang thuê nhà hoặc phòng"), false;
     return true;
   };
 
@@ -134,10 +102,10 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
 
   const handleClose = () => {
     onOpenChange(false);
-    resetForm();
   };
 
-  const isFormDisabled = mutationCreateReport.isPending;
+  const isFormDisabled =
+    mutationCreateReport.isPending || houseLoading || roomLoading;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -155,11 +123,19 @@ const ModalAddIssueClient = ({ open, onOpenChange }) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <Label className="font-semibold">Nhà:</Label>
-                <span>{houseData?.DT?.TenNha || "Chưa có nhà"}</span>
+                <span>
+                  {houseLoading
+                    ? "Đang tải..."
+                    : houseData?.DT?.TenNha || "Chưa có nhà"}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Label className="font-semibold">Phòng:</Label>
-                <span>{roomData?.DT?.TenPhong || "Chưa có phòng"}</span>
+                <span>
+                  {roomLoading
+                    ? "Đang tải..."
+                    : roomData?.DT?.TenPhong || "Chưa có phòng"}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-2">

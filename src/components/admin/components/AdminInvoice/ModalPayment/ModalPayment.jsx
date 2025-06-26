@@ -19,10 +19,9 @@ import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { toast } from "react-toastify";
 
-// Hàm để chuyển chuỗi định dạng (ví dụ: "2,000,000") thành số (2000000)
 const parseCurrency = (value) => {
   if (!value) return 0;
-  const numberString = value.replace(/\D/g, ""); // Loại bỏ tất cả ký tự không phải số
+  const numberString = value.replace(/\D/g, "");
   return Number(numberString);
 };
 
@@ -31,11 +30,10 @@ const ModalPayment = ({ invoiceId, invoiceData }) => {
   const [open, setOpen] = useState(false);
   const [paymentData, setPaymentData] = useState({
     ngaythanhtoan: new Date().toISOString().split("T")[0],
-    sotien: "", // Lưu giá trị dưới dạng chuỗi định dạng
+    sotien: "",
   });
   const [error, setError] = useState("");
 
-  // Lấy danh sách thanh toán của hóa đơn
   const { data: payments } = useQuery({
     queryKey: ["payments", invoiceId],
     queryFn: () => getPaymentByInvoiceIdService(invoiceId),
@@ -71,10 +69,8 @@ const ModalPayment = ({ invoiceId, invoiceData }) => {
     setError("");
     const { ngaythanhtoan, sotien } = paymentData;
 
-    // Chuyển sotien từ chuỗi định dạng thành số
     const sotienNumber = parseCurrency(sotien);
 
-    // Kiểm tra dữ liệu đầu vào
     if (!ngaythanhtoan) {
       toast.warning("Vui lòng chọn ngày thanh toán!");
       return;
@@ -88,7 +84,6 @@ const ModalPayment = ({ invoiceId, invoiceData }) => {
       return;
     }
 
-    // Gửi dữ liệu thanh toán
     addPaymentMutation.mutate({
       mahd: invoiceId,
       ngaythanhtoan,
@@ -97,14 +92,17 @@ const ModalPayment = ({ invoiceId, invoiceData }) => {
   };
 
   const handleChangeSotien = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, ""); // Loại bỏ ký tự không phải số
+    const rawValue = e.target.value.replace(/\D/g, "");
     setPaymentData({ ...paymentData, sotien: rawValue });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer">
+        <Button
+          className="bg-transparent border-none rounded-none shadow-none outline-none cursor-pointer"
+          disabled={remaining <= 0}
+        >
           <Tooltip>
             <BsCash className="size-4 text-green-600" />
           </Tooltip>
@@ -140,7 +138,7 @@ const ModalPayment = ({ invoiceId, invoiceData }) => {
               value={formatCurrency(paymentData.sotien)}
               onChange={handleChangeSotien}
               placeholder="Nhập số tiền"
-              className="border rounded p-2 w-full shadow-none"
+              className="border rounded p-2 w-full shadow-none text-right"
             />
           </div>
         </div>

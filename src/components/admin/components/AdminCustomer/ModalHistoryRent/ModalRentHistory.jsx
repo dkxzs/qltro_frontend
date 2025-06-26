@@ -39,7 +39,6 @@ const ModalRentHistory = ({ dataHistory }) => {
     setOpen(false);
   };
 
-  console.log("dataHistory", dataHistory);
 
   const formatVietnameseDate = (dateString) => {
     if (!dateString) return "Không xác định";

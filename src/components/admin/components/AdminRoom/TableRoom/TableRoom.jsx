@@ -29,7 +29,6 @@ const TableRoom = ({ roomData, refetch }) => {
     }).format(price);
   };
 
-  console.log("roomData", roomData);
   const handleViewInfo = (roomId) => {
     navigate(`/admin/view-room`, { state: { roomId } });
   };
@@ -72,47 +71,27 @@ const TableRoom = ({ roomData, refetch }) => {
                 key={index}
                 className={index % 2 === 0 ? "bg-blue-50" : ""}
               >
-                <TableCell className="py-2 px-2 text-center">
+                <TableCell className="py-[9px] px-2 text-center">
                   {index + 1}
                 </TableCell>
                 <TableCell
-                  className="py-2 px-5 truncate cursor-pointer"
+                  className="py-[9px] px-5 truncate cursor-pointer"
                   onClick={() => handleViewInfo(room.MaPT)}
                 >
                   {room.TenPhong}
                 </TableCell>
-                <TableCell className="py-2 px-2 truncate">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        {room.LoaiPhong.TenLoaiPhong}
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {room.LoaiPhong.TenLoaiPhong}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                <TableCell className="py-[9px] px-2 truncate">
+                  {room.LoaiPhong.TenLoaiPhong}
                 </TableCell>
-                <TableCell className="py-2 px-2 text-center">
+                <TableCell className="py-[9px] px-2 text-center">
                   {room.DienTich}
                 </TableCell>
-                <TableCell className="py-2 px-2 truncate">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        {room.LoaiPhong?.DonGia
-                          ? formatPrice(room.LoaiPhong?.DonGia)
-                          : "N/A"}
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {room.LoaiPhong?.DonGia
-                          ? formatPrice(room.LoaiPhong?.DonGia)
-                          : "N/A"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                <TableCell className="py-[9px] px-2 truncate">
+                  {room.LoaiPhong?.DonGia
+                    ? formatPrice(room.LoaiPhong?.DonGia)
+                    : "N/A"}
                 </TableCell>
-                <TableCell className="py-2 px-2 truncate">
+                <TableCell className="py-[9px] px-2 truncate">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>{room.MoTa}</TooltipTrigger>
@@ -120,7 +99,7 @@ const TableRoom = ({ roomData, refetch }) => {
                     </Tooltip>
                   </TooltipProvider>
                 </TableCell>
-                <TableCell className="py-2 px-2">
+                <TableCell className="py-[9px] px-2">
                   <div className="flex justify-center">
                     <div
                       className={`px-2 py-1 rounded text-center whitespace-nowrap ${getRoomStatusColor(
@@ -131,7 +110,7 @@ const TableRoom = ({ roomData, refetch }) => {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="py-2 px-2">
+                <TableCell className="py-[9px] px-2">
                   <div className="flex justify-center gap-1">
                     {room.TrangThai === 0 && (
                       <ModalAddContractForEmpty

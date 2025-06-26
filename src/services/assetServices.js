@@ -1,11 +1,11 @@
 import axios from "../utils/axiosCustomize.js";
 
-export const getAllAssetsService = async () => {
+const getAllAssetsService = async () => {
   const res = await axios.get("/asset/get-all-asset");
   return res.data;
 };
 
-export const createAssetService = async (data) => {
+const createAssetService = async (data) => {
   try {
     const res = await axios.post("/asset/create-asset", data);
     return res.data;
@@ -14,7 +14,7 @@ export const createAssetService = async (data) => {
   }
 };
 
-export const updateAssetService = async (id, data) => {
+const updateAssetService = async (id, data) => {
   try {
     const res = await axios.put(`/asset/update-asset/${id}`, data);
     return res.data;
@@ -23,7 +23,7 @@ export const updateAssetService = async (id, data) => {
   }
 };
 
-export const deleteAssetService = async (id) => {
+const deleteAssetService = async (id) => {
   try {
     const res = await axios.delete(`/asset/delete-asset/${id}`);
     return res.data;
@@ -32,7 +32,15 @@ export const deleteAssetService = async (id) => {
   }
 };
 
-export const checkAssetInUseService = async (id) => {
+const checkAssetInUseService = async (id) => {
   const res = await axios.get(`/asset/check-in-use/${id}`);
   return res.data;
+};
+
+export {
+  getAllAssetsService,
+  createAssetService,
+  updateAssetService,
+  deleteAssetService,
+  checkAssetInUseService,
 };

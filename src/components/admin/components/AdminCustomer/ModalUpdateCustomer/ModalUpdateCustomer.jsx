@@ -18,17 +18,12 @@ import {
 import { deleteImageService } from "@/services/imageServices";
 import axios from "@/utils/axiosCustomize";
 import { formatDateForInput } from "@/utils/dateFormat";
+import imagekitConfig from "@/utils/imagekit";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2, SquarePen, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
 
 const ModalUpdateCustomer = ({ dataUpdate, refetch }) => {
   const date = new Date().toISOString().split("T")[0];

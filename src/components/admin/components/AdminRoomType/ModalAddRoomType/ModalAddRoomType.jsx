@@ -97,19 +97,11 @@ const ModalAddRoomType = ({ refetch }) => {
         ...formData,
         DonGia: parseInt(formData.DonGia.replace(/\./g, "")),
       };
-      mutationCreateRoomType.mutate(dataToSubmit);
+      mutationCreateRoomType.mutate({ data: dataToSubmit });
     }
   };
 
   const handleClose = () => {
-    const hasUnsavedChanges =
-      formData.TenLoaiPhong || formData.DonGia || formData.MoTa;
-    if (
-      hasUnsavedChanges &&
-      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
-    ) {
-      return;
-    }
     setOpen(false);
     resetForm();
   };

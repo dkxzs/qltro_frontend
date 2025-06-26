@@ -9,7 +9,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getAllIssueService } from "@/services/issueService";
+import {
+  getAllIssueService,
+  getAllIssueStatusService,
+} from "@/services/issueService";
 import { exportToExcel } from "@/utils/exportToExcel";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -18,19 +21,24 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import ModalAddIssue from "./ModalAddIssue/ModalAddIssue";
 import TableIssue from "./TableIssue/TableIssue";
+import Pagination from "../Pagination/Pagination";
 
 const AdminIssue = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
 
-  const {
-    data: reportData,
-    isLoading,
-    refetch,
-  } = useQuery({
+  const { data: reportData, refetch } = useQuery({
     queryKey: ["baoCaoSuCo"],
     queryFn: getAllIssueService,
+  });
+
+  // eslint-disable-next-line no-unused-vars
+  const { data: statusData, refetch: refetchStatus } = useQuery({
+    queryKey: ["issue"],
+    queryFn: () => getAllIssueStatusService(),
   });
 
   const filteredReportData = reportData?.DT
@@ -38,6 +46,17 @@ const AdminIssue = () => {
         report.MoTa.toLowerCase().includes(searchText.toLowerCase())
       )
     : [];
+
+  const totalPages = Math.ceil(filteredReportData.length / itemsPerPage);
+
+  const paginatedReportData = filteredReportData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleExportExcel = () => {
     if (!filteredReportData || filteredReportData.length === 0) {
@@ -123,7 +142,10 @@ const AdminIssue = () => {
                     placeholder="Nhập mô tả sự cố"
                     className="flex-1 rounded outline-none shadow-none"
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      setCurrentPage(1);
+                    }}
                   />
                 </div>
               </div>
@@ -139,6 +161,7 @@ const AdminIssue = () => {
             open={isModalOpen}
             onOpenChange={setIsModalOpen}
             refetch={refetch}
+            refetchStatus={refetchStatus}
           />
           <Button
             className="bg-yellow-500 hover:bg-yellow-600 text-white rounded cursor-pointer hover:text-white"
@@ -150,13 +173,22 @@ const AdminIssue = () => {
         </div>
       </div>
 
-      <div className="rounded border overflow-hidden">
-        {isLoading ? (
-          <div className="p-4 text-center">Đang tải dữ liệu...</div>
-        ) : (
-          <TableIssue reportData={filteredReportData} refetch={refetch} />
-        )}
+      <div className="rounded overflow-hidden min-h-[400px]">
+        <TableIssue
+          reportData={paginatedReportData}
+          refetch={refetch}
+          refetchStatus={refetchStatus}
+        />
       </div>
+      {filteredReportData.length > 0 && (
+        <div className="flex justify-center mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

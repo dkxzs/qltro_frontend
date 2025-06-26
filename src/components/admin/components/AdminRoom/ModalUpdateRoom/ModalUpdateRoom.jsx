@@ -39,12 +39,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import axios from "@/utils/axiosCustomize";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
+import imagekitConfig from "@/utils/imagekit";
+import ModalDeleteMember from "../ModalDeleteMember/ModalDeleteMember";
 
 const formatDateForInput = (dateString) => {
   if (!dateString) return "";
@@ -77,7 +73,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     { value: "3", label: "Đang sửa chữa" },
   ];
 
-  console.log("dataUpdate in ModalUpdateRoom:", dataUpdate);
   const [formData, setFormData] = useState({
     tenPhong: "",
     maNha: "",
@@ -89,8 +84,11 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     tieuDe: "",
   });
 
-  // API queries
-  const { data: membersData, isLoading: isLoadingMembers } = useQuery({
+  const {
+    data: membersData,
+    isLoading: isLoadingMembers,
+    refetch: refetchMember,
+  } = useQuery({
     queryKey: ["members", dataUpdate?.MaPT],
     queryFn: async () => {
       const response = await getAllMembersService();
@@ -169,7 +167,8 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
         (service) => service.BatBuoc === true
       ).map((service) => service.MaDV.toString());
       const initialQuantities = dataService.DT.reduce((acc, service) => {
-        acc[service.MaDV.toString()] = 1;
+        acc[service.MaDV.toString()] =
+          service.CachTinhPhi === "SO_LUONG" ? 1 : 1; // Số lượng mặc định
         return acc;
       }, {});
       setSelectedServices(defaultServiceIds);
@@ -253,13 +252,11 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   };
 
   const handleRemoveExistingImage = (fileId) => {
-    if (!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
     setExistingImages((prev) => prev.filter((img) => img.FileId !== fileId));
     setImagesToDelete((prev) => [...prev, fileId]);
   };
 
   const handleRemoveNewImage = (index) => {
-    if (!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
     setTempFiles((prev) => prev.filter((_, i) => i !== index));
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
@@ -270,7 +267,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
     };
   }, [previewImages]);
 
-  // Xử lý form
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "dienTich") {
@@ -374,7 +370,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   const isServiceChangeAllowed = () => {
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
-    return currentDay <= 4;
+    return currentDay <= 5;
   };
 
   const isDefaultService = (service) => service.BatBuoc === true;
@@ -526,20 +522,13 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
   };
 
   const handleClose = () => {
-    if (
-      (isFormDataChanged() || isServicesChanged() || isMembersChanged()) &&
-      !window.confirm("Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ mất.")
-    ) {
-      return;
-    }
     setOpen(false);
     setTempFiles([]);
     setPreviewImages([]);
     setImagesToDelete([]);
   };
 
-  const isFormDisabled =
-    mutationUpdateRoom.isPending ||
+  const isFormLoading =
     isLoadingRoomType ||
     isLoadingService ||
     isLoadingRoomServices ||
@@ -602,7 +591,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                 }}
               >
                 <TabsContent value="tab1" className="pt-4">
-                  {isFormDisabled ? (
+                  {isFormLoading ? (
                     <div className="flex justify-center items-center py-8">
                       <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                       <span className="ml-2">Đang tải dữ liệu...</span>
@@ -618,7 +607,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           onChange={handleChange}
                           placeholder="Nhập tên phòng"
                           className="w-full rounded mt-2 shadow-none"
-                          disabled={hasRent || isFormDisabled}
+                          disabled={hasRent}
                         />
                       </div>
                       <div className="w-full">
@@ -628,7 +617,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           onValueChange={(value) =>
                             handleSelectChange("maLoaiPhong", value)
                           }
-                          disabled={hasRent || isFormDisabled}
+                          disabled={hasRent}
                         >
                           <SelectTrigger
                             id="maLoaiPhong"
@@ -658,7 +647,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           onChange={handleChange}
                           placeholder="Nhập diện tích"
                           className="w-full rounded mt-2 shadow-none"
-                          disabled={isFormDisabled}
                         />
                       </div>
                       <div className="w-full">
@@ -673,7 +661,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           placeholder="Nhập số lượng"
                           type="number"
                           className="w-full rounded mt-2 shadow-none"
-                          disabled={isFormDisabled}
                         />
                       </div>
                       <div className="w-full">
@@ -685,7 +672,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           onChange={handleChange}
                           placeholder="Nhập tiêu đề phòng"
                           className="w-full rounded mt-2 shadow-none"
-                          disabled={isFormDisabled}
                         />
                       </div>
                       <div className="w-full">
@@ -695,7 +681,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           onValueChange={(value) =>
                             handleSelectChange("trangThai", value)
                           }
-                          disabled={hasRent || isFormDisabled}
+                          disabled={hasRent}
                         >
                           <SelectTrigger
                             id="trangThai"
@@ -726,7 +712,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           placeholder="Nhập mô tả phòng"
                           className="w-full rounded mt-2 shadow-none"
                           rows={3}
-                          disabled={isFormDisabled}
                         />
                       </div>
                       <div className="w-full col-span-2">
@@ -737,7 +722,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                               <img
                                 src={img.Url}
                                 alt={`Existing ${index + 1}`}
-                                className="max-w-[150px h-36 object-cover rounded"
+                                className="max-w-[150px] h-36 object-cover rounded"
                               />
                               <Button
                                 type="button"
@@ -747,7 +732,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                 onClick={() =>
                                   handleRemoveExistingImage(img.FileId)
                                 }
-                                disabled={isFormDisabled}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -758,7 +742,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                               <img
                                 src={src}
                                 alt={`New ${index + 1}`}
-                                className="max-w-[150px h-36 object-cover rounded"
+                                className="max-w-[150px] h-36 object-cover rounded"
                               />
                               <Button
                                 type="button"
@@ -766,7 +750,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                 size="sm"
                                 className="absolute top-2 right-2 rounded-full p-1"
                                 onClick={() => handleRemoveNewImage(index)}
-                                disabled={isFormDisabled}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -774,9 +757,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                           ))}
                           <div
                             className="flex items-center w-36 h-36 justify-center border-2 border-dashed border-gray-300 rounded p-4 cursor-pointer"
-                            onClick={() =>
-                              !isFormDisabled && fileInputRef.current.click()
-                            }
+                            onClick={() => fileInputRef.current.click()}
                           >
                             <Plus />
                             Chọn ảnh
@@ -786,7 +767,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                             accept="image/*"
                             multiple
                             onChange={handleImageSelect}
-                            disabled={isFormDisabled}
                             className="hidden"
                             ref={fileInputRef}
                           />
@@ -796,9 +776,9 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                   )}
                 </TabsContent>
                 <TabsContent value="tab2" className="pt-4">
-                  {isFormDisabled ? (
+                  {isFormLoading ? (
                     <div className="flex justify-center items-center py-8">
-                      <Loader2 className="h-8 w-8 rounded-full animate-spin" />
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                       <span className="ml-2">Đang tải dữ liệu...</span>
                     </div>
                   ) : hasRent &&
@@ -809,7 +789,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                         Dịch vụ phòng
                       </Label>
                       <Label className="font-normal mb-2 text-red-500 block">
-                        Lưu ý: chỉ có thể thay đổi dịch vụ trong 4 ngày đầu của
+                        Lưu ý: Chỉ có thể thay đổi dịch vụ trong 5 ngày đầu của
                         tháng
                       </Label>
                       <div className="mt-2 grid grid-cols-1 gap-2">
@@ -832,8 +812,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                 }
                                 disabled={
                                   isDefaultService(service) ||
-                                  !isServiceChangeAllowed() ||
-                                  isFormDisabled
+                                  !isServiceChangeAllowed()
                                 }
                                 className="h-5 w-5"
                               />
@@ -848,24 +827,26 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                               <span className="text-sm text-gray-600 w-32 text-right">
                                 {formatCurrency(service.DonGia || 0)} VNĐ
                               </span>
-                              <Input
-                                type="number"
-                                value={
-                                  serviceQuantities[service.MaDV.toString()] ??
-                                  ""
-                                }
-                                onChange={(e) =>
-                                  handleQuantityChange(
-                                    service.MaDV.toString(),
-                                    e.target.value
-                                  )
-                                }
-                                disabled={
-                                  isElectricityOrWater(service) ||
-                                  isFormDisabled
-                                }
-                                className="w-20 h-8 text-center rounded"
-                              />
+                              {service.CachTinhPhi === "SO_LUONG" &&
+                              !isElectricityOrWater(service) ? (
+                                <Input
+                                  type="number"
+                                  value={
+                                    serviceQuantities[
+                                      service.MaDV.toString()
+                                    ] ?? ""
+                                  }
+                                  onChange={(e) =>
+                                    handleQuantityChange(
+                                      service.MaDV.toString(),
+                                      e.target.value
+                                    )
+                                  }
+                                  disabled={!isServiceChangeAllowed()}
+                                  className="w-20 h-8 text-center rounded"
+                                  min="0"
+                                />
+                              ) : null}
                             </div>
                           </div>
                         ))}
@@ -896,9 +877,9 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                   )}
                 </TabsContent>
                 <TabsContent value="tab3" className="pt-4">
-                  {isFormDisabled ? (
+                  {isFormLoading ? (
                     <div className="flex justify-center items-center py-8">
-                      <Loader2 className="h-8 w-8 rounded-full animate-spin" />
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                       <span className="ml-2">Đang tải dữ liệu...</span>
                     </div>
                   ) : hasRent && members.length > 0 ? (
@@ -909,8 +890,16 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                       <div className="mt-2 max-h-[50vh] overflow-y-auto">
                         {members.map((member, index) => (
                           <div key={index} className="mb-6">
-                            <Label className="text-md font-semibold">
-                              Thành viên {index + 1}
+                            <Label className="text-md font-semibold w-full">
+                              <div className="flex justify-between items-center w-full">
+                                <div>Thành viên {index + 1}</div>
+                                <div>
+                                  <ModalDeleteMember
+                                    dataDelete={member}
+                                    refetch={refetchMember}
+                                  />
+                                </div>
+                              </div>
                             </Label>
                             <div className="grid grid-cols-2 gap-6 w-full mt-2">
                               <div className="w-full">
@@ -923,7 +912,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                   value={member.TenTV}
                                   onChange={(e) => handleMemberChange(index, e)}
                                   className="w-full rounded mt-2 shadow-none"
-                                  disabled={isFormDisabled}
                                 />
                               </div>
                               <div className="w-full">
@@ -934,7 +922,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                   value={member.CCCD}
                                   onChange={(e) => handleMemberChange(index, e)}
                                   className="w-full rounded mt-2 shadow-none"
-                                  disabled={isFormDisabled}
                                 />
                               </div>
                               <div className="w-full">
@@ -948,7 +935,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                   value={member.NgaySinh}
                                   onChange={(e) => handleMemberChange(index, e)}
                                   className="w-full rounded mt-2 shadow-none"
-                                  disabled={isFormDisabled}
                                 />
                               </div>
                               <div className="w-full">
@@ -961,7 +947,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                   value={member.DienThoai}
                                   onChange={(e) => handleMemberChange(index, e)}
                                   className="w-full rounded mt-2 shadow-none"
-                                  disabled={isFormDisabled}
                                 />
                               </div>
                               <div className="w-full col-span-2">
@@ -975,7 +960,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                   onChange={(e) => handleMemberChange(index, e)}
                                   className="w-full rounded mt-2 shadow-none"
                                   rows={3}
-                                  disabled={isFormDisabled}
                                 />
                               </div>
                               <div className="w-full">
@@ -987,7 +971,6 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                                       handleMemberStatusChange(index, checked)
                                     }
                                     className="h-5 w-5 rounded cursor-pointer"
-                                    disabled={isFormDisabled}
                                   />
                                   <Label htmlFor={`trangThai-${index}`}>
                                     Trạng thái (đang ở)
@@ -1029,7 +1012,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
             <DialogFooter className="pt-2">
               <Button
                 type="submit"
-                disabled={isFormDisabled}
+                disabled={isFormLoading || mutationUpdateRoom.isPending}
                 className="rounded cursor-pointer flex items-center gap-2 bg-blue-600"
                 aria-label="Cập nhật thông tin phòng"
               >
@@ -1046,7 +1029,7 @@ const ModalUpdateRoom = ({ dataUpdate, refetch }) => {
                 type="button"
                 onClick={handleClose}
                 className="rounded cursor-pointer"
-                disabled={isFormDisabled}
+                disabled={isFormLoading || mutationUpdateRoom.isPending}
                 variant="destructive"
                 aria-label="Đóng dialog cập nhật phòng"
               >

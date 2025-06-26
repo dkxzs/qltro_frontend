@@ -11,7 +11,6 @@ import ModalUpdateDeposit from "../ModalUpdateDeposit/ModalUpdateDeposit";
 import ModalAddContractForEmpty from "../ModalAddContractForDeposit/ModalAddContractForDeposit";
 
 const TableDeposit = ({ depositData, refetch }) => {
-  console.log(depositData);
   return (
     <>
       <Table>
@@ -42,7 +41,7 @@ const TableDeposit = ({ depositData, refetch }) => {
                 <TableCell>
                   {new Date(deposit.NgayDatCoc).toLocaleDateString()}
                 </TableCell>
-                <TableCell>{deposit.GhiChu || "-"}</TableCell>
+                <TableCell>{deposit.GhiChu || ""}</TableCell>
                 <TableCell>{deposit.TrangThai}</TableCell>
                 <TableCell>
                   {deposit.TrangThai === "Đang cọc" && (

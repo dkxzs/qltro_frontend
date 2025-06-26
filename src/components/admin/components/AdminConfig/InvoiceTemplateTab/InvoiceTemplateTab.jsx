@@ -5,17 +5,12 @@ import { getAdminService, updateAdminService } from "@/services/adminServices";
 import { deleteImageService } from "@/services/imageServices";
 import axios from "@/utils/axiosCustomize";
 import { formatCurrency } from "@/utils/formatCurrency";
+import imagekitConfig from "@/utils/imagekit";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
 
 const InvoiceTemplateTab = () => {
   const [personalInfo, setPersonalInfoLocal] = useState({

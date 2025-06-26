@@ -42,20 +42,17 @@ const AdminExpense = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(7);
 
-  // Lấy danh sách nhà
   const { data: dataHouse } = useQuery({
     queryKey: ["houses"],
     queryFn: () => getAllHouseService(),
   });
 
-  // Lấy danh sách phòng theo nhà
   const { data: dataRoom, refetch: refetchRooms } = useQuery({
     queryKey: ["rooms", selectedHouse],
     queryFn: () => getRoomByIdService(selectedHouse),
     enabled: !!selectedHouse,
   });
 
-  // Xác định queryFn dựa trên bộ lọc
   const queryFn = async () => {
     const [year, month] = selectedMonthYear ? selectedMonthYear.split("-") : [];
 
@@ -76,7 +73,6 @@ const AdminExpense = () => {
     return getAllExpensesService();
   };
 
-  // Lấy chi phí phát sinh dựa trên bộ lọc
   const { data: expenseData, refetch } = useQuery({
     queryKey: ["expenses", selectedHouse, selectedRoom, selectedMonthYear],
     queryFn,
@@ -91,10 +87,9 @@ const AdminExpense = () => {
     }
   }, [selectedHouse, refetchRooms]);
 
-  // Reset trang 1 và refetch khi bộ lọc thay đổi
   useEffect(() => {
     setCurrentPage(1);
-    refetch(); // Đảm bảo gọi lại API khi bộ lọc thay đổi
+    refetch();
   }, [selectedHouse, selectedRoom, selectedMonthYear, refetch]);
 
   // Reset nhà và phòng khi chọn tháng/năm
@@ -102,7 +97,7 @@ const AdminExpense = () => {
     if (selectedMonthYear) {
       setSelectedHouse("");
       setSelectedRoom("");
-      refetch(); // Gọi lại API khi chuyển sang lọc tháng/năm
+      refetch();
     }
   }, [selectedMonthYear]);
 
@@ -122,7 +117,7 @@ const AdminExpense = () => {
   const handleMonthYearChange = (value) => {
     setSelectedMonthYear(value);
     setSelectedHouse("");
-    setSelectedRoom(""); // Reset nhà và phòng khi chọn tháng/năm
+    setSelectedRoom("");
     setCurrentPage(1);
   };
 
@@ -141,7 +136,6 @@ const AdminExpense = () => {
     setCurrentPage(pageNumber);
   };
 
-  // Hàm định dạng tiền tệ
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -149,19 +143,17 @@ const AdminExpense = () => {
     }).format(amount);
   };
 
-  // Hàm xử lý xuất Excel
   const handleExportExcel = async () => {
     if (!filteredExpenseData || filteredExpenseData.length === 0) {
       toast.warning("Không có dữ liệu để xuất");
       return;
     }
 
-    // Định nghĩa các cột dựa trên TableExpense
     const headers = [
       {
         key: "STT",
         label: "STT",
-        format: (_, index) => index + 1, // Tính STT dựa trên index
+        format: (_, index) => index + 1,
       },
       {
         path: "PhongTro.TenPhong",
@@ -171,7 +163,7 @@ const AdminExpense = () => {
       {
         key: "ThoiGian",
         label: "Thời gian",
-        format: (_, row) => `${row.Thang}/${row.Nam}`, // Ghép Thang và Nam
+        format: (_, row) => `${row.Thang}/${row.Nam}`,
       },
       {
         key: "NguoiChiTra",
@@ -329,7 +321,7 @@ const AdminExpense = () => {
         </div>
       </div>
 
-      <div className="min-h-[380px] rounded">
+      <div className="min-h-[410px] rounded">
         <div className="rounded border overflow-hidden">
           <TableExpense expenseData={paginatedData} refetch={refetch} />
         </div>

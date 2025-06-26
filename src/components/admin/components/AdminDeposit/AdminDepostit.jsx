@@ -24,7 +24,7 @@ const AdminDeposit = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(6);
 
   const { data: depositData, refetch } = useQuery({
     queryKey: ["deposit"],
@@ -78,8 +78,6 @@ const AdminDeposit = () => {
       );
     }
   };
-
-  console.log(depositData);
 
   return (
     <div className="p-2">
@@ -152,14 +150,14 @@ const AdminDeposit = () => {
         </div>
       </div>
 
-      <div className="min-h-[380px] rounded w-full">
+      <div className="min-h-[400px] rounded w-full">
         <div className="rounded border">
           <TableDeposit depositData={filteredDepositData} refetch={refetch} />
         </div>
       </div>
 
       {filteredDepositData?.length > 0 && (
-        <div className="mt-4">
+        <div className="mt-4 flex justify-center">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

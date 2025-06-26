@@ -13,7 +13,7 @@ const TableStaff = (props) => {
   const { employeeData, refetch } = props;
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto border rounded">
       <Table className="table-auto min-w-full">
         <TableHeader>
           <TableRow className="bg-gray-50 border-b">
@@ -60,7 +60,9 @@ const TableStaff = (props) => {
                 {employee.HoTen}
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[150px]">
-                {employee.NgaySinh ? new Date(employee.NgaySinh).toLocaleDateString() : "-"}
+                {employee.NgaySinh
+                  ? new Date(employee.NgaySinh).toLocaleDateString()
+                  : "-"}
               </TableCell>
               <TableCell className="py-2 px-4 truncate max-w-[100px]">
                 {employee.GioiTinh || "-"}

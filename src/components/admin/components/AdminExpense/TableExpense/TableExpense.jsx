@@ -20,10 +20,6 @@ const TableExpense = ({ expenseData, refetch }) => {
   };
 
   const isPastMonth = (thang, nam) => {
-    console.log(
-      `Thang: ${thang} (type: ${typeof thang}), Nam: ${nam} (type: ${typeof nam})`
-    );
-
     const parsedThang = Number(thang);
     const parsedNam = Number(nam);
 
@@ -34,9 +30,6 @@ const TableExpense = ({ expenseData, refetch }) => {
       parsedThang > 12 ||
       parsedNam < 1900
     ) {
-      console.log(
-        `Invalid Thang: ${parsedThang}, Nam: ${parsedNam}, returning false`
-      );
       return false;
     }
 
@@ -47,23 +40,12 @@ const TableExpense = ({ expenseData, refetch }) => {
     const isPast =
       parsedNam < currentYear ||
       (parsedNam === currentYear && parsedThang < currentMonth);
-
-    console.log(
-      `Parsed Thang: ${parsedThang}, Nam: ${parsedNam}, isPastMonth: ${isPast}`
-    );
     return isPast;
   };
 
   const isLocked = (expense) => {
     const pastMonth = isPastMonth(expense.Thang, expense.Nam);
-    const hasInvoice = expense.hasInvoice || false; // Từ API
-    console.log(
-      `Expense MaCPPS: ${
-        expense.MaCPPS
-      }, isPastMonth: ${pastMonth}, hasInvoice: ${hasInvoice}, isLocked: ${
-        pastMonth || hasInvoice
-      }`
-    );
+    const hasInvoice = expense.hasInvoice || false;
     return pastMonth || hasInvoice;
   };
 

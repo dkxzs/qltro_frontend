@@ -77,7 +77,7 @@ const ModalForgotPassword = ({ open, onOpenChange }) => {
       toast.error("Vui lòng nhập mã OTP");
       return;
     }
-    setStep(3); // Chuyển sang bước đổi mật khẩu
+    setStep(3);
   };
 
   const handlePasswordSubmit = (e) => {

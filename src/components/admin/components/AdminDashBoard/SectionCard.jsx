@@ -89,14 +89,21 @@ const SectionCards = () => {
     queryFn: () => getAllExpensesService(),
   });
 
-  const totalExpense = expenseData?.DT.reduce((acc, item) => {
-    if (item.NguoiChiTra == "Chủ trọ" && item.Thang == date.getMonth() + 1) {
-      return acc + item.TongTien;
-    }
-  }, 0);
+  // Sửa lỗi tính totalExpense
+  const totalExpense = expenseData?.DT
+    ? expenseData.DT.reduce((acc, item) => {
+        if (
+          item.NguoiChiTra === "Chủ trọ" &&
+          item.Thang === date.getMonth() + 1
+        ) {
+          return acc + item.TongTien;
+        }
+        return acc; // Luôn trả về acc nếu không thỏa mãn điều kiện
+      }, 0)
+    : 0;
 
   return (
-    <div className=" @xl/main:grid-cols-2 @5xl/main:grid-cols-5 grid grid-cols-1 gap-4 ">
+    <div className="@xl/main:grid-cols-2 @5xl/main:grid-cols-5 grid grid-cols-1 gap-4">
       <Card className="@container/card py-2 justify-center gap-3 rounded-[6px] shadow-none border-l-6 border-l-blue-500">
         <CardHeader className="relative">
           <CardDescription>
@@ -189,7 +196,7 @@ const SectionCards = () => {
             <Wallet className="text-orange-500" />
           </CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {formatCurrency(totalExpense)} đ
+            {formatCurrency(totalExpense || 0)} đ
           </CardTitle>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1 text-sm">

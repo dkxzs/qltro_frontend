@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const AboutPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 mt-10">
-      {/* Hero Section */}
       <section className="bg-blue-500 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold mb-4">Giới thiệu Tro247</h1>
@@ -15,7 +14,6 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Sứ mệnh và Mục tiêu */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -51,72 +49,6 @@ const AboutPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Đội ngũ */}
-      {/* <section className="bg-gray-100 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-blue-900 mb-8">
-            Đội ngũ của chúng tôi
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="shadow-none rounded-lg border text-center">
-              <CardContent className="p-6">
-                <Avatar className="w-16 h-16 mx-auto mb-4">
-                  <AvatarFallback className="bg-blue-500 text-white">
-                    NV
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Nguyễn Văn A
-                </h3>
-                <p className="text-gray-600">Nhà sáng lập</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-none rounded-lg border text-center">
-              <CardContent className="p-6">
-                <Avatar className="w-16 h-16 mx-auto mb-4">
-                  <AvatarFallback className="bg-yellow-500 text-white">
-                    HT
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Hoàng Thị B
-                </h3>
-                <p className="text-gray-600">Trưởng nhóm kỹ thuật</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-none rounded-lg border text-center">
-              <CardContent className="p-6">
-                <Avatar className="w-16 h-16 mx-auto mb-4">
-                  <AvatarFallback className="bg-blue-500 text-white">
-                    LC
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Lê Văn C
-                </h3>
-                <p className="text-gray-600">Chuyên viên hỗ trợ</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-none rounded-lg border text-center">
-              <CardContent className="p-6">
-                <Avatar className="w-16 h-16 mx-auto mb-4">
-                  <AvatarFallback className="bg-yellow-500 text-white">
-                    PD
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Phạm Thị D
-                </h3>
-                <p className="text-gray-600">Chuyên viên marketing</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section> */}
 
       {/* Liên hệ */}
       <section className="py-12">

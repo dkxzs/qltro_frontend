@@ -1,6 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Package } from "lucide-react";
-import { useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,12 +6,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import TableAsset from "./TableAsset/TableAsset";
-import ModalAddAsset from "./ModalAddAsset/ModalAddAsset";
-import Pagination from "../Pagination/Pagination";
-import { useQuery } from "@tanstack/react-query";
 import { getAllAssetsService } from "@/services/assetServices";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, Package } from "lucide-react";
+import { useState } from "react";
+import Pagination from "../Pagination/Pagination";
+import ModalAddAsset from "./ModalAddAsset/ModalAddAsset";
+import TableAsset from "./TableAsset/TableAsset";
 
 const AdminAsset = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
@@ -33,7 +33,6 @@ const AdminAsset = () => {
       )
     : [];
 
-  // Phân trang
   const totalItems = filteredAssetData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const paginatedData = filteredAssetData.slice(

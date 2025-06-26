@@ -137,7 +137,6 @@ const TableRent = ({ filteredData }) => {
   const safeTemplate =
     template && Object.keys(template).length > 0 ? template : {};
 
-  // Hàm in hợp đồng
   const printContract = (rentData) => {
     try {
       setPrintLoading(rentData.MaTP);
@@ -383,38 +382,38 @@ const TableRent = ({ filteredData }) => {
                   key={rent.MaTP}
                   className="hover:bg-gray-50 transition-colors"
                 >
-                  <TableCell className="text-center py-2">
+                  <TableCell className="text-center py-[9px]">
                     {rent.MaTP}
                   </TableCell>
                   <TableCell
-                    className="text-left py-2 cursor-pointer"
+                    className="text-left py-[9px] cursor-pointer"
                     onClick={() => checkInfo(rent)}
                   >
                     {rent.KhachTro?.HoTen || "-"}
                   </TableCell>
-                  <TableCell className="text-left py-2">
+                  <TableCell className="text-left py-[9px]">
                     {rent.PhongTro?.Nha?.TenNha || "-"}
                   </TableCell>
-                  <TableCell className="text-left py-2">
+                  <TableCell className="text-left py-[9px]">
                     {rent.PhongTro?.TenPhong || "-"}
                   </TableCell>
-                  <TableCell className="text-center py-2">
+                  <TableCell className="text-center py-[9px]">
                     {rent.NgayBatDau
                       ? format(new Date(rent.NgayBatDau), "dd/MM/yyyy")
                       : "-"}
                   </TableCell>
-                  <TableCell className="text-center py-2">
+                  <TableCell className="text-center py-[9px]">
                     {rent.NgayKetThuc
                       ? format(new Date(rent.NgayKetThuc), "dd/MM/yyyy")
                       : "-"}
                   </TableCell>
-                  <TableCell className="text-right py-2">
+                  <TableCell className="text-right py-[9px]">
                     {rent.DonGia?.toLocaleString("vi-VN") || 0} VNĐ
                   </TableCell>
-                  <TableCell className="text-right py-2">
+                  <TableCell className="text-right py-[9px]">
                     {rent.DatCoc?.toLocaleString("vi-VN") || 0} VNĐ
                   </TableCell>
-                  <TableCell className="text-center py-2">
+                  <TableCell className="text-center py-[9px]">
                     <div className="flex items-center justify-center gap-2">
                       <ModalViewRent rentData={rent} />
                       <Button

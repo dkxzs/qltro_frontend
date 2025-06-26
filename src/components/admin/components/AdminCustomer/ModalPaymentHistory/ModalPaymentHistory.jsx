@@ -40,14 +40,11 @@ const ModalPaymentHistory = ({ dataPayment }) => {
     setOpen(false);
   };
 
-  // Hàm định dạng ngày theo kiểu Việt Nam (dd/MM/yyyy)
   const formatVietnameseDate = (dateString) => {
     if (!dateString) return "Không xác định";
     const date = new Date(dateString);
     return format(date, "dd/MM/yyyy", { locale: vi });
   };
-
-  console.log("paymentData", paymentData);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -108,9 +105,8 @@ const ModalPaymentHistory = ({ dataPayment }) => {
                       </TableCell>
                       <TableCell>{formatCurrency(item.SoTien)}</TableCell>
                       <TableCell>
-                        Thanh toán tiền phòng {item.TenPhong} - nhà{" "}
-                        {item.TenNha} - tháng{" "}
-                        {new Date(item.NgayThanhToan).getMonth() + 1} năm{" "}
+                        Thanh toán tiền phòng {item.TenPhong} - {item.TenNha} -
+                        tháng {new Date(item.NgayThanhToan).getMonth() + 1} năm{" "}
                         {new Date(item.NgayThanhToan).getFullYear()}
                       </TableCell>
                     </TableRow>

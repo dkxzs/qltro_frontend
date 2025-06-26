@@ -25,7 +25,7 @@ import { Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalAddIssue = ({ refetch }) => {
+const ModalAddIssue = ({ refetch, refetchStatus }) => {
   const [open, setOpen] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
@@ -35,7 +35,6 @@ const ModalAddIssue = ({ refetch }) => {
     MoTa: "",
   });
 
-  // Lấy danh sách nhà
   const { data: houseData, isLoading: houseLoading } = useQuery({
     queryKey: ["houses"],
     queryFn: () => getAllHouseService(),
@@ -46,7 +45,6 @@ const ModalAddIssue = ({ refetch }) => {
     },
   });
 
-  // Lấy danh sách phòng dựa trên mã nhà
   const {
     data: roomData,
     isLoading: roomLoading,
@@ -61,7 +59,6 @@ const ModalAddIssue = ({ refetch }) => {
     },
   });
 
-  // Đặt nhà mặc định là nhà đầu tiên khi dữ liệu nhà được tải
   useEffect(() => {
     if (!houseLoading && houseData?.DT?.length > 0 && !selectedHouse) {
       const firstHouse = houseData.DT[0].MaNha.toString();
@@ -126,6 +123,7 @@ const ModalAddIssue = ({ refetch }) => {
       toast.success(data.EM);
       resetForm();
       setTimeout(() => setOpen(false), 300);
+      refetchStatus();
       refetch();
     },
     onError: (error) => {

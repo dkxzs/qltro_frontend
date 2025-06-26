@@ -12,8 +12,6 @@ import ModalDeleteAsset from "../ModalDeleteAsset/ModalDeleteAsset";
 const TableAsset = ({ assetData, refetch }) => {
   const dataToDisplay = assetData;
 
-  console.log("dataToDisplay", dataToDisplay);
-
   return (
     <div className="w-full overflow-x-auto">
       <Table className="table-auto min-w-full">

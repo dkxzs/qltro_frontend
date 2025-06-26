@@ -1,6 +1,6 @@
 import axios from "../utils/axiosCustomize.js";
 
-export const addPaymentService = async (data) => {
+const addPaymentService = async (data) => {
   try {
     const res = await axios.post("/payment/create-payment", data);
     return res.data;
@@ -9,12 +9,18 @@ export const addPaymentService = async (data) => {
   }
 };
 
-export const getPaymentByInvoiceIdService = async (id) => {
+const getPaymentByInvoiceIdService = async (id) => {
   const res = await axios.get(`/payment/get-payment/${id}`);
   return res.data;
 };
 
-export const getAllPaymentService = async () => {
+const getAllPaymentService = async () => {
   const res = await axios.get("/payment/get-all-payment");
   return res.data;
+};
+
+export {
+  addPaymentService,
+  getPaymentByInvoiceIdService,
+  getAllPaymentService,
 };

@@ -23,7 +23,7 @@ import { Loader2, SquarePen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const ModalUpdateIssue = ({ dataUpdate, refetch }) => {
+const ModalUpdateIssue = ({ dataUpdate, refetch, refetchStatus }) => {
   const [formData, setFormData] = useState({
     MaPT: "",
     MoTa: "",
@@ -79,6 +79,7 @@ const ModalUpdateIssue = ({ dataUpdate, refetch }) => {
       toast.success(data.EM);
       resetForm();
       setTimeout(() => setOpen(false), 300);
+      refetchStatus();
       refetch();
     },
     onError: (error) => {

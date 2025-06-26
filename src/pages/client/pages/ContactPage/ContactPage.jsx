@@ -33,14 +33,12 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 mt-16">
-      {/* Thông tin liên hệ */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center text-blue-900 mb-8">
             Liên hệ với chúng tôi
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            {/* Email */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Email
@@ -54,7 +52,6 @@ const ContactPage = () => {
                 </a>
               </p>
             </div>
-            {/* Số điện thoại */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Số điện thoại
@@ -68,7 +65,6 @@ const ContactPage = () => {
                 </a>
               </p>
             </div>
-            {/* Zalo */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Zalo</h3>
               <p className="text-gray-700 mt-3 flex items-center justify-center">
@@ -83,7 +79,6 @@ const ContactPage = () => {
                 </a>
               </p>
             </div>
-            {/* Địa chỉ */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Địa chỉ
@@ -93,7 +88,6 @@ const ContactPage = () => {
                 <br /> Nam Từ Liêm, Hà Nội
               </p>
             </div>
-            {/* Mạng xã hội */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Mạng xã hội
@@ -129,7 +123,6 @@ const ContactPage = () => {
         </div>
       </section>
 
-      {/* Form liên hệ */}
       <section className="bg-gray-100 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center text-blue-900 mb-8">

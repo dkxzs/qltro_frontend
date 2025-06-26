@@ -44,14 +44,12 @@ const ModalAddExpense = ({ refetch }) => {
   });
   const [displayTongTien, setDisplayTongTien] = useState("");
 
-  // Lấy danh sách nhà
   const { data: houseData, isLoading: houseLoading } = useQuery({
     queryKey: ["houses"],
     queryFn: () => getAllHouseService(),
     enabled: open,
   });
 
-  // Lấy danh sách phòng dựa trên mã nhà
   const { data: roomData, refetch: refetchRooms } = useQuery({
     queryKey: ["rooms", selectedHouse],
     queryFn: () =>
@@ -110,7 +108,6 @@ const ModalAddExpense = ({ refetch }) => {
     }
   };
 
-  // Đặt nhà mặc định là nhà đầu tiên khi dữ liệu nhà được tải
   useEffect(() => {
     setDisplayTongTien(
       formData.TongTien ? formatCurrency(formData.TongTien) : ""
@@ -125,7 +122,6 @@ const ModalAddExpense = ({ refetch }) => {
     }
   }, [houseData, houseLoading, selectedHouse, open]);
 
-  // Reset selectedRoom và MaPT khi selectedHouse thay đổi
   useEffect(() => {
     if (selectedHouse) {
       setSelectedRoom("");
@@ -133,6 +129,21 @@ const ModalAddExpense = ({ refetch }) => {
       refetchRooms();
     }
   }, [selectedHouse, refetchRooms]);
+
+  useEffect(() => {
+    if (formData.NguoiChiTra === "Khách trọ") {
+      const currentYear = new Date().getFullYear();
+      const currentMonth = (new Date().getMonth() + 1)
+        .toString()
+        .padStart(2, "0");
+      setFormData((prev) => ({
+        ...prev,
+        ThangNam: `${currentYear}-${currentMonth}`,
+        Thang: parseInt(currentMonth, 10),
+        Nam: currentYear,
+      }));
+    }
+  }, [formData.NguoiChiTra]);
 
   const handleHouseChange = (value) => {
     setSelectedHouse(value);
@@ -155,6 +166,14 @@ const ModalAddExpense = ({ refetch }) => {
         MaPT: "",
         ApplyAllHouses: false,
         ApplyAllRooms: false,
+        ThangNam:
+          value === "Khách trọ"
+            ? `${new Date().getFullYear()}-${(new Date().getMonth() + 1)
+                .toString()
+                .padStart(2, "0")}`
+            : "",
+        Thang: value === "Khách trọ" ? new Date().getMonth() + 1 : "",
+        Nam: value === "Khách trọ" ? new Date().getFullYear() : "",
       }));
       setSelectedHouse("");
       setSelectedRoom("");
@@ -220,9 +239,27 @@ const ModalAddExpense = ({ refetch }) => {
       toast.error("Vui lòng chọn tháng/năm!");
       return;
     }
-    if (!formData.TongTien) {
-      toast.error("Vui lòng nhập tổng tiền!");
-      return;
+
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    if (formData.NguoiChiTra === "Khách trọ") {
+      if (formData.Thang !== currentMonth || formData.Nam !== currentYear) {
+        toast.error(
+          "Chỉ được thêm chi phí cho tháng hiện tại khi người chi trả là khách trọ!"
+        );
+        return;
+      }
+    } else if (formData.NguoiChiTra === "Chủ trọ") {
+      const minYear = currentYear - 1;
+      const minMonth = currentMonth;
+      const selectedDate = new Date(formData.Nam, formData.Thang - 1);
+      const minDate = new Date(minYear, minMonth - 1);
+      if (selectedDate < minDate) {
+        toast.error(
+          "Chỉ được chọn tháng/năm trong 12 tháng gần nhất khi người chi trả là chủ trọ!"
+        );
+        return;
+      }
     }
 
     const parsedTongTien = parseInt(formData.TongTien, 10);
@@ -252,6 +289,15 @@ const ModalAddExpense = ({ refetch }) => {
     createExpenseMutation.mutate(data);
   };
 
+  // Tính min và max cho input ThangNam
+  const currentYear = new Date().getFullYear();
+  const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
+  const minMonth =
+    formData.NguoiChiTra === "Khách trọ"
+      ? `${currentYear}-${currentMonth}`
+      : `${currentYear - 1}-${currentMonth}`;
+  const maxMonth = `${currentYear}-${currentMonth}`;
+
   return (
     <>
       <Button
@@ -277,11 +323,14 @@ const ModalAddExpense = ({ refetch }) => {
           <DialogHeader>
             <DialogTitle>Thêm chi phí phát sinh</DialogTitle>
             <div id="add-expense-description" className="text-sm text-gray-500">
-              Vui lòng điền thông tin chi phí phát sinh.
+              Vui lòng điền thông tin chi phí phát sinh.{" "}
+              {formData.NguoiChiTra === "Khách trọ"
+                ? "Chỉ cho phép thêm chi phí cho tháng hiện tại."
+                : "Có thể thêm chi phí cho 12 tháng gần nhất."}
             </div>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-6 py-4 bg-gray-50 p-4 rounded-md">
+            <div className="grid gap-6 py-4 p-4 rounded-md">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="NguoiChiTra" className="text-right">
                   Người chi trả <span className="text-red-500">*</span>
@@ -408,6 +457,8 @@ const ModalAddExpense = ({ refetch }) => {
                     className="rounded shadow-none"
                     placeholder="Chọn tháng/năm"
                     aria-label="Chọn tháng/năm"
+                    min={minMonth}
+                    max={maxMonth}
                   />
                 </div>
               </div>
@@ -424,7 +475,7 @@ const ModalAddExpense = ({ refetch }) => {
                     value={displayTongTien}
                     onChange={handleChange}
                     required
-                    className="rounded shadow-none"
+                    className="rounded shadow-none text-right"
                     placeholder="Nhập số tiền (VD: 1,000,000)"
                     aria-label="Nhập tổng tiền"
                   />

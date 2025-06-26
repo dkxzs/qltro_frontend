@@ -18,22 +18,33 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { MdMiscellaneousServices } from "react-icons/md";
+import Pagination from "../Pagination/Pagination";
 
 const AdminService = () => {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
 
   const { data: serviceData, refetch } = useQuery({
     queryKey: ["service"],
     queryFn: getAllServiceService,
   });
 
-  console.log("serviceData", serviceData?.DT);
-
   const filteredData =
     serviceData?.DT?.filter((item) => {
       return item.TenDV.toLowerCase().includes(searchText.toLowerCase());
     }) || [];
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleExportExcel = async () => {
     if (!filteredData || filteredData.length === 0) {
@@ -142,9 +153,19 @@ const AdminService = () => {
         </div>
       </div>
 
-      <div className="border rounded overflow-x-auto">
-        <TableService serviceData={filteredData} refetch={refetch} />
+      <div className=" rounded overflow-x-auto min-h-[400px]">
+        <TableService serviceData={paginatedData} refetch={refetch} />
       </div>
+
+      {filteredData.length > 0 && (
+        <div className="flex justify-end mt-1">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

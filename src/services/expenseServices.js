@@ -1,35 +1,35 @@
 import axios from "../utils/axiosCustomize.js";
 
-export const getAllExpensesService = async () => {
+const getAllExpensesService = async () => {
   const res = await axios.get("/expense/get-all-expense");
   return res.data;
 };
 
-export const getExpensesByHouseService = async (houseId) => {
+const getExpensesByHouseService = async (houseId) => {
   const res = await axios.get(`/expense/get-expenses-by-house/${houseId}`);
   return res.data;
 };
 
-export const getExpensesByHouseAndRoomService = async (houseId, roomId) => {
+const getExpensesByHouseAndRoomService = async (houseId, roomId) => {
   const res = await axios.get(
     `/expense/get-expenses-by-house-and-room/${houseId}/${roomId}`
   );
   return res.data;
 };
 
-export const getExpensesByRoomService = async (roomId) => {
+const getExpensesByRoomService = async (roomId) => {
   const res = await axios.get(`/expense/get-expenses-by-room/${roomId}`);
   return res.data;
 };
 
-export const getExpensesByMonthService = async (month, year) => {
+const getExpensesByMonthService = async (month, year) => {
   const res = await axios.get(
     `/expense/get-expenses-by-month/${month}/${year}`
   );
   return res.data;
 };
 
-export const createExpenseService = async (data) => {
+const createExpenseService = async (data) => {
   try {
     const res = await axios.post("/expense/create-expense", data);
     return res.data;
@@ -40,7 +40,7 @@ export const createExpenseService = async (data) => {
   }
 };
 
-export const updateExpenseService = async (id, data) => {
+const updateExpenseService = async (id, data) => {
   try {
     const res = await axios.put(`/expense/update-expense/${id}`, data);
     return res.data;
@@ -54,7 +54,7 @@ export const updateExpenseService = async (id, data) => {
   }
 };
 
-export const deleteExpenseService = async (id) => {
+const deleteExpenseService = async (id) => {
   try {
     const res = await axios.delete(`/expense/delete-expense/${id}`);
     return res.data;
@@ -65,9 +65,21 @@ export const deleteExpenseService = async (id) => {
   }
 };
 
-export const getExpenseByMonthYearService = async (month, year) => {
+const getExpenseByMonthYearService = async (month, year) => {
   const res = await axios.get(
     `/expense/get-expenses-by-month-year/${month}/${year}`
   );
   return res.data;
+};
+
+export {
+  getAllExpensesService,
+  getExpensesByHouseService,
+  getExpensesByHouseAndRoomService,
+  getExpensesByRoomService,
+  getExpensesByMonthService,
+  createExpenseService,
+  updateExpenseService,
+  deleteExpenseService,
+  getExpenseByMonthYearService,
 };

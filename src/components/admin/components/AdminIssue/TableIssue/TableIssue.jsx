@@ -10,8 +10,9 @@ import ModalUpdateIssue from "../ModalUpdateIssue/ModalUpdateIssue";
 import ModalViewIssue from "../ModalViewIssue/ModaViewIssue";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import ModalDeleteIssue from "../ModalDeleteIssue/ModalDeleteIssue";
 
-const TableIssue = ({ reportData, refetch }) => {
+const TableIssue = ({ reportData, refetch, refetchStatus }) => {
   return (
     <div className="w-full overflow-x-auto rounded border">
       <Table className="table-auto min-w-full">
@@ -19,9 +20,6 @@ const TableIssue = ({ reportData, refetch }) => {
           <TableRow className="bg-gray-50 border-b">
             <TableHead className="py-2 px-4 text-center shrink-0 font-medium w-12">
               STT
-            </TableHead>
-            <TableHead className="py-2 px-4 text-left font-medium">
-              Mã sự cố
             </TableHead>
             <TableHead className="py-2 px-4 text-left font-medium">
               Nhà
@@ -57,9 +55,7 @@ const TableIssue = ({ reportData, refetch }) => {
                 <TableCell className="py-2 px-4 text-center shrink-0 w-12">
                   {index + 1}
                 </TableCell>
-                <TableCell className="py-2 px-4 truncate max-w-[150px]">
-                  {report.MaSC}
-                </TableCell>
+
                 <TableCell className="py-2 px-4 truncate max-w-[200px]">
                   {report.TenNha || "Chưa có thông tin"}
                 </TableCell>
@@ -72,7 +68,7 @@ const TableIssue = ({ reportData, refetch }) => {
                 <TableCell className="py-2 px-4 truncate max-w-[300px]">
                   {report.MoTa}
                 </TableCell>
-                <TableCell className="py-2 px-4 truncate text-center max-w-[300px]">
+                <TableCell className="py-2 px-4 truncate text-ellipsis text-center max-w-[300px]">
                   <Badge
                     className={`${
                       report.TrangThai === 0
@@ -87,7 +83,17 @@ const TableIssue = ({ reportData, refetch }) => {
                   <div className="flex items-center justify-center gap-2">
                     <ModalViewIssue dataView={report} />
                     {report.TrangThai === 0 && (
-                      <ModalUpdateIssue dataUpdate={report} refetch={refetch} />
+                      <>
+                        <ModalUpdateIssue
+                          dataUpdate={report}
+                          refetch={refetch}
+                          refetchStatus={refetchStatus}
+                        />
+                        <ModalDeleteIssue
+                          dataDelete={report}
+                          refetch={refetch}
+                        />
+                      </>
                     )}
                   </div>
                 </TableCell>

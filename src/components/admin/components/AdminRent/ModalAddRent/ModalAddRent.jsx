@@ -29,17 +29,12 @@ import { getAllServiceService } from "@/services/serviceServices";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { MdOutlinePostAdd } from "react-icons/md";
 import { toast } from "react-toastify";
 import { ImageKitProvider, upload } from "@imagekit/react";
 import axios from "@/utils/axiosCustomize";
-
-const imagekitConfig = {
-  publicKey: "public_5flKnxY8+H0nvPurdYRPyk/kKEU=",
-  urlEndpoint: "https://ik.imagekit.io/sudodev",
-  authenticationEndpoint: "http://localhost:8000/api/image/auth",
-};
+import imagekitConfig from "@/utils/imagekit";
+import { useEffect, useRef, useState } from "react";
 
 const ModalAddRent = ({ showText }) => {
   const queryClient = useQueryClient();
@@ -963,19 +958,22 @@ const ModalAddRent = ({ showText }) => {
                             <span className="text-sm text-gray-600 w-32 text-right">
                               {formatCurrency(service.DonGia || 0)} VNĐ
                             </span>
-                            <Input
-                              type="number"
-                              value={serviceQuantities[service.MaDV] ?? ""}
-                              onChange={(e) =>
-                                handleQuantityChange(
-                                  service.MaDV,
-                                  e.target.value
-                                )
-                              }
-                              disabled={isElectricityOrWater(service)}
-                              className="w-20 h-8 text-center rounded"
-                              aria-label={`Số lượng dịch vụ ${service.TenDV}`}
-                            />
+                            {service.CachTinhPhi === "SO_LUONG" &&
+                            !isElectricityOrWater(service) ? (
+                              <Input
+                                type="number"
+                                value={serviceQuantities[service.MaDV] ?? ""}
+                                onChange={(e) =>
+                                  handleQuantityChange(
+                                    service.MaDV,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-20 h-8 text-center rounded"
+                                aria-label={`Số lượng dịch vụ ${service.TenDV}`}
+                                min="1"
+                              />
+                            ) : null}
                           </div>
                         </div>
                       ))}

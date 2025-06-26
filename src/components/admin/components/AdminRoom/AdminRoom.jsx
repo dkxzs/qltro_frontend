@@ -306,9 +306,7 @@ const AdminRoom = () => {
                           />
                         </div>
                       ) : (
-                        <div className="mt-4 text-center text-gray-500">
-                          {/* Không có phòng nào phù hợp với điều kiện tìm kiếm */}
-                        </div>
+                        <div className="mt-4 text-center text-gray-500"></div>
                       )}
                     </>
                   )}
